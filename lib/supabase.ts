@@ -18,14 +18,32 @@ export async function getCategories(): Promise<Category[]> {
   return data ?? []
 }
 
-export async function getProducts(categorySlug?: string): Promise<Product[]> {
+export async function getProducts(
+  categorySlug?: string,
+  productType?: string,
+): Promise<Product[]> {
   let query = supabase
     .from('products')
     .select('*, category:categories(*)')
-    .order('name_ru')
+    // PP (расходники для сборки) никогда не показываются в публичном каталоге
+    .neq('product_type', 'PP')
+    .order('classification_code', { ascending: true })
+    .order('name_ru', { ascending: true })
+
   if (categorySlug) {
-    query = query.eq('categories.slug', categorySlug)
+    const { data: cat } = await supabase
+      .from('categories')
+      .select('id')
+      .eq('slug', categorySlug)
+      .single()
+    if (!cat) return []
+    query = query.eq('category_id', cat.id)
   }
+
+  if (productType && productType !== 'all') {
+    query = query.eq('product_type', productType)
+  }
+
   const { data, error } = await query
   if (error) throw error
   return data ?? []

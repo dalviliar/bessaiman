@@ -1,13 +1,14 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, Download, FileText, ChevronLeft, ChevronRight, Package } from 'lucide-react'
+import { ArrowLeft, FileText, ChevronLeft, ChevronRight, Package } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 import PriceCalculator from '@/components/PriceCalculator'
 import ProductCard from '@/components/ProductCard'
+import KPModal from '@/components/KPModal'
 import { getProductBySlug } from '@/lib/supabase'
 import type { Product } from '@/types'
 
@@ -40,11 +41,11 @@ function ImageGallery({ images, name }: { images: string[]; name: string }) {
         {images.length > 1 && (
           <>
             <button onClick={() => setCurrent((c) => (c - 1 + images.length) % images.length)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-steel-surface/80 border border-steel-border flex items-center justify-center hover:border-steel-accent text-white transition-all">
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-steel-border flex items-center justify-center hover:border-steel-accent text-slate-600 transition-all shadow-sm">
               <ChevronLeft size={16} />
             </button>
             <button onClick={() => setCurrent((c) => (c + 1) % images.length)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-steel-surface/80 border border-steel-border flex items-center justify-center hover:border-steel-accent text-white transition-all">
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-steel-border flex items-center justify-center hover:border-steel-accent text-slate-600 transition-all shadow-sm">
               <ChevronRight size={16} />
             </button>
           </>
@@ -66,49 +67,12 @@ function ImageGallery({ images, name }: { images: string[]; name: string }) {
   )
 }
 
-async function generatePDF(product: Product, lang: string, type: 'spec' | 'offer') {
-  const { default: jsPDF } = await import('jspdf')
-  const doc = new jsPDF()
-  const name = product[`name_${lang}` as const] || product.name_ru
-  const desc = product[`description_${lang}` as const] || product.description_ru || ''
-
-  doc.setFontSize(20)
-  doc.text('Bes Saiman Group', 20, 20)
-  doc.setFontSize(14)
-  doc.text(name, 20, 35)
-  if (product.model) {
-    doc.setFontSize(11)
-    doc.text(`Model: ${product.model}`, 20, 45)
-  }
-  doc.setFontSize(10)
-  doc.text(type === 'offer' ? 'COMMERCIAL OFFER' : 'TECHNICAL SPECIFICATION', 20, 58)
-  doc.line(20, 62, 190, 62)
-
-  if (product.specs && type === 'spec') {
-    let y = 72
-    Object.entries(product.specs).forEach(([key, val]) => {
-      doc.text(`${key}: ${val}`, 20, y)
-      y += 8
-      if (y > 270) { doc.addPage(); y = 20 }
-    })
-  } else if (desc) {
-    const lines = doc.splitTextToSize(desc, 170)
-    doc.text(lines, 20, 72)
-  }
-
-  if (product.price) {
-    doc.text(`Price: ${product.price.toLocaleString()} ₸`, 20, 250)
-  }
-  doc.text('Tel: +7 (701) 101-34-33 | bessaimangroup1@gmail.com', 20, 280)
-
-  doc.save(`${product.slug}-${type}.pdf`)
-}
-
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const { lang, tr } = useLang()
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showKP, setShowKP] = useState(false)
 
   useEffect(() => {
     getProductBySlug(slug).then((p) => { setProduct(p); setLoading(false) }).catch(() => setLoading(false))
@@ -140,8 +104,8 @@ export default function ProductDetailPage() {
     )
   }
 
-  const name = product[`name_${lang}` as const] || product.name_ru
-  const description = product[`description_${lang}` as const] || product.description_ru
+  const name = product[`name_${lang}` as 'name_ru' | 'name_kk' | 'name_en'] || product.name_ru
+  const description = product[`description_${lang}` as 'description_ru' | 'description_kk' | 'description_en'] || product.description_ru
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -168,12 +132,12 @@ export default function ProductDetailPage() {
                 </span>
               )}
             </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-white leading-tight">{name}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-[#0F172A] leading-tight">{name}</h1>
             {product.category && (
               <p className="text-steel-silver text-sm mt-2">
                 {tr.product.category}:{' '}
                 <span className="text-steel-accent">
-                  {product.category[`name_${lang}` as const] || product.category.name_ru}
+                  {product.category[`name_${lang}` as 'name_ru' | 'name_kk' | 'name_en'] || product.category.name_ru}
                 </span>
               </p>
             )}
@@ -192,28 +156,25 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* Documents */}
-          {(product.documents?.length || true) && (
-            <div className="steel-card p-4 space-y-3">
-              <h3 className="text-white font-semibold text-sm">{tr.product.documents}</h3>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  onClick={() => generatePDF(product, lang, 'spec')}
-                  className="btn-secondary flex items-center gap-2 text-sm py-2 px-4"
-                >
-                  <FileText size={15} />
-                  {tr.product.downloadSpec}
-                </button>
-                <button
-                  onClick={() => generatePDF(product, lang, 'offer')}
-                  className="btn-secondary flex items-center gap-2 text-sm py-2 px-4"
-                >
-                  <Download size={15} />
-                  {tr.product.downloadOffer}
-                </button>
+          {/* КП */}
+          <div className="steel-card p-5 space-y-3" style={{ borderColor: '#BFDBFE' }}>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#DBEAFE' }}>
+                <FileText size={13} style={{ color: '#1565C0' }} />
               </div>
+              <h3 className="text-[#0F172A] font-semibold text-sm">Коммерческое предложение</h3>
             </div>
-          )}
+            <p className="text-xs leading-relaxed" style={{ color: '#64748B' }}>
+              Сформируйте КП с реквизитами компании и техническими характеристиками — PDF скачается автоматически.
+            </p>
+            <button
+              onClick={() => setShowKP(true)}
+              className="btn-primary w-full flex items-center justify-center gap-2"
+            >
+              <FileText size={15} />
+              Получить КП (PDF)
+            </button>
+          </div>
         </div>
       </div>
 
@@ -226,9 +187,9 @@ export default function ProductDetailPage() {
               <tbody>
                 {Object.entries(product.specs).map(([key, val], i) => (
                   <tr key={key}
-                    className={`border-b border-steel-border/30 last:border-0 ${i % 2 === 0 ? '' : 'bg-white/[0.02]'}`}>
+                    className={`border-b border-steel-border/30 last:border-0 ${i % 2 === 0 ? '' : 'bg-[#F8FAFC]'}`}>
                     <td className="px-6 py-3 text-steel-silver font-medium w-1/2">{key}</td>
-                    <td className="px-6 py-3 text-white">{val as string}</td>
+                    <td className="px-6 py-3 text-[#0F172A]">{val as string}</td>
                   </tr>
                 ))}
               </tbody>
@@ -248,6 +209,9 @@ export default function ProductDetailPage() {
           </div>
         </section>
       )}
+
+      {/* КП Modal */}
+      {showKP && <KPModal product={product} onClose={() => setShowKP(false)} />}
     </div>
   )
 }

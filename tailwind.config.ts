@@ -11,17 +11,17 @@ const config: Config = {
     extend: {
       colors: {
         steel: {
-          darkest: '#050810',
-          dark: '#0A0F1C',
-          surface: '#111827',
-          card: '#1A2235',
-          border: '#1E3A5F',
+          darkest: '#0F172A',
+          dark: '#F0F4F8',
+          surface: '#FFFFFF',
+          card: '#FFFFFF',
+          border: '#CBD5E1',
           blue: '#1565C0',
           'blue-light': '#1E88E5',
-          silver: '#78909C',
-          'silver-light': '#B0BEC5',
-          accent: '#00B0FF',
-          gold: '#FFB300',
+          silver: '#64748B',
+          'silver-light': '#94A3B8',
+          accent: '#0284C7',
+          gold: '#D97706',
         },
       },
       fontFamily: {

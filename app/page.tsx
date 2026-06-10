@@ -1,461 +1,272 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 
-// ── Animated molecular particle network (canvas) ─────────────────────────────
-function MolecularCanvas() {
-  const ref = useRef<HTMLCanvasElement>(null)
-
-  useEffect(() => {
-    const canvas = ref.current
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')!
-
-    const resize = () => {
-      canvas.width  = window.innerWidth
-      canvas.height = window.innerHeight
-    }
-    resize()
-    window.addEventListener('resize', resize)
-
-    const COUNT = typeof window !== 'undefined' && window.innerWidth < 768 ? 40 : 70
-    const LINK  = 160
-
-    const pts = Array.from({ length: COUNT }, () => ({
-      x:  Math.random() * canvas.width,
-      y:  Math.random() * canvas.height,
-      vx: (Math.random() - 0.5) * 0.35,
-      vy: (Math.random() - 0.5) * 0.35,
-      r:  Math.random() * 1.6 + 0.8,
-    }))
-
-    let raf = 0
-    const draw = () => {
-      const W = canvas.width, H = canvas.height
-      ctx.clearRect(0, 0, W, H)
-
-      for (const p of pts) {
-        p.x += p.vx; p.y += p.vy
-        if (p.x < 0 || p.x > W) p.vx *= -1
-        if (p.y < 0 || p.y > H) p.vy *= -1
-
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
-        ctx.fillStyle = 'rgba(14,165,233,0.55)'
-        ctx.fill()
-      }
-
-      for (let i = 0; i < pts.length; i++) {
-        for (let j = i + 1; j < pts.length; j++) {
-          const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y
-          const d  = Math.sqrt(dx * dx + dy * dy)
-          if (d < LINK) {
-            const a = (1 - d / LINK) * 0.22
-            ctx.beginPath()
-            ctx.moveTo(pts[i].x, pts[i].y)
-            ctx.lineTo(pts[j].x, pts[j].y)
-            ctx.strokeStyle = `rgba(14,165,233,${a})`
-            ctx.lineWidth = 0.6
-            ctx.stroke()
-          }
-        }
-      }
-      raf = requestAnimationFrame(draw)
-    }
-    draw()
-
-    return () => { cancelAnimationFrame(raf); window.removeEventListener('resize', resize) }
-  }, [])
-
-  return (
-    <canvas
-      ref={ref}
-      className="absolute inset-0 pointer-events-none"
-      style={{ opacity: 0.45 }}
-    />
-  )
-}
-
-// ── Sonar / instrument rings ─────────────────────────────────────────────────
-function SonarRings() {
-  return (
-    <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
-      {[320, 560, 820, 1100].map((size, i) => (
-        <div
-          key={size}
-          className="absolute rounded-full"
-          style={{
-            width:  size, height: size,
-            border: `1px solid rgba(14,165,233,${0.07 - i * 0.012})`,
-            animation: `ring-breathe ${5 + i * 1.8}s ease-in-out ${i * 0.9}s infinite`,
-          }}
-        />
-      ))}
-      {/* Centre dot — precision point */}
-      <div
-        className="absolute w-1.5 h-1.5 rounded-full"
-        style={{
-          background: '#0EA5E9',
-          boxShadow: '0 0 0 6px rgba(14,165,233,0.08), 0 0 20px rgba(14,165,233,0.3)',
-        }}
-      />
+const VacuumChamber3D = dynamic(() => import('@/components/VacuumChamber3D'), {
+  ssr: false,
+  loading: () => (
+    <div style={{ width: '100%', height: 520, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ width: 48, height: 48, border: '3px solid #E2E8F0', borderTopColor: '#1565C0', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
     </div>
-  )
-}
+  ),
+})
 
-// ── Ruler ticks ───────────────────────────────────────────────────────────────
-function HRuler() {
-  return (
-    <div className="absolute top-0 left-0 right-0 flex items-end overflow-hidden pointer-events-none" style={{ height: 22 }}>
-      {Array.from({ length: 120 }).map((_, i) => (
-        <div key={i} style={{
-          flex: '0 0 calc(100%/120)', alignSelf: 'flex-end', marginRight: 1,
-          height: i % 10 === 0 ? 16 : i % 5 === 0 ? 10 : 4,
-          background: `rgba(14,165,233,${i % 10 === 0 ? 0.45 : i % 5 === 0 ? 0.25 : 0.1})`,
-        }} />
-      ))}
-    </div>
-  )
-}
-
-// ── Animated counter ──────────────────────────────────────────────────────────
 function Counter({ to, suffix = '' }: { to: number; suffix?: string }) {
   const [val, setVal] = useState(0)
   const raf = useRef(0)
   useEffect(() => {
-    const START = performance.now(), DUR = 2200
-    const tick = (now: number) => {
-      const p = Math.min((now - START) / DUR, 1)
+    const S = performance.now(), D = 2200
+    const tick = (n: number) => {
+      const p = Math.min((n - S) / D, 1)
       setVal(Math.round((1 - (1 - p) ** 3) * to))
       if (p < 1) raf.current = requestAnimationFrame(tick)
     }
-    const t = setTimeout(() => { raf.current = requestAnimationFrame(tick) }, 700)
+    const t = setTimeout(() => { raf.current = requestAnimationFrame(tick) }, 400)
     return () => { clearTimeout(t); cancelAnimationFrame(raf.current) }
   }, [to])
   return <>{val}{suffix}</>
 }
 
-// ── Instrument-panel category card ────────────────────────────────────────────
-function CatCard({
-  emoji, label, sub, delay,
-}: { emoji: string; label: string; sub: string; delay: number }) {
-  return (
-    <Link
-      href="/catalog"
-      className="group flex flex-col items-center gap-3 px-6 py-5 transition-all duration-300"
-      style={{
-        background: 'rgba(14,165,233,0.03)',
-        border: '1px solid rgba(14,165,233,0.12)',
-        borderRadius: 2,
-        animation: `fade-up 0.7s ease both`,
-        animationDelay: `${delay}ms`,
-      }}
-    >
-      <div
-        className="w-12 h-12 flex items-center justify-center text-2xl rounded-sm transition-all duration-300 group-hover:scale-110"
-        style={{
-          background: 'rgba(14,165,233,0.07)',
-          border: '1px solid rgba(14,165,233,0.18)',
-        }}
-      >
-        {emoji}
-      </div>
-      <div className="text-center">
-        <div
-          className="font-mono text-[11px] tracking-[0.15em] font-semibold mb-0.5 group-hover:text-sky-400 transition-colors"
-          style={{ color: '#94A3B8' }}
-        >
-          {label}
-        </div>
-        <div className="font-mono text-[9px] tracking-widest" style={{ color: '#334155' }}>
-          {sub}
-        </div>
-      </div>
-    </Link>
-  )
-}
+const categories = [
+  {
+    code: 'SFM',
+    title: 'Муфельные печи',
+    spec: 'до 1800°C · 1–12 л',
+    desc: 'Серийные муфельные печи с PID-контроллером. 6 объёмов камеры, 3 класса температур.',
+    stat: '18 моделей',
+    href: '/catalog?category=furnaces&type=S',
+  },
+  {
+    code: 'SFTH',
+    title: 'Трубчатые печи',
+    spec: '1100–1200°C · 1–3 зоны',
+    desc: 'Горизонтальные, вертикальные и мультипозиционные трубчатые печи. Диаметр 25–70 мм.',
+    stat: '9 моделей',
+    href: '/catalog?category=furnaces&type=S',
+  },
+  {
+    code: 'SM',
+    title: 'Шаровые мельницы',
+    spec: 'до 650 об/мин',
+    desc: 'Горизонтальные и планетарные шаровые мельницы для помола и смешивания материалов.',
+    stat: '3 модели',
+    href: '/catalog?category=mills&type=S',
+  },
+  {
+    code: 'SGB',
+    title: 'Вакуумные боксы',
+    spec: '< 0.1 ppm · ≤1 Па',
+    desc: 'Перчаточные боксы из нержавеющей стали и акрила для работы в инертной атмосфере.',
+    stat: '2 модели',
+    href: '/catalog?category=vacuum&type=S',
+  },
+  {
+    code: 'SES',
+    title: 'Электроспиннинг',
+    spec: 'до 50 кВ',
+    desc: 'Лабораторные установки для получения нановолокон полимеров и керамик.',
+    stat: 'под заказ',
+    href: '/catalog?category=electrospinning&type=S',
+  },
+  {
+    code: 'PA',
+    title: 'Комплектующие',
+    spec: 'нагреватели · контроллеры',
+    desc: 'Нагревательные платы, контроллеры температуры, системы газоснабжения и расходники.',
+    stat: '5+ позиций',
+    href: '/catalog?category=accessories&type=PA',
+  },
+]
 
-// ═══════════════════════════════════════════════════════════════════════════════
+const STATS = [
+  { num: 200, suf: '+', label: 'позиций' },
+  { num: 12,  suf: '+', label: 'лет на рынке' },
+  { num: 50,  suf: '+', label: 'партнёров' },
+]
+
 export default function HomePage() {
+  const [hovCard, setHovCard] = useState<string | null>(null)
+
   return (
-    <div
-      className="relative flex flex-col overflow-hidden"
-      style={{ minHeight: 'calc(100vh - 60px)', background: '#030608' }}
-    >
-      {/* ── Blueprint grid ── */}
-      <div className="absolute inset-0 pointer-events-none" style={{
-        backgroundImage: 'linear-gradient(rgba(14,165,233,0.055) 1px, transparent 1px), linear-gradient(90deg, rgba(14,165,233,0.055) 1px, transparent 1px)',
-        backgroundSize: '80px 80px',
-      }} />
-      <div className="absolute inset-0 pointer-events-none" style={{
-        backgroundImage: 'linear-gradient(rgba(14,165,233,0.018) 1px, transparent 1px), linear-gradient(90deg, rgba(14,165,233,0.018) 1px, transparent 1px)',
-        backgroundSize: '16px 16px',
-      }} />
+    <div style={{ background: '#F8FAFC', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg) } }
+        @keyframes fade-up { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:none } }
+        @keyframes beam-slide {
+          0%   { transform: translateX(-100%) skewX(-20deg); opacity: 0 }
+          15%  { opacity: 1 }
+          85%  { opacity: 1 }
+          100% { transform: translateX(400%) skewX(-20deg); opacity: 0 }
+        }
+      `}</style>
 
-      {/* ── Cinematic vignette + glow ── */}
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'radial-gradient(ellipse 90% 70% at 50% 42%, rgba(14,165,233,0.065) 0%, transparent 70%)',
-      }} />
-      <div className="absolute inset-0 pointer-events-none" style={{
-        background: 'radial-gradient(ellipse 100% 100% at 50% 100%, rgba(3,6,8,0.7) 0%, transparent 50%)',
-      }} />
+      {/* ══ HERO ══ */}
+      <section style={{ borderBottom: '1px solid #E2E8F0', background: 'white' }}>
+        <div className="w-full max-w-7xl mx-auto px-6 lg:px-8 grid md:grid-cols-2 gap-6 items-center py-14 md:py-20">
 
-      {/* ── Molecular canvas ── */}
-      <MolecularCanvas />
+          {/* Left */}
+          <div className="flex flex-col gap-6" style={{ animation: 'fade-up 0.6s ease both' }}>
 
-      {/* ── Sonar rings ── */}
-      <SonarRings />
-
-      {/* ── Horizontal scan line ── */}
-      <div className="absolute left-0 right-0 pointer-events-none" style={{
-        height: 1,
-        background: 'linear-gradient(90deg, transparent, rgba(14,165,233,0.5) 30%, rgba(56,189,248,0.8) 50%, rgba(14,165,233,0.5) 70%, transparent)',
-        boxShadow: '0 0 14px rgba(14,165,233,0.4)',
-        animation: 'scan-down 10s linear infinite',
-        zIndex: 4,
-      }} />
-
-      {/* ── Ruler ── */}
-      <HRuler />
-
-      {/* ── Corner brackets ── */}
-      {(['top-7 left-7 border-l border-t', 'top-7 right-7 border-r border-t',
-        'bottom-7 left-7 border-l border-b', 'bottom-7 right-7 border-r border-b'] as const
-      ).map((cls) => (
-        <div key={cls} className={`absolute w-9 h-9 pointer-events-none ${cls}`}
-          style={{ borderColor: 'rgba(14,165,233,0.3)', borderWidth: '1px' }} />
-      ))}
-
-      {/* ── Corner labels ── */}
-      <div className="absolute top-10 left-12 pointer-events-none font-mono text-[9px] tracking-widest" style={{ color: 'rgba(14,165,233,0.42)' }}>
-        PREC: ±0.001 MM
-      </div>
-      <div className="absolute top-10 right-12 pointer-events-none font-mono text-[9px] tracking-widest text-right" style={{ color: 'rgba(14,165,233,0.42)' }}>
-        ISO 9001 CERTIFIED
-      </div>
-      <div className="absolute bottom-[72px] left-12 pointer-events-none font-mono text-[9px] tracking-widest" style={{ color: 'rgba(14,165,233,0.3)' }}>
-        KZ · ALM · 2014
-      </div>
-      <div className="absolute bottom-[72px] right-12 pointer-events-none flex items-center gap-1.5">
-        <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#22c55e', boxShadow: '0 0 5px #22c55e', animation: 'pulse 2.5s ease infinite' }} />
-        <span className="font-mono text-[9px] tracking-widest" style={{ color: 'rgba(14,165,233,0.35)' }}>SYS: ONLINE</span>
-      </div>
-
-      {/* ═══════════════════ HERO CONTENT ═══════════════════ */}
-      <div
-        className="relative flex-1 flex flex-col items-center justify-center text-center px-6"
-        style={{ paddingTop: '5vh', paddingBottom: '2vh', zIndex: 10 }}
-      >
-
-        {/* ── Badge ── */}
-        <div
-          className="inline-flex items-center gap-3 px-5 py-2 mb-10"
-          style={{
-            border: '1px solid rgba(14,165,233,0.3)',
-            background: 'rgba(14,165,233,0.05)',
-            borderRadius: 2,
-            animation: 'fade-up 0.6s ease both',
-          }}
-        >
-          <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#0EA5E9', boxShadow: '0 0 8px #0EA5E9', animation: 'pulse 2s ease infinite' }} />
-          <span className="font-mono text-[10px] tracking-[0.22em]" style={{ color: '#38BDF8' }}>
-            KAZAKHSTAN · LABORATORY SOLUTIONS
-          </span>
-          <div className="w-1.5 h-1.5 rounded-full" style={{ background: '#0EA5E9', boxShadow: '0 0 8px #0EA5E9', animation: 'pulse 2s 0.5s ease infinite' }} />
-        </div>
-
-        {/* ── Title ── */}
-        <div
-          className="select-none mb-5"
-          style={{ lineHeight: 1, animation: 'fade-up 0.7s 0.1s ease both' }}
-        >
-          {/* BES */}
-          <div
-            className="font-black"
-            style={{
-              fontSize: 'clamp(60px, 10.5vw, 140px)',
-              letterSpacing: '-0.035em',
-              lineHeight: 0.92,
-              color: '#F1F5F9',
-            }}
-          >
-            BES
-          </div>
-
-          {/* SAIMAN — animated metallic silver */}
-          <div
-            className="font-black"
-            style={{
-              fontSize: 'clamp(60px, 10.5vw, 140px)',
-              letterSpacing: '-0.035em',
-              lineHeight: 0.92,
-              background: 'linear-gradient(90deg, #7B9AB8 0%, #D4E4F4 18%, #8AAAC4 35%, #EAF2FC 52%, #6B8CAE 68%, #C4D8EE 84%, #7B9AB8 100%)',
-              backgroundSize: '200% 100%',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              animation: 'metal-flow 8s ease-in-out infinite',
-            }}
-          >
-            SAIMAN
-          </div>
-        </div>
-
-        {/* GROUP */}
-        <div
-          className="font-light tracking-[0.4em] mb-10"
-          style={{
-            fontSize: 'clamp(12px, 2.2vw, 28px)',
-            color: '#1E3A5A',
-            animation: 'fade-up 0.7s 0.2s ease both',
-          }}
-        >
-          GROUP
-        </div>
-
-        {/* ── Divider ── */}
-        <div
-          className="flex items-center gap-5 w-full max-w-lg mb-8"
-          style={{ animation: 'fade-up 0.7s 0.3s ease both' }}
-        >
-          <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(14,165,233,0.4))' }} />
-          <div className="flex items-center gap-2">
-            <svg width="10" height="12" viewBox="0 0 10 12">
-              <polygon points="5,0 10,3 10,9 5,12 0,9 0,3" fill="none" stroke="rgba(14,165,233,0.5)" strokeWidth="0.8" />
-            </svg>
-            <span className="font-mono text-[9px] tracking-[0.2em]" style={{ color: 'rgba(14,165,233,0.5)' }}>EST. 2014</span>
-            <svg width="10" height="12" viewBox="0 0 10 12">
-              <polygon points="5,0 10,3 10,9 5,12 0,9 0,3" fill="none" stroke="rgba(14,165,233,0.5)" strokeWidth="0.8" />
-            </svg>
-          </div>
-          <div className="flex-1 h-px" style={{ background: 'linear-gradient(90deg, rgba(14,165,233,0.4), transparent)' }} />
-        </div>
-
-        {/* ── Tagline ── */}
-        <p
-          className="font-light mb-11"
-          style={{
-            fontSize: '14px',
-            color: '#3A5470',
-            letterSpacing: '0.1em',
-            lineHeight: 2.2,
-            animation: 'fade-up 0.7s 0.35s ease both',
-          }}
-        >
-          ВЫСОКОТЕМПЕРАТУРНЫЕ ПЕЧИ · МЕЛЬНИЦЫ · ВАКУУМНОЕ ОБОРУДОВАНИЕ<br />
-          ЭЛЕКТРОСПИННИНГ · АКСЕССУАРЫ И КОМПЛЕКТУЮЩИЕ
-        </p>
-
-        {/* ── CTA Buttons ── */}
-        <div
-          className="flex flex-wrap gap-4 justify-center mb-14"
-          style={{ animation: 'fade-up 0.7s 0.4s ease both' }}
-        >
-          {/* Primary */}
-          <Link
-            href="/catalog"
-            className="group relative inline-flex items-center gap-3 px-8 py-3.5 font-semibold text-white overflow-hidden transition-all duration-300"
-            style={{
-              fontSize: 13, letterSpacing: '0.1em',
-              background: 'linear-gradient(135deg, #0369A1, #0EA5E9)',
-              borderRadius: 2,
-              border: '1px solid rgba(14,165,233,0.6)',
-              boxShadow: '0 0 0 0 rgba(14,165,233,0)',
-            }}
-          >
-            {/* Hover shimmer */}
-            <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-              style={{ background: 'linear-gradient(135deg, #0EA5E9, #38BDF8)' }} />
-            <span className="relative font-mono tracking-wider text-[12px]">▶ СМОТРЕТЬ КАТАЛОГ</span>
-          </Link>
-
-          {/* Secondary */}
-          <Link
-            href="/contacts"
-            className="inline-flex items-center gap-3 font-mono font-semibold transition-all duration-300 hover:border-sky-500 hover:text-sky-400"
-            style={{
-              fontSize: 12, letterSpacing: '0.1em',
-              padding: '14px 32px',
-              background: 'transparent',
-              borderRadius: 2,
-              border: '1px solid rgba(14,165,233,0.25)',
-              color: '#3A6688',
-            }}
-          >
-            СВЯЗАТЬСЯ С НАМИ
-          </Link>
-        </div>
-
-        {/* ── Stats ── */}
-        <div
-          className="flex gap-10 md:gap-16"
-          style={{ animation: 'fade-up 0.7s 0.5s ease both' }}
-        >
-          {[
-            { to: 200, suffix: '+', label: 'ЕДИНИЦ\nОБОРУДОВАНИЯ' },
-            { to: 50,  suffix: '+', label: 'ПАРТНЁРОВ' },
-            { to: 10,  suffix: '+', label: 'ЛЕТ\nОПЫТА' },
-          ].map((s) => (
-            <div key={s.label} className="text-center">
-              <div
-                className="font-black mb-1.5"
-                style={{
-                  fontSize: 'clamp(30px, 4vw, 50px)',
-                  letterSpacing: '-0.03em',
-                  background: 'linear-gradient(135deg, #0EA5E9, #38BDF8)',
-                  WebkitBackgroundClip: 'text',
-                  WebkitTextFillColor: 'transparent',
-                  backgroundClip: 'text',
-                }}
-              >
-                <Counter to={s.to} suffix={s.suffix} />
-              </div>
-              <div className="font-mono text-[9px] tracking-[0.16em] whitespace-pre-line" style={{ color: 'rgba(14,165,233,0.45)' }}>
-                {s.label}
-              </div>
+            <div className="inline-flex items-center gap-2.5 w-fit px-3.5 py-1.5 rounded-full"
+              style={{ background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#1565C0', boxShadow: '0 0 6px rgba(21,101,192,0.6)' }} />
+              <span className="text-[10px] font-mono tracking-[0.2em]" style={{ color: '#1565C0', fontWeight: 700 }}>
+                НАУЧНО-ПРОИЗВОДСТВЕННОЕ ПРЕДПРИЯТИЕ
+              </span>
             </div>
+
+            <h1 className="font-black select-none" style={{ fontSize: 'clamp(2.6rem,5.5vw,4.2rem)', letterSpacing: '-0.025em', lineHeight: 1.02 }}>
+              <span style={{ display: 'block', color: '#0F172A' }}>ОТ ИДЕИ</span>
+              <span style={{
+                display: 'block',
+                background: 'linear-gradient(90deg,#1565C0 0%,#0284C7 60%,#0EA5E9 100%)',
+                WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
+              }}>ДО ПУСКА</span>
+            </h1>
+
+            <p className="text-sm leading-[1.85] max-w-md"
+              style={{ color: '#475569', borderLeft: '2px solid #BFDBFE', paddingLeft: 14 }}>
+              Проектируем и производим высокотемпературные печи, шаровые мельницы, вакуумные камеры и установки электроспиннинга — от технического задания до запуска в эксплуатацию.
+            </p>
+
+            <div className="flex items-center gap-3 flex-wrap">
+              <Link href="/catalog"
+                className="relative overflow-hidden px-7 py-3.5 font-bold text-sm transition-all hover:-translate-y-0.5"
+                style={{ background: 'linear-gradient(135deg,#1260C0,#0284C7)', color: 'white', letterSpacing: '0.07em', borderRadius: 8, boxShadow: '0 4px 20px rgba(21,101,192,0.3)' }}>
+                <span className="absolute inset-y-0 w-12 pointer-events-none"
+                  style={{ background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent)', animation: 'beam-slide 4s 1s ease-in-out infinite' }} />
+                СМОТРЕТЬ КАТАЛОГ
+              </Link>
+              <Link href="/contacts"
+                className="px-7 py-3.5 font-bold text-sm transition-all hover:-translate-y-0.5"
+                style={{ border: '1.5px solid #CBD5E1', color: '#475569', letterSpacing: '0.07em', borderRadius: 8, background: 'white' }}>
+                СВЯЗАТЬСЯ
+              </Link>
+            </div>
+
+            {/* Stats */}
+            <div className="flex items-stretch gap-0 pt-1">
+              {STATS.map(({ num, suf, label }, i) => (
+                <div key={label} className="flex flex-col px-5 py-3 text-center"
+                  style={{ borderLeft: i === 0 ? 'none' : '1px solid #E2E8F0' }}>
+                  <span className="font-black text-2xl" style={{ color: '#1565C0' }}>
+                    <Counter to={num} suffix={suf} />
+                  </span>
+                  <span className="text-[10px] font-mono tracking-wider mt-0.5" style={{ color: '#94A3B8' }}>
+                    {label}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right — 3D model */}
+          <div className="flex justify-center items-center" style={{ animation: 'fade-up 0.5s 0.12s ease both' }}>
+            <div style={{ width: '100%', maxWidth: 520 }}>
+              <VacuumChamber3D dark={false} />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ══ SPEC STRIP ══ */}
+      <div style={{ background: '#F1F5F9', borderBottom: '1px solid #E2E8F0' }}>
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-3 flex items-center justify-between flex-wrap gap-3">
+          <span className="text-[9px] font-mono tracking-[0.2em] font-bold" style={{ color: '#94A3B8' }}>
+            КАТАЛОГ ПРОДУКЦИИ
+          </span>
+          <div style={{ flex: 1, height: 1, background: '#E2E8F0', margin: '0 12px' }} />
+          {['T: 25°C — 1800°C', '±0.001 MM', 'КАЗАХСТАН · АЛМАТЫ', 'ISO 9001'].map(t => (
+            <span key={t} className="text-[9px] font-mono tracking-widest" style={{ color: '#94A3B8' }}>{t}</span>
           ))}
         </div>
       </div>
 
-      {/* ══════════════════════════════════════════════════
-          CATEGORY PANEL — below the fold
-      ══════════════════════════════════════════════════ */}
-      <div
-        className="relative px-6 pb-16 pt-8"
-        style={{ zIndex: 10 }}
-      >
-        {/* Thin divider */}
-        <div className="w-full mb-8" style={{ height: 1, background: 'linear-gradient(90deg, transparent, rgba(14,165,233,0.2) 30%, rgba(14,165,233,0.2) 70%, transparent)' }} />
+      {/* ══ CATEGORIES ══ */}
+      <section className="py-14 px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
 
-        <div className="max-w-3xl mx-auto">
-          <div className="font-mono text-[9px] tracking-[0.25em] text-center mb-5" style={{ color: 'rgba(14,165,233,0.3)' }}>
-            НАПРАВЛЕНИЯ / PRODUCT LINES
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <CatCard emoji="🔥" label="ПЕЧИ"            sub="FURNACES"          delay={600} />
-            <CatCard emoji="⚙️" label="МЕЛЬНИЦЫ"        sub="MILLS & GRINDERS"  delay={700} />
-            <CatCard emoji="🔬" label="ВАКУУМ"           sub="VACUUM SYSTEMS"    delay={800} />
-            <CatCard emoji="⚗" label="ЭЛЕКТРОСПИННИНГ" sub="ELECTROSPINNING"   delay={900} />
-          </div>
-        </div>
-      </div>
-
-      {/* ── Spec bar ── */}
-      <div
-        className="relative"
-        style={{ borderTop: '1px solid rgba(14,165,233,0.1)', background: 'rgba(3,6,8,0.9)', zIndex: 10 }}
-      >
-        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-1 py-2.5 font-mono text-[8px] tracking-[0.14em] overflow-hidden" style={{ color: 'rgba(14,165,233,0.35)' }}>
-          {['KAZAKHSTAN', 'ALMATY', 'T: 25°C — 1800°C', '±0.001 MM PRECISION', '200+ PRODUCTS', 'ISO 9001', 'MATERIALS SCIENCE'].map((item, i, arr) => (
-            <span key={item} className="flex items-center gap-6 whitespace-nowrap">
-              {item}
-              {i < arr.length - 1 && <span style={{ color: 'rgba(14,165,233,0.15)' }}>|</span>}
+          <div className="flex items-center gap-4 mb-8">
+            <div style={{ width: 32, height: 2, background: 'linear-gradient(90deg,#1565C0,transparent)', borderRadius: 2 }} />
+            <span className="text-[10px] font-mono tracking-[0.22em] font-bold" style={{ color: '#1565C0' }}>
+              ЛИНЕЙКА ПРОДУКТОВ
             </span>
-          ))}
+            <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
+            <Link href="/catalog" className="text-[11px] font-semibold transition-colors hover:text-[#1565C0]"
+              style={{ color: '#94A3B8' }}>
+              Весь каталог →
+            </Link>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {categories.map((cat) => {
+              const hov = hovCard === cat.code
+              return (
+                <Link key={cat.code} href={cat.href}
+                  onMouseEnter={() => setHovCard(cat.code)}
+                  onMouseLeave={() => setHovCard(null)}
+                  className="flex flex-col gap-3.5 p-5 rounded-xl transition-all duration-200"
+                  style={{
+                    background: 'white',
+                    border: `1.5px solid ${hov ? '#1565C0' : '#E2E8F0'}`,
+                    transform: hov ? 'translateY(-3px)' : 'none',
+                    boxShadow: hov ? '0 8px 28px rgba(21,101,192,0.12)' : '0 1px 3px rgba(0,0,0,0.05)',
+                  }}>
+
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="font-mono text-xs font-black px-2.5 py-1 rounded-lg"
+                      style={{
+                        background: hov ? '#1565C0' : '#F1F5F9',
+                        color: hov ? 'white' : '#475569',
+                        transition: 'all 0.2s',
+                      }}>
+                      {cat.code}
+                    </div>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full"
+                      style={{ background: '#F8FAFC', color: '#94A3B8', border: '1px solid #E2E8F0' }}>
+                      {cat.stat}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-sm mb-1"
+                      style={{ color: hov ? '#1565C0' : '#0F172A', transition: 'color 0.2s' }}>
+                      {cat.title}
+                    </h3>
+                    <p className="text-[11px] font-mono" style={{ color: '#94A3B8' }}>{cat.spec}</p>
+                  </div>
+
+                  <p className="text-[12px] leading-relaxed" style={{ color: '#64748B' }}>
+                    {cat.desc}
+                  </p>
+
+                  <div className="flex items-center gap-1.5 mt-auto pt-1 text-xs font-semibold"
+                    style={{ color: hov ? '#1565C0' : '#94A3B8', transition: 'color 0.2s' }}>
+                    Смотреть каталог
+                    <span style={{ transform: hov ? 'translateX(3px)' : 'none', transition: 'transform 0.2s', display: 'inline-block' }}>→</span>
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
         </div>
-      </div>
+      </section>
+
+      {/* ══ FOOTER ══ */}
+      <footer style={{ borderTop: '1px solid #E2E8F0', background: 'white' }}>
+        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-5 flex items-center justify-between flex-wrap gap-3">
+          <div className="flex items-center gap-2">
+            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
+            <span className="font-mono text-[9px] tracking-widest" style={{ color: '#94A3B8' }}>ОНЛАЙН</span>
+          </div>
+          <span className="font-black text-sm tracking-widest" style={{ color: '#CBD5E1' }}>BES SAIMAN GROUP</span>
+          <span className="text-[10px] font-mono" style={{ color: '#94A3B8' }}>
+            © 2025 · Казахстан · bessaimangroup1@gmail.com
+          </span>
+        </div>
+      </footer>
     </div>
   )
 }

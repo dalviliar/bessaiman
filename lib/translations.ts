@@ -72,9 +72,9 @@ const translations = {
     },
     about: {
       title: 'О компании Bes Saiman Group',
-      subtitle: '"Бес Сайман" — пять инструментов. Многообразие высокоточного оборудования.',
-      mission: 'Наша миссия',
-      missionText: 'Мы поставляем передовое лабораторное и промышленное оборудование, обеспечивая казахстанскую науку и промышленность высокотехнологичными инструментами.',
+      subtitle: 'Проектируем и производим высокотемпературные печи, шаровые мельницы, вакуумные камеры и установки электроспиннинга — от технического задания до запуска в эксплуатацию.',
+      mission: 'Наши принципы',
+      missionText: 'Наша миссия — быть мостом между инновационными идеями учёных и реальными производственными решениями. Мы трансформируем научные замыслы в работающие инженерные продукты, соответствующие высоким стандартам качества, точности и эффективности.',
     },
     contacts: {
       title: 'Контакты',
@@ -167,9 +167,9 @@ const translations = {
     },
     about: {
       title: 'Bes Saiman Group компаниясы туралы',
-      subtitle: '"Бес Сайман" — бес аспап. Жоғары дәлдіктегі жабдықтардың алуандығы.',
-      mission: 'Біздің миссия',
-      missionText: 'Біз Қазақстан ғылымы мен өнеркәсібін жоғары технологиялық аспаптармен қамтамасыз ете отырып, озық зертханалық және өнеркәсіптік жабдықтарды жеткіземіз.',
+      subtitle: 'Жоғары температуралы пештер, шарлы диірмендер, вакуумдық камералар және электроспиннинг қондырғыларын жасаймыз — техникалық тапсырмадан іске қосуға дейін.',
+      mission: 'Біздің қағидаттар',
+      missionText: 'Біздің миссиямыз — ғалымдардың инновациялық идеялары мен нақты өндірістік шешімдер арасындағы көпір болу. Ғылыми ойларды жұмыс істейтін инженерлік өнімдерге айналдырамыз.',
     },
     contacts: {
       title: 'Байланыс',
@@ -262,9 +262,9 @@ const translations = {
     },
     about: {
       title: 'About Bes Saiman Group',
-      subtitle: '"Bes Saiman" — five instruments. Diversity of high-precision equipment.',
-      mission: 'Our Mission',
-      missionText: 'We supply advanced laboratory and industrial equipment, providing Kazakhstani science and industry with high-technology instruments.',
+      subtitle: 'We design and manufacture high-temperature furnaces, ball mills, vacuum chambers, and electrospinning systems — from technical specification to commissioning.',
+      mission: 'Our Principles',
+      missionText: 'Our mission is to bridge innovative scientific ideas and real-world engineering solutions — transforming research concepts into working industrial products that meet the highest standards of quality, precision, and efficiency.',
     },
     contacts: {
       title: 'Contacts',
@@ -286,12 +286,12 @@ const translations = {
       save: 'Save',
     },
   },
-} as const
+}
 
 export type Translations = typeof translations['ru']
 export type TranslationKey = keyof Translations
 
-export function t(lang: Lang): Translations {
+export function t(lang: Lang) {
   return translations[lang]
 }
 

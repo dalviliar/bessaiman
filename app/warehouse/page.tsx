@@ -1,7 +1,12 @@
 'use client'
 
+import WarehouseAuth from '@/components/WarehouseAuth'
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { QrCode, Search, ArrowDown, ArrowUp, CheckCircle, XCircle, Camera, CameraOff, Package, RefreshCw } from 'lucide-react'
+import {
+  QrCode, Search, ArrowDown, ArrowUp, CheckCircle, XCircle,
+  Camera, CameraOff, Package, RefreshCw, BarChart3, AlertTriangle,
+  TrendingUp, Layers, type LucideIcon,
+} from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 import {
   getWarehouseItems,
@@ -13,6 +18,35 @@ import type { WarehouseItem, WarehouseTransaction } from '@/types'
 
 type ScanMode = 'idle' | 'scanning' | 'found' | 'not_found'
 type TxMode = 'in' | 'out'
+
+function KpiCard({
+  icon: Icon, label, value, color, sub,
+}: {
+  icon: LucideIcon
+  label: string
+  value: number | string
+  color: string
+  sub?: string
+}) {
+  return (
+    <div
+      className="steel-card p-5 flex items-start gap-4"
+      style={{ borderColor: color + '30' }}
+    >
+      <div
+        className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+        style={{ background: color + '18' }}
+      >
+        <Icon size={18} style={{ color }} />
+      </div>
+      <div>
+        <p className="text-xs mb-1" style={{ color: 'rgba(255,255,255,0.45)' }}>{label}</p>
+        <p className="text-2xl font-black font-mono" style={{ color: 'white' }}>{value}</p>
+        {sub && <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.3)' }}>{sub}</p>}
+      </div>
+    </div>
+  )
+}
 
 export default function WarehousePage() {
   const { lang, tr } = useLang()
@@ -35,7 +69,7 @@ export default function WarehousePage() {
     try {
       const [itemsData, txData] = await Promise.all([
         getWarehouseItems(),
-        getRecentTransactions(30),
+        getRecentTransactions(50),
       ])
       setItems(itemsData)
       setTransactions(txData)
@@ -45,6 +79,14 @@ export default function WarehousePage() {
   }, [])
 
   useEffect(() => { loadData() }, [loadData])
+
+  // KPI calculations
+  const totalSKU = items.length
+  const totalStock = items.reduce((s, i) => s + i.quantity, 0)
+  const lowStock = items.filter((i) => i.quantity > 0 && i.quantity < 3).length
+  const outOfStock = items.filter((i) => i.quantity === 0).length
+  const today = new Date().toDateString()
+  const todayTx = transactions.filter((tx) => new Date(tx.created_at).toDateString() === today).length
 
   const handleBarcodeSearch = useCallback(async (code: string) => {
     if (!code.trim()) return
@@ -63,15 +105,13 @@ export default function WarehousePage() {
     try {
       const { BrowserMultiFormatReader } = await import('@zxing/library')
       const reader = new BrowserMultiFormatReader()
-
       const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
       if (videoRef.current) {
         videoRef.current.srcObject = stream
         videoRef.current.play()
         setCameraActive(true)
       }
-
-      reader.decodeFromVideoDevice(null, videoRef.current!, (result, err) => {
+      reader.decodeFromVideoDevice(null, videoRef.current!, (result) => {
         if (result) {
           const code = result.getText()
           setBarcode(code)
@@ -115,60 +155,114 @@ export default function WarehousePage() {
 
   const filteredItems = items.filter((item) => {
     if (!searchQuery) return true
-    const name = item.product?.[`name_${lang}` as const] || item.product?.name_ru || ''
-    return name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.barcode?.includes(searchQuery) || false
+    const name = item.product?.[`name_${lang}` as 'name_ru' | 'name_kk' | 'name_en'] || item.product?.name_ru || ''
+    return (
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (item.barcode?.includes(searchQuery) ?? false)
+    )
   })
 
   return (
+    <WarehouseAuth>
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+      {/* Header */}
       <div className="mb-8">
-        <h1 className="section-title text-3xl mb-2">{tr.warehouse.title}</h1>
-        <div className="h-1 w-16 rounded-full" style={{ background: 'linear-gradient(90deg, #1565C0, #00B0FF)' }} />
+        <p className="text-xs font-mono tracking-widest uppercase mb-2" style={{ color: 'rgba(14,165,233,0.7)' }}>
+          Bes Saiman Group
+        </p>
+        <h1 className="text-3xl sm:text-4xl font-black mb-3" style={{ color: 'white', letterSpacing: '-0.02em' }}>
+          {tr.warehouse.title}
+        </h1>
+        <div className="flex items-center gap-3">
+          <div className="h-0.5 w-10 rounded-full" style={{ background: 'linear-gradient(90deg, #1565C0, #00B0FF)' }} />
+          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
+            Управление остатками и движением товаров
+          </p>
+        </div>
+      </div>
+
+      {/* KPI row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <KpiCard
+          icon={Layers}
+          label="Всего SKU"
+          value={loading ? '—' : totalSKU}
+          color="#0EA5E9"
+          sub="уникальных позиций"
+        />
+        <KpiCard
+          icon={BarChart3}
+          label="На складе (шт.)"
+          value={loading ? '—' : totalStock}
+          color="#10B981"
+          sub="суммарный остаток"
+        />
+        <KpiCard
+          icon={AlertTriangle}
+          label="Мало на складе"
+          value={loading ? '—' : lowStock + outOfStock}
+          color={lowStock + outOfStock > 0 ? '#F59E0B' : '#10B981'}
+          sub={outOfStock > 0 ? `${outOfStock} позиций нет` : 'всё в норме'}
+        />
+        <KpiCard
+          icon={TrendingUp}
+          label="Движений сегодня"
+          value={loading ? '—' : todayTx}
+          color="#8B5CF6"
+          sub="приход / расход"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Scanner Panel */}
+
+        {/* ── Scanner Panel ── */}
         <div className="lg:col-span-1 space-y-4">
           <div className="steel-card p-5 space-y-4">
-            <h2 className="flex items-center gap-2 font-semibold text-white">
-              <QrCode size={18} className="text-steel-accent" />
+            <h2 className="flex items-center gap-2 font-semibold text-white text-sm">
+              <QrCode size={16} style={{ color: '#0EA5E9' }} />
               {tr.warehouse.scanBarcode}
             </h2>
 
-            {/* Camera view */}
-            <div className="relative rounded-xl overflow-hidden bg-steel-surface border border-steel-border aspect-square">
+            {/* Camera */}
+            <div
+              className="relative rounded-xl overflow-hidden aspect-square"
+              style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+            >
               <video ref={videoRef} className="w-full h-full object-cover" muted playsInline />
               {cameraActive && (
                 <div className="absolute inset-0">
-                  <div className="absolute inset-4 border-2 border-steel-accent/60 rounded-lg" />
+                  <div className="absolute inset-4 rounded-lg" style={{ border: '2px solid rgba(14,165,233,0.6)' }} />
                   <div className="scan-line" />
                 </div>
               )}
               {!cameraActive && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
-                  <Camera size={40} className="text-steel-border" />
-                  <p className="text-steel-silver text-sm">{tr.warehouse.startCamera}</p>
+                  <Camera size={36} style={{ color: 'rgba(255,255,255,0.12)' }} />
+                  <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>{tr.warehouse.startCamera}</p>
                 </div>
               )}
             </div>
 
-            <div className="flex gap-2">
-              <button
-                onClick={cameraActive ? stopCamera : startCamera}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  cameraActive
-                    ? 'bg-red-900/30 border border-red-700/40 text-red-400 hover:bg-red-900/50'
-                    : 'btn-primary'
-                }`}
-              >
-                {cameraActive ? <><CameraOff size={15} />{tr.warehouse.stopCamera}</> : <><Camera size={15} />{tr.warehouse.startCamera}</>}
-              </button>
-            </div>
+            <button
+              onClick={cameraActive ? stopCamera : startCamera}
+              className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                cameraActive
+                  ? 'bg-red-900/30 border border-red-700/40 text-red-400 hover:bg-red-900/50'
+                  : 'btn-primary'
+              }`}
+            >
+              {cameraActive
+                ? <><CameraOff size={14} />{tr.warehouse.stopCamera}</>
+                : <><Camera size={14} />{tr.warehouse.startCamera}</>
+              }
+            </button>
 
-            {/* Manual barcode input */}
+            {/* Manual input */}
             <div>
-              <label className="text-steel-silver text-xs mb-2 block">{tr.warehouse.manualInput}</label>
+              <label className="text-xs mb-2 block" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                {tr.warehouse.manualInput}
+              </label>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -180,70 +274,67 @@ export default function WarehousePage() {
                 />
                 <button
                   onClick={() => handleBarcodeSearch(barcode)}
-                  className="btn-primary px-3 py-0 flex items-center"
+                  className="btn-primary px-3 flex items-center"
                 >
-                  <Search size={16} />
+                  <Search size={15} />
                 </button>
               </div>
             </div>
 
             {/* Scan result */}
             {scanMode === 'found' && foundItem && (
-              <div className="space-y-4 border-t border-steel-border/40 pt-4">
-                <div className="flex items-center gap-2 text-emerald-400 text-sm font-medium">
-                  <CheckCircle size={16} />
+              <div className="space-y-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                <div className="flex items-center gap-2 text-sm font-medium" style={{ color: '#34d399' }}>
+                  <CheckCircle size={15} />
                   {tr.warehouse.productFound}
                 </div>
-                <div className="bg-emerald-900/20 border border-emerald-700/30 rounded-lg p-3">
+                <div className="rounded-lg p-3" style={{ background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.2)' }}>
                   <div className="text-white text-sm font-medium">
-                    {foundItem.product?.[`name_${lang}` as const] || foundItem.product?.name_ru}
+                    {foundItem.product?.[`name_${lang}` as 'name_ru' | 'name_kk' | 'name_en'] || foundItem.product?.name_ru}
                   </div>
                   {foundItem.product?.model && (
-                    <div className="text-steel-accent text-xs font-mono mt-0.5">{foundItem.product.model}</div>
+                    <div className="font-mono text-xs mt-0.5" style={{ color: '#0EA5E9' }}>{foundItem.product.model}</div>
                   )}
-                  <div className="text-steel-silver text-xs mt-2">
-                    {tr.warehouse.stockLevel}: <span className="text-white font-bold">{foundItem.quantity}</span>
+                  <div className="text-xs mt-2" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                    {tr.warehouse.stockLevel}:{' '}
+                    <span className="font-bold text-white">{foundItem.quantity}</span>
                   </div>
                 </div>
 
                 {/* Transaction form */}
                 <div className="space-y-3">
-                  <div className="flex rounded-lg overflow-hidden border border-steel-border">
+                  <div className="flex rounded-lg overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
                     <button
                       onClick={() => setTxMode('in')}
-                      className={`flex-1 py-2 text-sm font-medium flex items-center justify-center gap-1.5 transition-all ${
-                        txMode === 'in'
-                          ? 'bg-emerald-700 text-white'
-                          : 'text-steel-silver hover:bg-white/5'
+                      className={`flex-1 py-2 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                        txMode === 'in' ? 'bg-emerald-700 text-white' : 'text-steel-silver hover:bg-white/5'
                       }`}
                     >
-                      <ArrowDown size={14} /> {tr.warehouse.receiveGoods}
+                      <ArrowDown size={13} /> {tr.warehouse.receiveGoods}
                     </button>
                     <button
                       onClick={() => setTxMode('out')}
-                      className={`flex-1 py-2 text-sm font-medium flex items-center justify-center gap-1.5 transition-all ${
-                        txMode === 'out'
-                          ? 'bg-red-700 text-white'
-                          : 'text-steel-silver hover:bg-white/5'
+                      className={`flex-1 py-2 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                        txMode === 'out' ? 'bg-red-700 text-white' : 'text-steel-silver hover:bg-white/5'
                       }`}
                     >
-                      <ArrowUp size={14} /> {tr.warehouse.dispatchGoods}
+                      <ArrowUp size={13} /> {tr.warehouse.dispatchGoods}
                     </button>
                   </div>
 
                   <div>
-                    <label className="text-steel-silver text-xs mb-1 block">{tr.warehouse.quantity}</label>
+                    <label className="text-xs mb-1 block" style={{ color: 'rgba(255,255,255,0.4)' }}>{tr.warehouse.quantity}</label>
                     <input type="number" min={1} value={qty}
                       onChange={(e) => setQty(Math.max(1, parseInt(e.target.value) || 1))}
-                      className="steel-input text-sm"
+                      className="steel-input text-sm w-full"
                     />
                   </div>
 
                   <div>
-                    <label className="text-steel-silver text-xs mb-1 block">{tr.warehouse.note}</label>
+                    <label className="text-xs mb-1 block" style={{ color: 'rgba(255,255,255,0.4)' }}>{tr.warehouse.note}</label>
                     <input type="text" value={note}
                       onChange={(e) => setNote(e.target.value)}
-                      className="steel-input text-sm"
+                      className="steel-input text-sm w-full"
                       placeholder="..."
                     />
                   </div>
@@ -252,8 +343,10 @@ export default function WarehousePage() {
                     <button onClick={handleTransaction} className="btn-primary flex-1 text-sm py-2">
                       {tr.warehouse.confirm}
                     </button>
-                    <button onClick={() => { setScanMode('idle'); setFoundItem(null); setBarcode('') }}
-                      className="btn-secondary flex-1 text-sm py-2">
+                    <button
+                      onClick={() => { setScanMode('idle'); setFoundItem(null); setBarcode('') }}
+                      className="btn-secondary flex-1 text-sm py-2"
+                    >
                       {tr.warehouse.cancel}
                     </button>
                   </div>
@@ -262,79 +355,103 @@ export default function WarehousePage() {
             )}
 
             {scanMode === 'not_found' && (
-              <div className="flex items-center gap-2 text-red-400 text-sm font-medium border-t border-steel-border/40 pt-4">
-                <XCircle size={16} />
+              <div className="flex items-center gap-2 text-sm font-medium pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.07)', color: '#f87171' }}>
+                <XCircle size={15} />
                 {tr.warehouse.productNotFound}
               </div>
             )}
           </div>
         </div>
 
-        {/* Stock Table */}
+        {/* ── Stock table + Transactions ── */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Search */}
+
+          {/* Search + refresh */}
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
-              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-steel-silver" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.3)' }} />
               <input type="text" placeholder={tr.warehouse.search}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="steel-input pl-9 text-sm"
+                className="steel-input pl-9 text-sm w-full"
               />
             </div>
-            <button onClick={loadData}
-              className="steel-input w-10 h-10 flex items-center justify-center p-0 hover:border-steel-accent transition-colors">
-              <RefreshCw size={15} className={`text-steel-silver ${loading ? 'animate-spin' : ''}`} />
+            <button
+              onClick={loadData}
+              className="w-10 h-10 flex items-center justify-center rounded-lg transition-colors"
+              style={{ border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.03)' }}
+            >
+              <RefreshCw size={14} className={loading ? 'animate-spin' : ''} style={{ color: 'rgba(255,255,255,0.4)' }} />
             </button>
           </div>
 
-          {/* Stock list */}
+          {/* Stock table */}
           <div className="steel-card overflow-hidden">
-            <div className="px-5 py-3 border-b border-steel-border/40 flex items-center gap-2 text-sm font-semibold text-white">
-              <Package size={16} className="text-steel-accent" />
+            <div className="px-5 py-3 flex items-center gap-2 text-sm font-semibold text-white" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+              <Package size={15} style={{ color: '#0EA5E9' }} />
               {tr.warehouse.stockLevel} ({filteredItems.length})
             </div>
+
             {loading ? (
-              <div className="p-8 text-center text-steel-silver">{tr.common.loading}</div>
+              <div className="p-8 text-center text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>{tr.common.loading}</div>
             ) : filteredItems.length === 0 ? (
-              <div className="p-8 text-center text-steel-silver">{tr.warehouse.noItems}</div>
+              <div className="p-8 text-center text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>{tr.warehouse.noItems}</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-steel-border/30">
-                      <th className="px-5 py-3 text-left text-steel-silver font-medium">Товар</th>
-                      <th className="px-5 py-3 text-left text-steel-silver font-medium">Штрих-код</th>
-                      <th className="px-5 py-3 text-center text-steel-silver font-medium">{tr.warehouse.stockLevel}</th>
-                      <th className="px-5 py-3 text-left text-steel-silver font-medium">{tr.warehouse.location}</th>
+                    <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                      <th className="px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Товар</th>
+                      <th className="px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Штрих-код</th>
+                      <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>{tr.warehouse.stockLevel}</th>
+                      <th className="px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>{tr.warehouse.location}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {filteredItems.map((item, i) => (
-                      <tr key={item.id}
-                        className={`border-b border-steel-border/20 last:border-0 hover:bg-white/[0.02] transition-colors ${
-                          i % 2 === 1 ? 'bg-white/[0.01]' : ''
-                        }`}>
+                      <tr
+                        key={item.id}
+                        className="transition-colors hover:bg-white/[0.025]"
+                        style={{
+                          borderBottom: i < filteredItems.length - 1 ? '1px solid rgba(255,255,255,0.04)' : 'none',
+                          background: i % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent',
+                        }}
+                      >
                         <td className="px-5 py-3">
-                          <div className="text-white font-medium">
-                            {item.product?.[`name_${lang}` as const] || item.product?.name_ru || '—'}
+                          {/* Image placeholder slot */}
+                          <div className="flex items-center gap-3">
+                            <div
+                              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+                              style={{ background: 'rgba(14,165,233,0.08)', border: '1px solid rgba(14,165,233,0.15)' }}
+                            >
+                              <Package size={14} style={{ color: 'rgba(14,165,233,0.5)' }} />
+                            </div>
+                            <div>
+                              <div className="text-white font-medium text-xs leading-snug">
+                                {item.product?.[`name_${lang}` as 'name_ru' | 'name_kk' | 'name_en'] || item.product?.name_ru || '—'}
+                              </div>
+                              {item.product?.model && (
+                                <div className="font-mono text-[10px] mt-0.5" style={{ color: '#0EA5E9' }}>{item.product.model}</div>
+                              )}
+                            </div>
                           </div>
-                          {item.product?.model && (
-                            <div className="text-steel-accent text-xs font-mono">{item.product.model}</div>
-                          )}
                         </td>
-                        <td className="px-5 py-3 text-steel-silver font-mono text-xs">
+                        <td className="px-5 py-3 font-mono text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
                           {item.barcode || '—'}
                         </td>
                         <td className="px-5 py-3 text-center">
-                          <span className={`font-bold text-base ${
-                            item.quantity === 0 ? 'text-red-400' :
-                            item.quantity < 3 ? 'text-amber-400' : 'text-emerald-400'
-                          }`}>
+                          <span
+                            className="font-black text-base font-mono"
+                            style={{
+                              color: item.quantity === 0 ? '#f87171'
+                                : item.quantity < 3 ? '#fbbf24'
+                                : '#34d399',
+                            }}
+                          >
                             {item.quantity}
                           </span>
                         </td>
-                        <td className="px-5 py-3 text-steel-silver text-xs">
+                        <td className="px-5 py-3 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
                           {item.location || '—'}
                         </td>
                       </tr>
@@ -347,40 +464,58 @@ export default function WarehousePage() {
 
           {/* Recent transactions */}
           <div className="steel-card overflow-hidden">
-            <div className="px-5 py-3 border-b border-steel-border/40 text-sm font-semibold text-white">
+            <div className="px-5 py-3 text-sm font-semibold text-white" style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
               {tr.warehouse.recentTransactions}
             </div>
-            <div className="overflow-x-auto max-h-72 overflow-y-auto">
+            <div className="overflow-x-auto max-h-80 overflow-y-auto">
               <table className="w-full text-sm">
                 <tbody>
                   {transactions.map((tx) => (
-                    <tr key={tx.id}
-                      className="border-b border-steel-border/20 last:border-0 hover:bg-white/[0.02] transition-colors">
+                    <tr
+                      key={tx.id}
+                      className="transition-colors hover:bg-white/[0.025]"
+                      style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}
+                    >
                       <td className="px-5 py-2.5">
-                        <div className="flex items-center gap-2">
-                          <span className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                            tx.type === 'in' ? 'bg-emerald-900/40 text-emerald-400' : 'bg-red-900/40 text-red-400'
-                          }`}>
-                            {tx.type === 'in' ? <ArrowDown size={12} /> : <ArrowUp size={12} />}
+                        <div className="flex items-center gap-2.5">
+                          <span
+                            className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+                            style={{
+                              background: tx.type === 'in' ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
+                              color: tx.type === 'in' ? '#34d399' : '#f87171',
+                            }}
+                          >
+                            {tx.type === 'in' ? <ArrowDown size={11} /> : <ArrowUp size={11} />}
                           </span>
                           <div>
-                            <div className="text-white text-xs">
-                              {tx.product?.[`name_${lang}` as const] || tx.product?.name_ru}
+                            <div className="text-xs text-white leading-snug">
+                              {tx.product?.[`name_${lang}` as 'name_ru' | 'name_kk' | 'name_en'] || tx.product?.name_ru}
                             </div>
-                            {tx.note && <div className="text-steel-silver text-xs">{tx.note}</div>}
+                            {tx.note && (
+                              <div className="text-[10px] mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>{tx.note}</div>
+                            )}
                           </div>
                         </div>
                       </td>
                       <td className="px-5 py-2.5 text-center">
-                        <span className={`font-bold ${tx.type === 'in' ? 'text-emerald-400' : 'text-red-400'}`}>
+                        <span className="font-bold font-mono text-sm" style={{ color: tx.type === 'in' ? '#34d399' : '#f87171' }}>
                           {tx.type === 'in' ? '+' : '−'}{tx.quantity}
                         </span>
                       </td>
-                      <td className="px-5 py-2.5 text-steel-silver text-xs text-right">
-                        {new Date(tx.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                      <td className="px-5 py-2.5 text-right text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                        {new Date(tx.created_at).toLocaleString('ru-RU', {
+                          day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit',
+                        })}
                       </td>
                     </tr>
                   ))}
+                  {transactions.length === 0 && (
+                    <tr>
+                      <td colSpan={3} className="px-5 py-8 text-center text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                        Движений пока нет
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -388,5 +523,6 @@ export default function WarehousePage() {
         </div>
       </div>
     </div>
+    </WarehouseAuth>
   )
 }

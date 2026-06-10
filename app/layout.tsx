@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { LanguageProvider } from '@/context/LanguageContext'
+import { CartProvider } from '@/context/CartContext'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 
@@ -23,9 +24,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="bg-steel-dark text-text-primary min-h-screen flex flex-col">
         <LanguageProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <CartProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </CartProvider>
         </LanguageProvider>
       </body>
     </html>

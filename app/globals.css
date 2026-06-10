@@ -3,18 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --steel-darkest: #050810;
-  --steel-dark: #0A0F1C;
-  --steel-surface: #111827;
-  --steel-card: #1A2235;
-  --steel-border: #1E3A5F;
+  --steel-darkest: #0F172A;
+  --steel-dark: #F0F4F8;
+  --steel-surface: #FFFFFF;
+  --steel-card: #FFFFFF;
+  --steel-border: #CBD5E1;
   --steel-blue: #1565C0;
-  --steel-accent: #00B0FF;
-  --steel-gold: #FFB300;
-  --steel-silver: #78909C;
-  --steel-silver-light: #B0BEC5;
-  --text-primary: #E3E8F0;
-  --text-secondary: #8B9EB0;
+  --steel-accent: #0284C7;
+  --steel-gold: #D97706;
+  --steel-silver: #64748B;
+  --steel-silver-light: #94A3B8;
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
 }
 
 * {
@@ -33,41 +33,42 @@ html, body {
 body {
   min-height: 100vh;
   background-image:
-    radial-gradient(ellipse at 20% 0%, rgba(21, 101, 192, 0.08) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(0, 176, 255, 0.05) 0%, transparent 50%);
+    radial-gradient(ellipse at 20% 0%, rgba(21, 101, 192, 0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(2, 132, 199, 0.03) 0%, transparent 50%);
   background-attachment: fixed;
 }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--steel-darkest); }
+::-webkit-scrollbar-track { background: #E2E8F0; }
 ::-webkit-scrollbar-thumb { background: var(--steel-border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--steel-silver); }
 
 /* Steel card component */
 @layer components {
   .steel-card {
-    @apply bg-steel-card border border-steel-border rounded-xl shadow-steel;
-    background: linear-gradient(145deg, #1A2235 0%, #141C2E 100%);
+    @apply bg-white border border-steel-border rounded-xl;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
   }
 
   .steel-card:hover {
-    @apply shadow-steel-hover border-steel-blue/40;
+    box-shadow: 0 4px 12px rgba(21,101,192,0.12), 0 2px 6px rgba(0,0,0,0.06);
+    border-color: rgba(21,101,192,0.3);
     transition: all 0.3s ease;
   }
 
   .btn-primary {
     @apply bg-steel-blue hover:bg-steel-blue-light text-white font-semibold py-2.5 px-6 rounded-lg transition-all duration-200;
-    box-shadow: 0 4px 15px rgba(21, 101, 192, 0.3);
+    box-shadow: 0 2px 8px rgba(21, 101, 192, 0.25);
   }
 
   .btn-primary:hover {
-    box-shadow: 0 6px 20px rgba(0, 176, 255, 0.35);
+    box-shadow: 0 4px 14px rgba(21, 101, 192, 0.35);
     transform: translateY(-1px);
   }
 
   .btn-secondary {
-    @apply border border-steel-border text-steel-silver-light hover:border-steel-accent hover:text-steel-accent font-medium py-2.5 px-6 rounded-lg transition-all duration-200 bg-transparent;
+    @apply border border-steel-border text-steel-silver hover:border-steel-blue hover:text-steel-blue font-medium py-2.5 px-6 rounded-lg transition-all duration-200 bg-transparent;
   }
 
   .btn-accent {
@@ -83,24 +84,21 @@ body {
 
   .section-title {
     @apply text-2xl md:text-3xl font-bold;
-    background: linear-gradient(135deg, #E3E8F0 0%, #B0BEC5 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #0F172A;
   }
 
   .steel-input {
-    @apply bg-steel-surface border border-steel-border rounded-lg px-4 py-2.5 w-full outline-none;
-    color: #E3E8F0;
+    @apply bg-white border border-steel-border rounded-lg px-4 py-2.5 w-full outline-none;
+    color: #0F172A;
     transition: border-color 0.2s, box-shadow 0.2s;
   }
   .steel-input::placeholder {
-    color: #78909C;
+    color: #94A3B8;
   }
 
   .steel-input:focus {
-    @apply border-steel-accent;
-    box-shadow: 0 0 0 3px rgba(0, 176, 255, 0.1);
+    border-color: #1565C0;
+    box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.1);
   }
 
   .availability-badge {
@@ -108,21 +106,21 @@ body {
   }
 
   .badge-in-stock {
-    @apply availability-badge bg-emerald-900/50 text-emerald-400 border border-emerald-700/50;
+    @apply availability-badge bg-emerald-50 text-emerald-700 border border-emerald-200;
   }
 
   .badge-on-order {
-    @apply availability-badge bg-amber-900/50 text-amber-400 border border-amber-700/50;
+    @apply availability-badge bg-amber-50 text-amber-700 border border-amber-200;
   }
 
   .badge-out-of-stock {
-    @apply availability-badge bg-red-900/50 text-red-400 border border-red-700/50;
+    @apply availability-badge bg-red-50 text-red-700 border border-red-200;
   }
 
   .steel-grid-pattern {
     background-image:
-      linear-gradient(rgba(30, 58, 95, 0.3) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(30, 58, 95, 0.3) 1px, transparent 1px);
+      linear-gradient(rgba(203, 213, 225, 0.6) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(203, 213, 225, 0.6) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { Layers, Globe, Award, Users } from 'lucide-react'
+import { Layers, Wrench, Target, Lightbulb, TrendingUp } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 
 export default function AboutPage() {
@@ -8,24 +8,24 @@ export default function AboutPage() {
 
   const values = [
     {
-      icon: <Layers size={24} className="text-steel-accent" />,
-      title: 'Многообразие',
-      desc: 'Широкий ассортимент высокоточного оборудования для разных отраслей',
+      icon: <Wrench size={24} className="text-steel-accent" />,
+      title: 'Разработка. Производство. Применение.',
+      desc: 'Проектируем и производим современное оборудование и пилотные установки для лабораторий, научно-исследовательских центров, промышленных и медицинских предприятий.',
     },
     {
-      icon: <Globe size={24} className="text-steel-accent" />,
-      title: 'Международные стандарты',
-      desc: 'Сотрудничество с ведущими мировыми производителями',
+      icon: <Target size={24} className="text-steel-accent" />,
+      title: 'Серийность. Индивидуальность. Точность.',
+      desc: 'Предлагаем серийные решения и уникальные разработки по техническому заданию клиента. Каждое изделие адаптируется под конкретные задачи.',
     },
     {
-      icon: <Award size={24} className="text-steel-accent" />,
-      title: 'Качество',
-      desc: 'Все оборудование проходит проверку и имеет гарантию',
+      icon: <Lightbulb size={24} className="text-steel-accent" />,
+      title: 'Связь. Идея. Внедрение.',
+      desc: 'Мы — мост между инновационными идеями учёных и реальными производственными решениями. От концепции до готового продукта.',
     },
     {
-      icon: <Users size={24} className="text-steel-accent" />,
-      title: 'Команда',
-      desc: 'Профессиональные инженеры и технические специалисты',
+      icon: <TrendingUp size={24} className="text-steel-accent" />,
+      title: 'Достижения. Поддержка. Развитие.',
+      desc: 'Участвуем в научно-технических программах, поддерживаем исследования в области наноматериалов, энергонакопителей и зелёного водорода.',
     },
   ]
 
@@ -35,7 +35,7 @@ export default function AboutPage() {
       <div className="text-center mb-16">
         <div className="w-16 h-16 rounded-2xl mx-auto mb-6 flex items-center justify-center"
           style={{ background: 'linear-gradient(135deg, #1565C0, #00B0FF)' }}>
-          <Layers size={28} className="text-white" />
+          <Wrench size={28} className="text-white" />
         </div>
         <h1 className="section-title text-4xl mb-4">{tr.about.title}</h1>
         <p className="text-steel-accent text-lg font-medium mb-6">{tr.about.subtitle}</p>
@@ -68,7 +68,7 @@ export default function AboutPage() {
               {v.icon}
             </div>
             <div>
-              <h3 className="text-white font-semibold mb-1">{v.title}</h3>
+              <h3 className="text-[#0F172A] font-semibold mb-1">{v.title}</h3>
               <p className="text-steel-silver text-sm leading-relaxed">{v.desc}</p>
             </div>
           </div>
@@ -79,14 +79,11 @@ export default function AboutPage() {
       <div className="steel-card p-8 text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-steel-sheen" />
         <div className="relative">
-          <div className="text-5xl font-black text-white mb-3 tracking-tight">
+          <div className="text-5xl font-black text-[#0F172A] mb-3 tracking-tight">
             БЕС <span className="text-steel-accent">САЙМАН</span>
           </div>
-          <p className="text-steel-silver-light text-lg mb-2">
-            Қазақша: «Бес Сайман» — «Әртүрлі аспаптар»
-          </p>
           <p className="text-steel-silver max-w-lg mx-auto">
-            Название компании символизирует многообразие высокоточных инструментов и оборудования для науки и промышленности Казахстана.
+            Научно-производственная компания. Оборудование для науки и промышленности. Индивидуальные разработки под заказ. Работаем по РК и СНГ.
           </p>
         </div>
       </div>

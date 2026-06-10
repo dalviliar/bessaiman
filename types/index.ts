@@ -13,6 +13,8 @@ export interface Category {
   created_at: string
 }
 
+export type ProductType = 'S' | 'PP' | 'PA' | 'I'
+
 export interface Product {
   id: string
   slug: string
@@ -32,6 +34,8 @@ export interface Product {
   barcode: string | null
   images: string[]
   specs: Record<string, string> | null
+  product_type: ProductType
+  classification_code: string | null
   created_at: string
   category?: Category
   accessories?: Product[]

@@ -30,7 +30,7 @@ export default function ContactsPage() {
         {/* Contact info */}
         <div className="space-y-6">
           <div className="steel-card p-6 space-y-5">
-            <h2 className="text-white font-bold text-lg">{tr.contacts.company}</h2>
+            <h2 className="text-[#0F172A] font-bold text-lg">{tr.contacts.company}</h2>
 
             {[
               { icon: <MapPin size={18} className="text-steel-accent" />, value: tr.contacts.address },
@@ -59,21 +59,21 @@ export default function ContactsPage() {
             href={`https://wa.me/77011013433`}
             target="_blank"
             rel="noopener noreferrer"
-            className="steel-card p-5 flex items-center gap-4 hover:border-emerald-600/40 transition-all group block"
+            className="steel-card p-5 flex items-center gap-4 hover:border-emerald-400 transition-all group block"
           >
-            <div className="w-12 h-12 rounded-xl bg-emerald-900/30 border border-emerald-700/30 flex items-center justify-center text-2xl group-hover:border-emerald-500/50 transition-colors">
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-2xl group-hover:border-emerald-400 transition-colors">
               💬
             </div>
             <div>
-              <div className="text-white font-semibold">WhatsApp</div>
-              <div className="text-emerald-400 text-sm">{tr.contacts.phone}</div>
+              <div className="text-[#0F172A] font-semibold">WhatsApp</div>
+              <div className="text-emerald-600 text-sm">{tr.contacts.phone}</div>
             </div>
           </a>
         </div>
 
         {/* Contact form */}
         <div className="steel-card p-6">
-          <div className="flex items-center gap-2 text-white font-semibold mb-6">
+          <div className="flex items-center gap-2 text-[#0F172A] font-semibold mb-6">
             <MessageCircle size={18} className="text-steel-accent" />
             {tr.contacts.sendMessage}
           </div>
@@ -82,7 +82,7 @@ export default function ContactsPage() {
             <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
               <CheckCircle size={48} className="text-emerald-400" />
               <div>
-                <div className="text-white font-semibold text-lg">Сообщение отправлено!</div>
+                <div className="text-[#0F172A] font-semibold text-lg">Сообщение отправлено!</div>
                 <div className="text-steel-silver text-sm mt-1">Мы свяжемся с вами в ближайшее время</div>
               </div>
             </div>
