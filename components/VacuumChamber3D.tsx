@@ -1,10 +1,88 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
+
+function ChamberFallback() {
+  return (
+    <div style={{ width: '100%', height: 520, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px 0' }}>
+      <svg viewBox="0 0 320 500" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', maxWidth: 320, height: 'auto' }}>
+        {/* Grid background */}
+        <defs>
+          <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#E2E8F0" strokeWidth="0.5"/>
+          </pattern>
+        </defs>
+        <rect width="320" height="500" fill="#F8FAFC"/>
+        <rect width="320" height="500" fill="url(#grid)"/>
+
+        {/* Top connector tube */}
+        <rect x="146" y="18" width="28" height="58" rx="4" fill="#E2E8F0" stroke="#B0BEC5" strokeWidth="1.5"/>
+        <rect x="142" y="14" width="36" height="8" rx="2" fill="#D1D8E0" stroke="#B0BEC5" strokeWidth="1"/>
+
+        {/* Top flange */}
+        <rect x="94" y="72" width="132" height="18" rx="3" fill="#DCE4EC" stroke="#B0BEC5" strokeWidth="1.5"/>
+        {[0,1,2,3,4,5,6,7,8,9,10].map(i => (
+          <circle key={i} cx={100 + i * 12} cy={81} r={3.5} fill="#E8EEF4" stroke="#B0BEC5" strokeWidth="1"/>
+        ))}
+
+        {/* Main chamber body */}
+        <rect x="110" y="88" width="100" height="280" rx="50" fill="#EEF3F8" stroke="#CBD5E1" strokeWidth="2"/>
+        {/* Sheen */}
+        <rect x="116" y="88" width="18" height="280" rx="9" fill="rgba(255,255,255,0.6)"/>
+
+        {/* Seam rings */}
+        <ellipse cx="160" cy="158" rx="52" ry="5" stroke="#CBD5E1" strokeWidth="1.5" fill="none"/>
+        <ellipse cx="160" cy="298" rx="52" ry="5" stroke="#CBD5E1" strokeWidth="1.5" fill="none"/>
+
+        {/* Left port */}
+        <rect x="28" y="194" width="84" height="16" rx="4" fill="#E2E8F0" stroke="#B0BEC5" strokeWidth="1.5"/>
+        <rect x="24" y="188" width="12" height="28" rx="2" fill="#DBEAFE" stroke="#93C5FD" strokeWidth="1"/>
+        {/* Red valve */}
+        <rect x="20" y="193" width="8" height="18" rx="2" fill="#DC2626"/>
+        <rect x="23" y="184" width="2" height="10" rx="1" fill="#B91C1C"/>
+
+        {/* Right port */}
+        <rect x="208" y="194" width="72" height="16" rx="4" fill="#E2E8F0" stroke="#B0BEC5" strokeWidth="1.5"/>
+        {/* Tube to gauge */}
+        <line x1="267" y1="194" x2="267" y2="158" stroke="#B0BEC5" strokeWidth="1.5"/>
+        {/* Pressure gauge */}
+        <circle cx="267" cy="136" r="26" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="1.5"/>
+        <circle cx="267" cy="136" r="20" fill="white" stroke="#E2E8F0" strokeWidth="1"/>
+        <line x1="267" y1="136" x2="277" y2="122" stroke="#DC2626" strokeWidth="1.5" strokeLinecap="round"/>
+        <circle cx="267" cy="136" r="2" fill="#94A3B8"/>
+        <text x="267" y="150" textAnchor="middle" fontSize="6" fill="#94A3B8" fontFamily="monospace">kPa</text>
+
+        {/* Viewport circle */}
+        <circle cx="160" cy="228" r="40" fill="rgba(21,101,192,0.06)" stroke="#1565C0" strokeWidth="2"/>
+        <circle cx="160" cy="228" r="35" fill="rgba(21,101,192,0.04)" stroke="#1565C0" strokeWidth="0.5" strokeDasharray="4 2"/>
+        {[0,1,2,3,4,5,6,7].map(i => {
+          const a = (i / 8) * Math.PI * 2
+          return <circle key={i} cx={160 + 53 * Math.cos(a)} cy={228 + 53 * Math.sin(a)} r={4} fill="#E8EEF4" stroke="#B0BEC5" strokeWidth="1"/>
+        })}
+
+        {/* Bottom flange */}
+        <rect x="94" y="366" width="132" height="18" rx="3" fill="#DCE4EC" stroke="#B0BEC5" strokeWidth="1.5"/>
+        {[0,1,2,3,4,5,6,7,8].map(i => (
+          <circle key={i} cx={102 + i * 14} cy={375} r={3.5} fill="#E8EEF4" stroke="#B0BEC5" strokeWidth="1"/>
+        ))}
+
+        {/* Bottom tube */}
+        <rect x="146" y="382" width="28" height="62" rx="4" fill="#E2E8F0" stroke="#B0BEC5" strokeWidth="1.5"/>
+        <rect x="142" y="440" width="36" height="8" rx="2" fill="#D1D8E0" stroke="#B0BEC5" strokeWidth="1"/>
+
+        {/* Label */}
+        <rect x="80" y="462" width="160" height="28" rx="4" fill="#EFF6FF" stroke="#BFDBFE" strokeWidth="1"/>
+        <text x="160" y="473" textAnchor="middle" fontSize="7.5" fill="#1565C0" fontFamily="monospace" fontWeight="700" letterSpacing="2">ВАКУУМНАЯ КАМЕРА</text>
+        <text x="160" y="484" textAnchor="middle" fontSize="6.5" fill="#60A5FA" fontFamily="monospace" letterSpacing="1">SGB-100 · &lt;0.1 ppm · ≤1 Па</text>
+      </svg>
+    </div>
+  )
+}
 
 export default function VacuumChamber3D({ dark = true, theme = 'dark' }: { dark?: boolean; theme?: 'dark' | 'blueprint' }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [webglFailed, setWebglFailed] = useState(false)
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -234,7 +312,7 @@ export default function VacuumChamber3D({ dark = true, theme = 'dark' }: { dark?
     window.addEventListener('resize', onResize)
 
     } catch {
-      // WebGL not supported — canvas stays empty, no crash
+      setWebglFailed(true)
     }
 
     return () => {
@@ -243,6 +321,8 @@ export default function VacuumChamber3D({ dark = true, theme = 'dark' }: { dark?
       renderer?.dispose()
     }
   }, [dark])
+
+  if (webglFailed) return <ChamberFallback />
 
   return (
     <canvas
