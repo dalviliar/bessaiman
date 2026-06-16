@@ -5,8 +5,17 @@ import { useAdminAuth } from '@/context/AdminAuthContext'
 import { canManageRole, type AdminUser, type AdminRole } from '@/lib/admin'
 import {
   UserPlus, Search, Shield, CheckCircle, XCircle,
-  MoreHorizontal, Loader2, X, Eye, EyeOff,
+  MoreHorizontal, Loader2, X, Eye, EyeOff, Check,
 } from 'lucide-react'
+
+const PERM_SECTIONS = [
+  { key: 'users',    label: 'Управление пользователями', actions: ['create', 'read', 'update', 'delete'] },
+  { key: 'products', label: 'Управление товарами',       actions: ['create', 'read', 'update', 'delete'] },
+] as const
+
+const ACTION_LABELS: Record<string, string> = {
+  create: 'Добавление', read: 'Чтение', update: 'Редактирование', delete: 'Удаление',
+}
 
 const ROLE_COLORS: Record<string, string> = {
   super_admin: '#EF4444', admin: '#F59E0B', manager: '#3B82F6',
@@ -14,28 +23,32 @@ const ROLE_COLORS: Record<string, string> = {
   warehouse_specialist: '#0EA5E9', catalog_editor: '#EC4899', viewer: '#6B7280',
 }
 
-function CreateUserModal({ roles, myLevel, onClose, onCreated }: {
-  roles: AdminRole[]; myLevel: number; onClose: () => void; onCreated: () => void
+function CreateUserModal({ onClose, onCreated }: {
+  onClose: () => void; onCreated: () => void
 }) {
   const [email, setEmail] = useState('')
   const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
   const [showPw, setShowPw] = useState(false)
-  const [roleId, setRoleId] = useState('')
+  const [perms, setPerms] = useState<Record<string, Record<string, boolean>>>({})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const availableRoles = roles.filter(r => canManageRole(myLevel, r.level))
+  const toggle = (section: string, action: string) => {
+    setPerms(p => ({
+      ...p,
+      [section]: { ...(p[section] ?? {}), [action]: !(p[section]?.[action] ?? false) },
+    }))
+  }
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!roleId) { setError('Выберите роль'); return }
     setLoading(true); setError('')
     try {
       const res = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, full_name: fullName, role_id: roleId }),
+        body: JSON.stringify({ email, password, full_name: fullName, permissions: perms }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Ошибка создания')
@@ -82,16 +95,32 @@ function CreateUserModal({ roles, myLevel, onClose, onCreated }: {
             </div>
           </div>
           <div>
-            <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Роль</label>
-            <select value={roleId} onChange={e => setRoleId(e.target.value)}
-              className="steel-input w-full" required>
-              <option value="">— Выберите роль —</option>
-              {availableRoles.map(r => (
-                <option key={r.id} value={r.id}>
-                  Ур.{r.level} · {r.display_name_ru}
-                </option>
+            <p className="text-xs font-medium mb-3" style={{ color: 'rgba(255,255,255,0.5)' }}>Права доступа</p>
+            <div className="space-y-3">
+              {PERM_SECTIONS.map(sec => (
+                <div key={sec.key} className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                  <p className="text-xs font-semibold text-white mb-2">{sec.label}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {sec.actions.map(action => {
+                      const active = perms[sec.key]?.[action] ?? false
+                      return (
+                        <button key={action} type="button"
+                          onClick={() => toggle(sec.key, action)}
+                          className="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-lg font-medium transition-all"
+                          style={{
+                            background: active ? 'rgba(59,130,246,0.15)' : 'rgba(255,255,255,0.05)',
+                            border: `1px solid ${active ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.08)'}`,
+                            color: active ? '#60A5FA' : 'rgba(255,255,255,0.4)',
+                          }}>
+                          {active ? <Check size={10} /> : <X size={10} />}
+                          {ACTION_LABELS[action] || action}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
               ))}
-            </select>
+            </div>
           </div>
           {error && (
             <p className="text-sm px-3 py-2 rounded-lg"
@@ -116,7 +145,6 @@ function CreateUserModal({ roles, myLevel, onClose, onCreated }: {
 export default function AdminUsersPage() {
   const { user: me, can } = useAdminAuth()
   const [users, setUsers] = useState<AdminUser[]>([])
-  const [roles, setRoles] = useState<AdminRole[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [showCreate, setShowCreate] = useState(false)
@@ -126,12 +154,8 @@ export default function AdminUsersPage() {
 
   const load = async () => {
     setLoading(true)
-    const [usersData, rolesData] = await Promise.all([
-      fetch('/api/admin/users').then(r => r.json()),
-      fetch('/api/admin/roles').then(r => r.json()),
-    ])
+    const usersData = await fetch('/api/admin/users').then(r => r.json())
     setUsers((usersData ?? []) as AdminUser[])
-    setRoles((rolesData ?? []) as AdminRole[])
     setLoading(false)
   }
 
@@ -257,7 +281,7 @@ export default function AdminUsersPage() {
       </div>
 
       {showCreate && (
-        <CreateUserModal roles={roles} myLevel={myLevel} onClose={() => setShowCreate(false)} onCreated={load} />
+        <CreateUserModal onClose={() => setShowCreate(false)} onCreated={load} />
       )}
     </div>
   )
