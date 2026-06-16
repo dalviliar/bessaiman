@@ -140,6 +140,9 @@ CREATE INDEX IF NOT EXISTS idx_audit_log_created ON admin_audit_log(created_at D
 -- ── Доп. поля товара: вес и единица измерения ──────────────
 ALTER TABLE products ADD COLUMN IF NOT EXISTS weight_kg numeric;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS unit text NOT NULL DEFAULT 'шт';
+ALTER TABLE products ADD COLUMN IF NOT EXISTS length_cm numeric;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS width_cm numeric;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS height_cm numeric;
 
 -- ── Indexes ─────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_products_category   ON products(category_id);

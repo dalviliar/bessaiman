@@ -39,6 +39,9 @@ export interface Product {
   compatible_with: string[]
   weight_kg: number | null
   unit: string
+  length_cm: number | null
+  width_cm: number | null
+  height_cm: number | null
   stock_quantity?: number | null
   created_at: string
   category?: Category

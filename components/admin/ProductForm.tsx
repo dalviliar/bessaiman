@@ -20,6 +20,11 @@ const AVAILABILITY = [
 
 const UNITS = ['шт', 'кг', 'л', 'м', 'комплект']
 
+const SPEC_PRESETS = [
+  'Мощность', 'Напряжение', 'Объём камеры', 'Температурный диапазон',
+  'Производительность', 'Материал корпуса', 'Степень защиты (IP)', 'Гарантия',
+]
+
 interface FormState {
   name_ru: string; name_kk: string; name_en: string
   model: string; category_id: string
@@ -34,6 +39,9 @@ interface FormState {
   weight_kg: string
   unit: string
   quantity: string
+  length_cm: string
+  width_cm: string
+  height_cm: string
 }
 
 const EMPTY: FormState = {
@@ -50,6 +58,9 @@ const EMPTY: FormState = {
   weight_kg: '',
   unit: 'шт',
   quantity: '',
+  length_cm: '',
+  width_cm: '',
+  height_cm: '',
 }
 
 export default function ProductForm({ product }: { product?: Product }) {
@@ -80,6 +91,9 @@ export default function ProductForm({ product }: { product?: Product }) {
       weight_kg: product.weight_kg?.toString() ?? '',
       unit: product.unit ?? 'шт',
       quantity: product.stock_quantity?.toString() ?? '',
+      length_cm: product.length_cm?.toString() ?? '',
+      width_cm: product.width_cm?.toString() ?? '',
+      height_cm: product.height_cm?.toString() ?? '',
     })
   }, [product])
 
@@ -110,6 +124,10 @@ export default function ProductForm({ product }: { product?: Product }) {
   const removeImage = (url: string) => set('images', form.images.filter(i => i !== url))
 
   const addSpec = () => set('specs', [...form.specs, { key: '', value: '' }])
+  const addPresetSpec = (key: string) => {
+    if (form.specs.some(s => s.key === key)) return
+    set('specs', [...form.specs, { key, value: '' }])
+  }
   const updateSpec = (i: number, field: 'key' | 'value', value: string) =>
     set('specs', form.specs.map((s, idx) => idx === i ? { ...s, [field]: value } : s))
   const removeSpec = (i: number) => set('specs', form.specs.filter((_, idx) => idx !== i))
@@ -144,6 +162,9 @@ export default function ProductForm({ product }: { product?: Product }) {
       weight_kg: form.weight_kg ? Number(form.weight_kg) : null,
       unit: form.unit,
       quantity: form.quantity ? Number(form.quantity) : 0,
+      length_cm: form.length_cm ? Number(form.length_cm) : null,
+      width_cm: form.width_cm ? Number(form.width_cm) : null,
+      height_cm: form.height_cm ? Number(form.height_cm) : null,
     }
 
     try {
@@ -212,9 +233,9 @@ export default function ProductForm({ product }: { product?: Product }) {
         </div>
       </Section>
 
-      {/* Вес и количество */}
-      <Section title="Вес и количество">
-        <div className="grid grid-cols-3 gap-3">
+      {/* Вес, габариты и количество */}
+      <Section title="Вес, габариты и количество">
+        <div className="grid grid-cols-3 gap-3 mb-3">
           <Field label="Вес (кг)">
             <input type="number" step="0.01" className="steel-input w-full" value={form.weight_kg} onChange={e => set('weight_kg', e.target.value)} placeholder="напр. 12.5" />
           </Field>
@@ -228,8 +249,22 @@ export default function ProductForm({ product }: { product?: Product }) {
               placeholder="0" disabled={!!product} />
           </Field>
         </div>
+        <div className="grid grid-cols-3 gap-3">
+          <Field label="Длина (см)">
+            <input type="number" step="0.1" className="steel-input w-full" value={form.length_cm} onChange={e => set('length_cm', e.target.value)} placeholder="напр. 80" />
+          </Field>
+          <Field label="Ширина (см)">
+            <input type="number" step="0.1" className="steel-input w-full" value={form.width_cm} onChange={e => set('width_cm', e.target.value)} placeholder="напр. 60" />
+          </Field>
+          <Field label="Высота (см)">
+            <input type="number" step="0.1" className="steel-input w-full" value={form.height_cm} onChange={e => set('height_cm', e.target.value)} placeholder="напр. 120" />
+          </Field>
+        </div>
+        <p className="text-[11px] mt-1.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          Габариты и вес нужны логистам, чтобы подобрать машину для доставки.
+        </p>
         {product && (
-          <p className="text-[11px] mt-1.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>
             Остаток меняется через «Склад» — приёмка/списание, а не из этой формы.
           </p>
         )}
@@ -298,11 +333,25 @@ export default function ProductForm({ product }: { product?: Product }) {
 
       {/* Характеристики */}
       <Section title="Технические характеристики">
+        <p className="text-[11px] mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          Это пары «параметр — значение», которые покажутся в карточке товара на сайте и в КП.
+          Например: «Мощность» → «5 кВт», «Объём камеры» → «200 л». Нажмите на готовый параметр ниже или впишите свой.
+        </p>
+        <div className="flex flex-wrap gap-1.5 mb-3">
+          {SPEC_PRESETS.map(preset => (
+            <button key={preset} type="button" onClick={() => addPresetSpec(preset)}
+              disabled={form.specs.some(s => s.key === preset)}
+              className="text-[11px] px-2.5 py-1 rounded-full font-medium disabled:opacity-30"
+              style={{ background: 'rgba(59,130,246,0.1)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.2)' }}>
+              + {preset}
+            </button>
+          ))}
+        </div>
         <div className="space-y-2">
           {form.specs.map((spec, i) => (
             <div key={i} className="flex gap-2">
               <input className="steel-input flex-1" placeholder="Параметр (напр. Объём камеры)" value={spec.key} onChange={e => updateSpec(i, 'key', e.target.value)} />
-              <input className="steel-input flex-1" placeholder="Значение (напр. 5 л)" value={spec.value} onChange={e => updateSpec(i, 'value', e.target.value)} />
+              <input className="steel-input flex-1" placeholder="Значение (напр. 200 л)" value={spec.value} onChange={e => updateSpec(i, 'value', e.target.value)} />
               <button type="button" onClick={() => removeSpec(i)} className="px-2.5 rounded-lg" style={{ color: '#F87171', background: 'rgba(239,68,68,0.08)' }}>
                 <X size={14} />
               </button>
@@ -311,7 +360,7 @@ export default function ProductForm({ product }: { product?: Product }) {
           <button type="button" onClick={addSpec}
             className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-medium"
             style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)' }}>
-            <Plus size={13} /> Добавить характеристику
+            <Plus size={13} /> Добавить свой параметр
           </button>
         </div>
       </Section>

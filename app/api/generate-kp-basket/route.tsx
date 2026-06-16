@@ -1,13 +1,14 @@
 import React from 'react'
 import path from 'path'
 import { NextResponse } from 'next/server'
-import { pdf, Font, Document, Page, Text, View, StyleSheet, Svg, Circle, Line, Rect } from '@react-pdf/renderer'
+import { pdf, Font, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 import { query } from '@/lib/db'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
 const fontsDir = path.join(process.cwd(), 'public', 'fonts')
+const stampPath = path.join(process.cwd(), 'public', 'brand', 'stamp.jpg')
 Font.register({
   family: 'Roboto',
   fonts: [
@@ -92,7 +93,6 @@ const s = StyleSheet.create({
   sigLine: { borderBottomWidth: 0.5, borderBottomColor: C.primaryDark, height: 24, marginBottom: 4 },
   sigName: { fontSize: 9, fontWeight: 'bold', color: C.primaryDark },
   stampWrap: { width: 90, height: 90, position: 'relative' },
-  stampText: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
 
   footer: { position: 'absolute', bottom: 20, left: 44, right: 44, borderTopWidth: 0.5, borderTopColor: C.border, paddingTop: 5, flexDirection: 'row', justifyContent: 'space-between' },
   footerLeft: { fontSize: 6.5, color: C.gray },
@@ -290,36 +290,7 @@ function KPBasketDocument({
           </View>
 
           <View style={s.stampWrap}>
-            <Svg viewBox="0 0 90 90" width={90} height={90} style={{ position: 'absolute', top: 0, left: 0 }}>
-              <Circle cx={45} cy={45} r={43} stroke="#1A3A8A" strokeWidth={2.5} fill="none" />
-              <Circle cx={45} cy={45} r={37} stroke="#1A3A8A" strokeWidth={0.7} fill="none" />
-              <Rect x={0} y={38} width={7} height={14} rx={1} fill="#1A3A8A" />
-              <Rect x={2} y={35} width={3} height={20} rx={1} fill="#1A3A8A" />
-              <Rect x={83} y={38} width={7} height={14} rx={1} fill="#1A3A8A" />
-              <Rect x={85} y={35} width={3} height={20} rx={1} fill="#1A3A8A" />
-              <Line x1={16} y1={55} x2={74} y2={55} stroke="#1A3A8A" strokeWidth={0.6} />
-            </Svg>
-            <View style={[s.stampText, { top: 8 }]}>
-              <Text style={{ fontSize: 4, color: '#1A3A8A', fontWeight: 'bold', letterSpacing: 0.3 }}>ҚАЗАҚСТАН РЕСПУБЛИКАСЫ</Text>
-            </View>
-            <View style={[s.stampText, { top: 14 }]}>
-              <Text style={{ fontSize: 3.8, color: '#1A3A8A', letterSpacing: 0.2 }}>АЛМАТЫ ҚАЛАСЫ</Text>
-            </View>
-            <View style={[s.stampText, { top: 28 }]}>
-              <Text style={{ fontSize: 10, color: '#1A3A8A', fontWeight: 'bold' }}>Bes Saiman</Text>
-            </View>
-            <View style={[s.stampText, { top: 40 }]}>
-              <Text style={{ fontSize: 10, color: '#1A3A8A', fontWeight: 'bold' }}>Group</Text>
-            </View>
-            <View style={[s.stampText, { top: 58 }]}>
-              <Text style={{ fontSize: 5, color: '#1A3A8A' }}>БИН/БСН 210440034775</Text>
-            </View>
-            <View style={[s.stampText, { top: 68 }]}>
-              <Text style={{ fontSize: 3.5, color: '#1A3A8A', letterSpacing: 0.1 }}>ЖАУАПКЕРШІЛІГІ ШЕКТЕУЛІ СЕРІКТЕСТІГІ</Text>
-            </View>
-            <View style={[s.stampText, { top: 74 }]}>
-              <Text style={{ fontSize: 3.2, color: '#1A3A8A' }}>ТОВАРИЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ</Text>
-            </View>
+            <Image src={stampPath} style={{ width: 90, height: 90, opacity: 0.92 }} />
           </View>
         </View>
 
