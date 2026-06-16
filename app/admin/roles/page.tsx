@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useAdminAuth } from '@/context/AdminAuthContext'
-import { supabase } from '@/lib/supabase'
 import { canManageRole, type AdminRole, type Permissions } from '@/lib/admin'
 import { Shield, Lock, Plus, Check, X, Loader2 } from 'lucide-react'
 
@@ -105,10 +104,13 @@ function CreateRoleModal({ myLevel, onClose, onCreated }: { myLevel: number; onC
     e.preventDefault()
     if (!name.match(/^[a-z_]+$/)) { setError('Имя-код: только строчные буквы и _'); return }
     setLoading(true); setError('')
-    const { error: err } = await supabase.from('admin_roles').insert({
-      name, display_name_ru: displayName, level, permissions: perms, is_system: false,
+    const res = await fetch('/api/admin/roles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, display_name_ru: displayName, level, permissions: perms }),
     })
-    if (err) { setError(err.message); setLoading(false); return }
+    const data = await res.json()
+    if (!res.ok) { setError(data.error || 'Ошибка'); setLoading(false); return }
     onCreated(); onClose()
   }
 
@@ -201,7 +203,7 @@ export default function AdminRolesPage() {
 
   const load = async () => {
     setLoading(true)
-    const { data } = await supabase.from('admin_roles').select('*').order('level')
+    const data = await fetch('/api/admin/roles').then(r => r.json())
     setRoles((data ?? []) as AdminRole[])
     setLoading(false)
   }

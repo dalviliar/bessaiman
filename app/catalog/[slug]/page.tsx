@@ -9,7 +9,7 @@ import { useLang } from '@/context/LanguageContext'
 import PriceCalculator from '@/components/PriceCalculator'
 import ProductCard from '@/components/ProductCard'
 import KPModal from '@/components/KPModal'
-import { getProductBySlug } from '@/lib/supabase'
+import { getProductBySlug, getCompatibleAccessories } from '@/lib/supabase'
 import type { Product } from '@/types'
 
 function AvailabilityBadge({ status }: { status: Product['availability'] }) {
@@ -71,11 +71,19 @@ export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>()
   const { lang, tr } = useLang()
   const [product, setProduct] = useState<Product | null>(null)
+  const [compatibleAccessories, setCompatibleAccessories] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [showKP, setShowKP] = useState(false)
 
   useEffect(() => {
-    getProductBySlug(slug).then((p) => { setProduct(p); setLoading(false) }).catch(() => setLoading(false))
+    getProductBySlug(slug).then(async (p) => {
+      setProduct(p)
+      if (p?.classification_code) {
+        const acc = await getCompatibleAccessories(p.classification_code)
+        setCompatibleAccessories(acc)
+      }
+      setLoading(false)
+    }).catch(() => setLoading(false))
   }, [slug])
 
   if (loading) {
@@ -198,9 +206,27 @@ export default function ProductDetailPage() {
         </section>
       )}
 
-      {/* Accessories */}
+      {/* Совместимые аксессуары (по классификатору) */}
+      {compatibleAccessories.length > 0 && (
+        <section className="mb-16">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-1 h-6 rounded-full" style={{ background: 'linear-gradient(180deg,#1565C0,#0284C7)' }} />
+            <h2 className="section-title text-xl">{tr.product.accessories}</h2>
+            <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100">
+              {product.classification_code}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {compatibleAccessories.map((acc) => (
+              <ProductCard key={acc.id} product={acc} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Ручные аксессуары (manually linked) */}
       {product.accessories && product.accessories.length > 0 && (
-        <section>
+        <section className="mb-16">
           <h2 className="section-title text-xl mb-6">{tr.product.accessories}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {product.accessories.map((acc) => (

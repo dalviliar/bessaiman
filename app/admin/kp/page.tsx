@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { FileText, Search, Clock, Phone, Mail, Building2, Package } from 'lucide-react'
 
 interface KPRequest {
@@ -26,10 +25,9 @@ export default function AdminKPPage() {
   const [selected, setSelected] = useState<KPRequest | null>(null)
 
   useEffect(() => {
-    supabase.from('kp_requests')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .then(({ data }) => { setRequests(data ?? []); setLoading(false) })
+    fetch('/api/admin/kp-requests')
+      .then(res => res.json())
+      .then(data => { setRequests(data ?? []); setLoading(false) })
   }, [])
 
   const filtered = requests.filter(r =>

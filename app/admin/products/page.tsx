@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useAdminAuth } from '@/context/AdminAuthContext'
-import { supabase } from '@/lib/supabase'
 import { Package, Search, ExternalLink, Loader2, CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import type { Product } from '@/types'
@@ -22,11 +21,9 @@ export default function AdminProductsPage() {
   const [typeFilter, setTypeFilter] = useState('all')
 
   useEffect(() => {
-    supabase.from('products')
-      .select('*, category:categories(name_ru, slug)')
-      .order('classification_code')
-      .order('name_ru')
-      .then(({ data }) => { setProducts(data ?? []); setLoading(false) })
+    fetch('/api/admin/products')
+      .then(res => res.json())
+      .then(data => { setProducts(data ?? []); setLoading(false) })
   }, [])
 
   const filtered = products.filter(p => {

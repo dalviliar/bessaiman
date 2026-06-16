@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useAdminAuth } from '@/context/AdminAuthContext'
-import { supabase } from '@/lib/supabase'
 import { Package, Users, FileText, BarChart3, TrendingUp, Boxes, Clock, type LucideIcon } from 'lucide-react'
 import Link from 'next/link'
 
@@ -43,34 +42,18 @@ export default function AdminDashboard() {
   const [recentKP, setRecentKP] = useState<{ client_name: string; product_name: string; created_at: string }[]>([])
 
   useEffect(() => {
-    const load = async () => {
-      const [{ count: products }, { count: users }, { count: kpAll }, { count: warehouseItems }, { data: kpData }] =
-        await Promise.all([
-          supabase.from('products').select('*', { count: 'exact', head: true }),
-          supabase.from('admin_users').select('*', { count: 'exact', head: true }).eq('is_active', true),
-          supabase.from('kp_requests').select('*', { count: 'exact', head: true }),
-          supabase.from('warehouse_items').select('*', { count: 'exact', head: true }),
-          supabase.from('kp_requests')
-            .select('client_name, product_name, created_at')
-            .order('created_at', { ascending: false })
-            .limit(5),
-        ])
-
-      const today = new Date().toISOString().slice(0, 10)
-      const { count: todayKP } = await supabase.from('kp_requests')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', today)
-
-      setStats({
-        products: products ?? 0,
-        users: users ?? 0,
-        kpRequests: kpAll ?? 0,
-        warehouseItems: warehouseItems ?? 0,
-        todayKP: todayKP ?? 0,
+    fetch('/api/admin/stats')
+      .then(res => res.json())
+      .then(data => {
+        setStats({
+          products: data.products ?? 0,
+          users: data.users ?? 0,
+          kpRequests: data.kpRequests ?? 0,
+          warehouseItems: data.warehouseItems ?? 0,
+          todayKP: data.todayKP ?? 0,
+        })
+        setRecentKP(data.recentKP ?? [])
       })
-      setRecentKP(kpData ?? [])
-    }
-    load()
   }, [])
 
   const hour = new Date().getHours()

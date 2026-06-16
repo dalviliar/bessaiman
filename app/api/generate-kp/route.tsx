@@ -2,8 +2,10 @@ import React from 'react'
 import path from 'path'
 import { NextResponse } from 'next/server'
 import { pdf, Font, Document, Page, Text, View, StyleSheet, Svg, Circle, Line, Rect } from '@react-pdf/renderer'
+import { query } from '@/lib/db'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 // Register fonts once at module load (not per-request — react-pdf v4 caches by family name)
 const fontsDir = path.join(process.cwd(), 'public', 'fonts')
@@ -392,6 +394,12 @@ export async function POST(request: Request) {
 
     const kpNumber = generateKPNumber()
     const dateStr = formatDate(new Date())
+
+    query(
+      `INSERT INTO kp_requests (product_id, product_model, product_name, kp_number, client_name, client_company, client_email, client_phone, quantity, note, lang)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+      [product.id ?? null, product.model ?? null, product.name_ru, kpNumber, clientInfo.name, clientInfo.company ?? null, clientInfo.email ?? null, clientInfo.phone ?? null, clientInfo.quantity, clientInfo.note ?? null, lang],
+    ).catch(err => console.error('kp_requests insert failed:', err))
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const buffer = await (pdf as any)(

@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Loader2, ShieldCheck } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
 
 export default function AdminLogin() {
   const router = useRouter()
@@ -18,29 +17,23 @@ export default function AdminLogin() {
     setLoading(true)
     setError('')
 
-    const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (authError || !data.session) {
-      setError('Неверный email или пароль')
+    try {
+      const res = await fetch('/api/admin/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error || 'Неверный email или пароль')
+        setLoading(false)
+        return
+      }
+      router.replace('/admin')
+    } catch {
+      setError('Ошибка соединения')
       setLoading(false)
-      return
     }
-
-    // Check admin_users table
-    const { data: adminUser } = await supabase
-      .from('admin_users')
-      .select('id, is_active')
-      .eq('id', data.user.id)
-      .single()
-
-    if (!adminUser || !adminUser.is_active) {
-      await supabase.auth.signOut()
-      setError('Доступ запрещён. Обратитесь к администратору.')
-      setLoading(false)
-      return
-    }
-
-    router.replace('/admin')
   }
 
   return (

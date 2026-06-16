@@ -36,9 +36,11 @@ export interface Product {
   specs: Record<string, string> | null
   product_type: ProductType
   classification_code: string | null
+  compatible_with: string[]
   created_at: string
   category?: Category
   accessories?: Product[]
+  compatible_accessories?: Product[]
   documents?: ProductDocument[]
 }
 

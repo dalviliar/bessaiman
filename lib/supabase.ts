@@ -1,138 +1,71 @@
-import { createClient } from '@supabase/supabase-js'
 import type { Product, Category, WarehouseItem, WarehouseTransaction } from '@/types'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
-
-export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseKey || 'placeholder',
-)
+async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(path, init)
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    throw new Error(body.error || `Request failed: ${path}`)
+  }
+  return res.json()
+}
 
 export async function getCategories(): Promise<Category[]> {
-  const { data, error } = await supabase
-    .from('categories')
-    .select('*')
-    .order('name_ru')
-  if (error) throw error
-  return data ?? []
+  return api<Category[]>('/api/categories')
 }
 
 export async function getProducts(
   categorySlug?: string,
   productType?: string,
 ): Promise<Product[]> {
-  let query = supabase
-    .from('products')
-    .select('*, category:categories(*)')
-    // PP (расходники для сборки) никогда не показываются в публичном каталоге
-    .neq('product_type', 'PP')
-    .order('classification_code', { ascending: true })
-    .order('name_ru', { ascending: true })
+  const params = new URLSearchParams()
+  if (categorySlug) params.set('category', categorySlug)
+  if (productType && productType !== 'all') params.set('type', productType)
+  const qs = params.toString()
+  return api<Product[]>(`/api/products${qs ? `?${qs}` : ''}`)
+}
 
-  if (categorySlug) {
-    const { data: cat } = await supabase
-      .from('categories')
-      .select('id')
-      .eq('slug', categorySlug)
-      .single()
-    if (!cat) return []
-    query = query.eq('category_id', cat.id)
+export async function getCompatibleAccessories(classificationCode: string): Promise<Product[]> {
+  try {
+    return await api<Product[]>(`/api/products/compatible?code=${encodeURIComponent(classificationCode)}`)
+  } catch {
+    return []
   }
-
-  if (productType && productType !== 'all') {
-    query = query.eq('product_type', productType)
-  }
-
-  const { data, error } = await query
-  if (error) throw error
-  return data ?? []
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
-  const { data, error } = await supabase
-    .from('products')
-    .select(`
-      *,
-      category:categories(*),
-      documents:product_documents(*),
-      accessories:product_accessories!product_id(
-        accessory:products!accessory_id(*, category:categories(*))
-      )
-    `)
-    .eq('slug', slug)
-    .single()
-  if (error) return null
-  if (!data) return null
-  const product = {
-    ...data,
-    accessories: (data.accessories ?? []).map((a: { accessory: Product }) => a.accessory),
+  try {
+    return await api<Product>(`/api/products/${encodeURIComponent(slug)}`)
+  } catch {
+    return null
   }
-  return product as Product
 }
 
 export async function searchProducts(query: string): Promise<Product[]> {
-  const { data, error } = await supabase
-    .from('products')
-    .select('*, category:categories(*)')
-    .or(`name_ru.ilike.%${query}%,name_kk.ilike.%${query}%,name_en.ilike.%${query}%,model.ilike.%${query}%`)
-    .limit(20)
-  if (error) throw error
-  return data ?? []
+  return api<Product[]>(`/api/search?q=${encodeURIComponent(query)}`)
 }
 
 export async function getWarehouseItems(): Promise<WarehouseItem[]> {
-  const { data, error } = await supabase
-    .from('warehouse_items')
-    .select('*, product:products(id, name_ru, name_kk, name_en, model, images)')
-    .order('last_updated', { ascending: false })
-  if (error) throw error
-  return data ?? []
+  return api<WarehouseItem[]>('/api/warehouse/items')
 }
 
 export async function getWarehouseItemByBarcode(barcode: string): Promise<WarehouseItem | null> {
-  const { data, error } = await supabase
-    .from('warehouse_items')
-    .select('*, product:products(*)')
-    .eq('barcode', barcode)
-    .single()
-  if (error) return null
-  return data
+  try {
+    return await api<WarehouseItem>(`/api/warehouse/items/${encodeURIComponent(barcode)}`)
+  } catch {
+    return null
+  }
 }
 
 export async function createWarehouseTransaction(
   tx: Omit<WarehouseTransaction, 'id' | 'created_at'>
 ): Promise<void> {
-  const { error: txError } = await supabase
-    .from('warehouse_transactions')
-    .insert(tx)
-  if (txError) throw txError
-
-  const delta = tx.type === 'in' ? tx.quantity : -tx.quantity
-  const { data: existing } = await supabase
-    .from('warehouse_items')
-    .select('id, quantity')
-    .eq('product_id', tx.product_id)
-    .single()
-
-  if (existing) {
-    await supabase
-      .from('warehouse_items')
-      .update({ quantity: existing.quantity + delta, last_updated: new Date().toISOString() })
-      .eq('id', existing.id)
-  } else {
-    await supabase
-      .from('warehouse_items')
-      .insert({ product_id: tx.product_id, barcode: tx.barcode, quantity: Math.max(0, delta) })
-  }
+  await api('/api/warehouse/transactions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(tx),
+  })
 }
 
 export async function getRecentTransactions(limit = 50): Promise<WarehouseTransaction[]> {
-  const { data, error } = await supabase
-    .from('warehouse_transactions')
-    .select('*, product:products(id, name_ru, name_kk, name_en, model)')
-    .order('created_at', { ascending: false })
-    .limit(limit)
-  if (error) throw error
-  return data ?? []
+  return api<WarehouseTransaction[]>(`/api/warehouse/transactions?limit=${limit}`)
 }

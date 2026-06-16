@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useAdminAuth } from '@/context/AdminAuthContext'
-import { supabase } from '@/lib/supabase'
 import { canManageRole, type AdminUser, type AdminRole } from '@/lib/admin'
 import {
   UserPlus, Search, Shield, CheckCircle, XCircle,
@@ -127,9 +126,9 @@ export default function AdminUsersPage() {
 
   const load = async () => {
     setLoading(true)
-    const [{ data: usersData }, { data: rolesData }] = await Promise.all([
-      supabase.from('admin_users').select('*, role:admin_roles(*)').order('created_at', { ascending: false }),
-      supabase.from('admin_roles').select('*').order('level'),
+    const [usersData, rolesData] = await Promise.all([
+      fetch('/api/admin/users').then(r => r.json()),
+      fetch('/api/admin/roles').then(r => r.json()),
     ])
     setUsers((usersData ?? []) as AdminUser[])
     setRoles((rolesData ?? []) as AdminRole[])
@@ -139,7 +138,11 @@ export default function AdminUsersPage() {
   useEffect(() => { load() }, [])
 
   const toggleActive = async (userId: string, current: boolean) => {
-    await supabase.from('admin_users').update({ is_active: !current }).eq('id', userId)
+    await fetch(`/api/admin/users/${userId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_active: !current }),
+    })
     load()
   }
 

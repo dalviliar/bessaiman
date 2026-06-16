@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { Boxes, Search, ArrowDown, ArrowUp, BarChart3, AlertTriangle } from 'lucide-react'
 import type { WarehouseItem, WarehouseTransaction } from '@/types'
 
@@ -13,9 +12,9 @@ export default function AdminWarehousePage() {
 
   useEffect(() => {
     Promise.all([
-      supabase.from('warehouse_items').select('*, product:products(id, name_ru, model, classification_code)').order('last_updated', { ascending: false }),
-      supabase.from('warehouse_transactions').select('*, product:products(id, name_ru, model)').order('created_at', { ascending: false }).limit(30),
-    ]).then(([{ data: w }, { data: t }]) => {
+      fetch('/api/warehouse/items').then(r => r.json()),
+      fetch('/api/warehouse/transactions?limit=30').then(r => r.json()),
+    ]).then(([w, t]) => {
       setItems(w ?? [])
       setTransactions(t ?? [])
       setLoading(false)

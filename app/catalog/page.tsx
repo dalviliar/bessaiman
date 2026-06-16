@@ -18,11 +18,11 @@ const TYPE_DEFS = [
 
 // ── Уровень 2: иконки категорий ──────────────────────────────────
 const CAT_ICONS: Record<string, LucideIcon> = {
-  furnaces: Flame, mills: Cog, vacuum: Wind,
-  electrospinning: Zap, furniture: Package, accessories: Wrench,
+  sfm: Flame, sfth: Flame, sftv: Flame, sftm: Flame,
+  sm: Cog, ss: Wind, furniture: Package, pa: Wrench,
 }
 
-// ── Уровень 3: подтипы по категории (коды из классификатора) ─────
+// ── Уровень 3: подтипы по категории ──────────────────────────────
 interface SubcatDef {
   code: string
   label: string
@@ -30,28 +30,24 @@ interface SubcatDef {
 }
 
 const CAT_SUBCATS: Record<string, SubcatDef[]> = {
-  furnaces: [
-    { code: 'SFM',  label: 'Муфельные' },
-    { code: 'SFTH', label: 'Горизонт. трубчатые' },
-    { code: 'SFTV', label: 'Вертикальные' },
-    { code: 'SFTM', label: 'Мультипозиционные' },
-    { code: 'SFO',  label: 'Прочие' },
+  sfm:       [],
+  sfth:      [],
+  sftv:      [],
+  sftm:      [],
+  sm: [
+    { code: 'SM', label: 'Шаровые мельницы', modelMatch: m => m.includes('BALLMILL') || m.includes('PBALL') },
+    { code: 'SV', label: 'Вибросита',         modelMatch: m => m.includes('VIBSIEVE') },
   ],
-  mills: [
-    { code: 'SM',  label: 'Горизонтальные' },
-    { code: 'SMP', label: 'Планетарные' },
-    { code: 'SV',  label: 'Вибросита' },
-  ],
-  vacuum: [
-    { code: 'SGB', label: 'Перчаточные боксы' },
+  ss: [
+    { code: 'SES', label: 'Электроспиннинг', modelMatch: m => m.startsWith('BS-ES') },
+    { code: 'SGB', label: 'Вакуумные боксы', modelMatch: m => m.startsWith('BS-VGB') || m.startsWith('BS-AGB') },
   ],
   furniture: [
-    { code: 'SLF-FH', label: 'Вытяжные шкафы', modelMatch: m => m.startsWith('BS-FH') },
-    { code: 'SLF-GC', label: 'Газовые шкафы',  modelMatch: m => m.startsWith('BS-GC') },
-    { code: 'SLF-LT', label: 'Столы',           modelMatch: m => /^BS-(LT|AVT|ILT|T-)/.test(m) },
+    { code: 'FH',  label: 'Вытяжные шкафы', modelMatch: m => m.startsWith('BS-FH') },
+    { code: 'GC',  label: 'Газовые шкафы',  modelMatch: m => m.startsWith('BS-GC') },
+    { code: 'LT',  label: 'Столы',           modelMatch: m => /^BS-(LT|AVT|ILT|T-)/.test(m) },
   ],
-  electrospinning: [],
-  accessories: [],
+  pa: [],
 }
 
 // ── Уровень 4: атрибутные фильтры для подтипов ───────────────────

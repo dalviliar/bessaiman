@@ -2,7 +2,6 @@
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
 import { can as canCheck, type AdminUser, type AdminRole } from '@/lib/admin'
 
 interface AdminAuthCtx {
@@ -25,69 +24,34 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
 
-  const fetchProfile = async (uid: string) => {
-    const { data } = await supabase
-      .from('admin_users')
-      .select('*, role:admin_roles(*)')
-      .eq('id', uid)
-      .eq('is_active', true)
-      .single()
-    return data as AdminUser | null
-  }
-
   useEffect(() => {
     let mounted = true
 
     const init = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-
-      if (!session) {
+      try {
+        const res = await fetch('/api/admin/auth/session')
+        if (!res.ok) {
+          if (!pathname.startsWith('/admin/login')) router.replace('/admin/login')
+          if (mounted) setLoading(false)
+          return
+        }
+        const profile = await res.json()
+        if (mounted) {
+          setUser(profile)
+          setLoading(false)
+        }
+      } catch {
         if (!pathname.startsWith('/admin/login')) router.replace('/admin/login')
         if (mounted) setLoading(false)
-        return
       }
-
-      const profile = await fetchProfile(session.user.id)
-      if (!profile) {
-        await supabase.auth.signOut()
-        router.replace('/admin/login')
-        if (mounted) setLoading(false)
-        return
-      }
-
-      if (mounted) {
-        setUser({ ...profile, email: session.user.email! })
-        setLoading(false)
-      }
-
-      // Update last_seen
-      supabase.from('admin_users')
-        .update({ last_seen: new Date().toISOString() })
-        .eq('id', session.user.id)
-        .then(() => {})
     }
 
     init()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_OUT') {
-        setUser(null)
-        router.replace('/admin/login')
-      }
-      if (event === 'SIGNED_IN' && session) {
-        const profile = await fetchProfile(session.user.id)
-        if (profile && mounted) setUser({ ...profile, email: session.user.email! })
-      }
-    })
-
-    return () => {
-      mounted = false
-      subscription.unsubscribe()
-    }
+    return () => { mounted = false }
   }, [])
 
   const logout = async () => {
-    await supabase.auth.signOut()
+    await fetch('/api/admin/auth/logout', { method: 'POST' })
     setUser(null)
     router.replace('/admin/login')
   }
