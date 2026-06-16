@@ -4,7 +4,7 @@ import { AdminAuthProvider, useAdminAuth } from '@/context/AdminAuthContext'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
-  LayoutDashboard, Users, Shield, Package, Warehouse, FileText,
+  LayoutDashboard, Users, Shield, Package, Warehouse, FileText, History,
   LogOut, ChevronRight, Loader2, ExternalLink,
 } from 'lucide-react'
 
@@ -15,6 +15,7 @@ const NAV = [
   { href: '/admin/products',  label: 'Каталог',         icon: Package,         resource: 'products' },
   { href: '/admin/warehouse', label: 'Склад',           icon: Warehouse,       resource: 'warehouse' },
   { href: '/admin/kp',        label: 'Запросы КП',      icon: FileText,        resource: 'kp_requests' },
+  { href: '/admin/audit',     label: 'Журнал действий', icon: History,         resource: 'audit' },
 ]
 
 const ROLE_COLORS: Record<string, string> = {

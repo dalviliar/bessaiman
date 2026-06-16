@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { queryOne } from '@/lib/db'
 import { getCurrentAdminUser } from '@/lib/auth'
 import { can, canManageRole } from '@/lib/admin'
+import { logAction } from '@/lib/audit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -27,9 +28,18 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   }
 
   const { is_active } = await request.json()
-  const updated = await queryOne(
-    'UPDATE admin_users SET is_active = $1 WHERE id = $2 RETURNING id, is_active',
+  const updated = await queryOne<{ id: string; is_active: boolean; email: string }>(
+    'UPDATE admin_users SET is_active = $1 WHERE id = $2 RETURNING id, is_active, email',
     [is_active, id],
   )
+
+  if (updated) {
+    await logAction({
+      adminId: me.id, adminEmail: me.email, action: 'update',
+      entityType: 'user', entityId: updated.id, entityLabel: updated.email,
+      details: { is_active },
+    })
+  }
+
   return NextResponse.json(updated)
 }

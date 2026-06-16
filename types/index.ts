@@ -37,6 +37,9 @@ export interface Product {
   product_type: ProductType
   classification_code: string | null
   compatible_with: string[]
+  weight_kg: number | null
+  unit: string
+  stock_quantity?: number | null
   created_at: string
   category?: Category
   accessories?: Product[]

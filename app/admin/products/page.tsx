@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { useAdminAuth } from '@/context/AdminAuthContext'
-import { Package, Search, ExternalLink, Loader2, CheckCircle } from 'lucide-react'
+import { Package, Search, ExternalLink, Loader2, CheckCircle, Plus, Pencil, Trash2 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import type { Product } from '@/types'
 
 const TYPE_COLORS: Record<string, { label: string; color: string }> = {
@@ -15,16 +16,36 @@ const TYPE_COLORS: Record<string, { label: string; color: string }> = {
 
 export default function AdminProductsPage() {
   const { can } = useAdminAuth()
+  const router = useRouter()
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  useEffect(() => {
+  const load = () => {
     fetch('/api/admin/products')
       .then(res => res.json())
-      .then(data => { setProducts(data ?? []); setLoading(false) })
-  }, [])
+      .then(data => { setProducts(Array.isArray(data) ? data : []); setLoading(false) })
+  }
+
+  useEffect(() => { load() }, [])
+
+  const handleDelete = async (p: Product) => {
+    if (!confirm(`Удалить товар «${p.name_ru}»? Это действие нельзя отменить.`)) return
+    setDeletingId(p.id)
+    try {
+      const res = await fetch(`/api/admin/products/${p.id}`, { method: 'DELETE' })
+      const isJson = res.headers.get('content-type')?.includes('application/json')
+      const data = isJson ? await res.json() : null
+      if (!res.ok) throw new Error(data?.error || 'Не удалось удалить товар')
+      setProducts(prev => prev.filter(x => x.id !== p.id))
+    } catch (err) {
+      alert(err instanceof Error ? err.message : 'Ошибка удаления')
+    } finally {
+      setDeletingId(null)
+    }
+  }
 
   const filtered = products.filter(p => {
     const matchType = typeFilter === 'all' || p.product_type === typeFilter
@@ -44,13 +65,20 @@ export default function AdminProductsPage() {
             {products.length} позиций в базе
           </p>
         </div>
-        {can('products', 'create') && (
+        <div className="flex items-center gap-2">
           <Link href="/catalog" target="_blank"
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold"
-            style={{ background: 'rgba(59,130,246,0.15)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.25)' }}>
+            style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', border: '1px solid rgba(255,255,255,0.08)' }}>
             <ExternalLink size={14} /> Открыть каталог
           </Link>
-        )}
+          {can('products', 'create') && (
+            <Link href="/admin/products/new"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold"
+              style={{ background: 'linear-gradient(135deg,#1D4ED8,#3B82F6)', color: 'white' }}>
+              <Plus size={14} /> Добавить товар
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Filters */}
@@ -84,13 +112,14 @@ export default function AdminProductsPage() {
               <th className="px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Категория</th>
               <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Тип</th>
               <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Наличие</th>
+              <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Остаток</th>
               <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Фото</th>
               <th className="px-5 py-3" />
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} className="px-5 py-10 text-center">
+              <tr><td colSpan={8} className="px-5 py-10 text-center">
                 <Loader2 size={20} className="animate-spin mx-auto" style={{ color: '#3B82F6' }} />
               </td></tr>
             ) : filtered.map((p, i) => {
@@ -119,6 +148,9 @@ export default function AdminProductsPage() {
                   <td className="px-5 py-3 text-center text-xs" style={{ color: p.availability === 'in_stock' ? '#34d399' : p.availability === 'on_order' ? '#fbbf24' : '#f87171' }}>
                     {p.availability === 'in_stock' ? 'В наличии' : p.availability === 'on_order' ? 'Под заказ' : 'Нет'}
                   </td>
+                  <td className="px-5 py-3 text-center text-xs" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                    {p.stock_quantity ?? 0} {p.unit ?? 'шт'}
+                  </td>
                   <td className="px-5 py-3 text-center">
                     {p.images?.length ? (
                       <CheckCircle size={14} style={{ color: '#34d399', margin: '0 auto' }} />
@@ -127,11 +159,27 @@ export default function AdminProductsPage() {
                     )}
                   </td>
                   <td className="px-5 py-3 text-center">
-                    <Link href={`/catalog/${p.slug}`} target="_blank"
-                      className="text-[11px] px-2.5 py-1.5 rounded-lg transition-colors"
-                      style={{ color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.04)' }}>
-                      <ExternalLink size={11} className="inline" />
-                    </Link>
+                    <div className="flex items-center justify-center gap-1.5">
+                      <Link href={`/catalog/${p.slug}`} target="_blank"
+                        className="p-1.5 rounded-lg transition-colors"
+                        style={{ color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.04)' }}>
+                        <ExternalLink size={12} />
+                      </Link>
+                      {can('products', 'update') && (
+                        <button onClick={() => router.push(`/admin/products/${p.id}/edit`)}
+                          className="p-1.5 rounded-lg transition-colors"
+                          style={{ color: '#60A5FA', background: 'rgba(59,130,246,0.1)' }}>
+                          <Pencil size={12} />
+                        </button>
+                      )}
+                      {can('products', 'delete') && (
+                        <button onClick={() => handleDelete(p)} disabled={deletingId === p.id}
+                          className="p-1.5 rounded-lg transition-colors disabled:opacity-40"
+                          style={{ color: '#F87171', background: 'rgba(239,68,68,0.1)' }}>
+                          {deletingId === p.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               )

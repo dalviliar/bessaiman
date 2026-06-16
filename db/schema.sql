@@ -122,6 +122,25 @@ CREATE TABLE IF NOT EXISTS admin_users (
   created_at    timestamptz DEFAULT now()
 );
 
+-- ── Audit log: кто что сделал и когда ──────────────────────
+CREATE TABLE IF NOT EXISTS admin_audit_log (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  admin_user_id  uuid REFERENCES admin_users(id) ON DELETE SET NULL,
+  admin_email    text NOT NULL,
+  action         text NOT NULL,       -- 'create' | 'update' | 'delete'
+  entity_type    text NOT NULL,       -- 'product' | 'user' | 'role'
+  entity_id      uuid,
+  entity_label   text,                -- человекочитаемое название на момент действия
+  details        jsonb,
+  created_at     timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_log_created ON admin_audit_log(created_at DESC);
+
+-- ── Доп. поля товара: вес и единица измерения ──────────────
+ALTER TABLE products ADD COLUMN IF NOT EXISTS weight_kg numeric;
+ALTER TABLE products ADD COLUMN IF NOT EXISTS unit text NOT NULL DEFAULT 'шт';
+
 -- ── Indexes ─────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_products_category   ON products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_slug       ON products(slug);

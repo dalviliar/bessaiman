@@ -3,6 +3,7 @@ import { query, queryOne, pool } from '@/lib/db'
 import { getCurrentAdminUser } from '@/lib/auth'
 import { can } from '@/lib/admin'
 import { hashPassword } from '@/lib/auth'
+import { logAction } from '@/lib/audit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -64,6 +65,12 @@ export async function POST(request: Request) {
       )
 
       await client.query('COMMIT')
+
+      await logAction({
+        adminId: me.id, adminEmail: me.email, action: 'create',
+        entityType: 'user', entityId: user.rows[0].id, entityLabel: email,
+      })
+
       return NextResponse.json({ ok: true, ...user.rows[0] })
     } catch (err) {
       await client.query('ROLLBACK')

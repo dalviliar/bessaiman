@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { query, queryOne } from '@/lib/db'
 import { getCurrentAdminUser } from '@/lib/auth'
 import { can, canManageRole } from '@/lib/admin'
+import { logAction } from '@/lib/audit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -40,5 +41,11 @@ export async function POST(request: Request) {
      VALUES ($1, $2, $3, $4, false) RETURNING *`,
     [name, display_name_ru, level, JSON.stringify(permissions ?? {})],
   )
+
+  await logAction({
+    adminId: me.id, adminEmail: me.email, action: 'create',
+    entityType: 'role', entityId: role.id, entityLabel: role.display_name_ru,
+  })
+
   return NextResponse.json(role)
 }
