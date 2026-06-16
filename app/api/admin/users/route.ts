@@ -24,50 +24,54 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const me = await getCurrentAdminUser()
-  if (!me || !can(me.role, 'users', 'create')) {
-    return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
-  }
-
-  const { email, password, full_name, permissions } = await request.json()
-  if (!email || !password) {
-    return NextResponse.json({ error: 'Заполните все поля' }, { status: 400 })
-  }
-  if (password.length < 8) {
-    return NextResponse.json({ error: 'Пароль минимум 8 символов' }, { status: 400 })
-  }
-
-  const existing = await queryOne('SELECT id FROM admin_users WHERE email = $1', [email])
-  if (existing) {
-    return NextResponse.json({ error: 'Пользователь с таким email уже существует' }, { status: 409 })
-  }
-
-  const myLevel = me.role?.level ?? 999
-  const roleName = `custom_${Date.now().toString(36)}`
-  const passwordHash = await hashPassword(password)
-
-  const client = await pool.connect()
   try {
-    await client.query('BEGIN')
+    const me = await getCurrentAdminUser()
+    if (!me || !can(me.role, 'users', 'create')) {
+      return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
+    }
 
-    const role = await client.query(
-      `INSERT INTO admin_roles (name, display_name_ru, level, permissions, is_system)
-       VALUES ($1, $2, $3, $4, false) RETURNING id`,
-      [roleName, 'Индивидуальный доступ', myLevel + 1, JSON.stringify(permissions ?? {})],
-    )
+    const { email, password, full_name, permissions } = await request.json()
+    if (!email || !password) {
+      return NextResponse.json({ error: 'Заполните все поля' }, { status: 400 })
+    }
+    if (password.length < 8) {
+      return NextResponse.json({ error: 'Пароль минимум 8 символов' }, { status: 400 })
+    }
 
-    const user = await client.query(
-      `INSERT INTO admin_users (email, password_hash, full_name, role_id, is_active, created_by)
-       VALUES ($1, $2, $3, $4, true, $5) RETURNING id, email, full_name, role_id, is_active, created_at`,
-      [email, passwordHash, full_name ?? null, role.rows[0].id, me.id],
-    )
+    const existing = await queryOne('SELECT id FROM admin_users WHERE email = $1', [email])
+    if (existing) {
+      return NextResponse.json({ error: 'Пользователь с таким email уже существует' }, { status: 409 })
+    }
 
-    await client.query('COMMIT')
-    return NextResponse.json({ ok: true, ...user.rows[0] })
+    const myLevel = me.role?.level ?? 999
+    const roleName = `custom_${Date.now().toString(36)}`
+    const passwordHash = await hashPassword(password)
+
+    const client = await pool.connect()
+    try {
+      await client.query('BEGIN')
+
+      const role = await client.query(
+        `INSERT INTO admin_roles (name, display_name_ru, level, permissions, is_system)
+         VALUES ($1, $2, $3, $4, false) RETURNING id`,
+        [roleName, 'Индивидуальный доступ', myLevel + 1, JSON.stringify(permissions ?? {})],
+      )
+
+      const user = await client.query(
+        `INSERT INTO admin_users (email, password_hash, full_name, role_id, is_active, created_by)
+         VALUES ($1, $2, $3, $4, true, $5) RETURNING id, email, full_name, role_id, is_active, created_at`,
+        [email, passwordHash, full_name ?? null, role.rows[0].id, me.id],
+      )
+
+      await client.query('COMMIT')
+      return NextResponse.json({ ok: true, ...user.rows[0] })
+    } catch (err) {
+      await client.query('ROLLBACK')
+      throw err
+    } finally {
+      client.release()
+    }
   } catch (err) {
-    await client.query('ROLLBACK')
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Ошибка' }, { status: 500 })
-  } finally {
-    client.release()
   }
 }

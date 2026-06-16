@@ -76,7 +76,7 @@ export default function WarehouseAuth({ children }: { children: ReactNode }) {
                 />
                 <button type="button" onClick={() => setShow(v => !v)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
-                  style={{ color: 'rgba(255,255,255,0.3)' }}>
+                  style={{ color: '#94A3B8' }}>
                   {show ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>

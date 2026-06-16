@@ -50,8 +50,9 @@ function CreateUserModal({ onClose, onCreated }: {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, full_name: fullName, permissions: perms }),
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || 'Ошибка создания')
+      const isJson = res.headers.get('content-type')?.includes('application/json')
+      const data = isJson ? await res.json() : null
+      if (!res.ok) throw new Error(data?.error || `Ошибка сервера (${res.status})`)
       onCreated()
       onClose()
     } catch (err: unknown) {
@@ -74,7 +75,7 @@ function CreateUserModal({ onClose, onCreated }: {
           <div>
             <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Имя</label>
             <input type="text" value={fullName} onChange={e => setFullName(e.target.value)}
-              placeholder="Иван Иванов" className="steel-input w-full" required />
+              className="steel-input w-full" required />
           </div>
           <div>
             <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Email</label>
@@ -89,7 +90,7 @@ function CreateUserModal({ onClose, onCreated }: {
                 placeholder="Минимум 8 символов" className="steel-input w-full pr-10"
                 required minLength={8} />
               <button type="button" onClick={() => setShowPw(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }}>
                 {showPw ? <EyeOff size={14} /> : <Eye size={14} />}
               </button>
             </div>
