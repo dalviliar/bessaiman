@@ -14,7 +14,12 @@ const MAX_SIZE = 8 * 1024 * 1024
 export async function POST(request: Request) {
   try {
     const me = await getCurrentAdminUser()
-    if (!me || !can(me.role, 'products', 'create')) {
+    const allowed =
+      can(me?.role, 'products', 'create') ||
+      can(me?.role, 'products', 'update') ||
+      can(me?.role, 'content',  'create') ||
+      can(me?.role, 'content',  'update')
+    if (!me || !allowed) {
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
 
