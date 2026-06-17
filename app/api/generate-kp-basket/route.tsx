@@ -1,5 +1,6 @@
 import React from 'react'
 import path from 'path'
+import { readFileSync } from 'fs'
 import { NextResponse } from 'next/server'
 import { pdf, Font, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 import { query } from '@/lib/db'
@@ -9,11 +10,15 @@ export const dynamic = 'force-dynamic'
 
 const fontsDir = path.join(process.cwd(), 'public', 'fonts')
 const stampPath = path.join(process.cwd(), 'public', 'brand', 'stamp.jpg')
+
+const toDataUri = (filePath: string) =>
+  `data:font/truetype;base64,${readFileSync(filePath).toString('base64')}`
+
 Font.register({
   family: 'Roboto',
   fonts: [
-    { src: path.join(fontsDir, 'Roboto-Regular.ttf') },
-    { src: path.join(fontsDir, 'Roboto-Bold.ttf'), fontWeight: 'bold' },
+    { src: toDataUri(path.join(fontsDir, 'Roboto-Regular.ttf')) },
+    { src: toDataUri(path.join(fontsDir, 'Roboto-Bold.ttf')), fontWeight: 'bold' },
   ],
 })
 

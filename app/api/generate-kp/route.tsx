@@ -1,5 +1,6 @@
 import React from 'react'
 import path from 'path'
+import { readFileSync } from 'fs'
 import { NextResponse } from 'next/server'
 import { pdf, Font, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 import { query } from '@/lib/db'
@@ -7,14 +8,18 @@ import { query } from '@/lib/db'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
-// Register fonts once at module load (not per-request — react-pdf v4 caches by family name)
+// Load fonts as base64 data URIs so react-pdf decodes in-memory (no fetch/fontkit.open path issues)
 const fontsDir = path.join(process.cwd(), 'public', 'fonts')
 const stampPath = path.join(process.cwd(), 'public', 'brand', 'stamp.jpg')
+
+const toDataUri = (filePath: string) =>
+  `data:font/truetype;base64,${readFileSync(filePath).toString('base64')}`
+
 Font.register({
   family: 'Roboto',
   fonts: [
-    { src: path.join(fontsDir, 'Roboto-Regular.ttf') },
-    { src: path.join(fontsDir, 'Roboto-Bold.ttf'), fontWeight: 'bold' },
+    { src: toDataUri(path.join(fontsDir, 'Roboto-Regular.ttf')) },
+    { src: toDataUri(path.join(fontsDir, 'Roboto-Bold.ttf')), fontWeight: 'bold' },
   ],
 })
 
