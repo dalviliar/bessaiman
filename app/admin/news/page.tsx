@@ -1,11 +1,11 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { useAdminAuth } from '@/context/AdminAuthContext'
-import { Loader2, Plus, Pencil, Trash2, Eye, EyeOff, Upload, X } from 'lucide-react'
+import { Loader2, Plus, Pencil, Trash2, Upload, X } from 'lucide-react'
 import type { NewsPost } from '@/types'
 
-const TYPE_LABELS = { news: 'РќРѕРІРѕСЃС‚СЊ', announcement: 'РЈРІРµРґРѕРјР»РµРЅРёРµ' }
+const TYPE_LABELS = { news: 'Новость', announcement: 'Уведомление' }
 const TYPE_COLORS = { news: '#3B82F6', announcement: '#F59E0B' }
 
 const EMPTY_FORM = {
@@ -60,12 +60,12 @@ export default function AdminNewsPage() {
     const isJson = res.headers.get('content-type')?.includes('application/json')
     const data = isJson ? await res.json() : null
     if (res.ok) set('image_url', data.url)
-    else setError(data?.error || 'РћС€РёР±РєР° Р·Р°РіСЂСѓР·РєРё')
+    else setError(data?.error || 'Ошибка загрузки')
     setUploading(false)
   }
 
   const handleSave = async () => {
-    if (!form.title_ru) { setError('Р—Р°РїРѕР»РЅРёС‚Рµ Р·Р°РіРѕР»РѕРІРѕРє'); return }
+    if (!form.title_ru) { setError('Заполните заголовок'); return }
     setSaving(true); setError('')
     const url = modal?.mode === 'edit' ? `/api/admin/news/${modal.post!.id}` : '/api/admin/news'
     const res = await fetch(url, {
@@ -75,13 +75,13 @@ export default function AdminNewsPage() {
     })
     const isJson = res.headers.get('content-type')?.includes('application/json')
     const data = isJson ? await res.json() : null
-    if (!res.ok) { setError(data?.error || `РћС€РёР±РєР° ${res.status}`); setSaving(false); return }
+    if (!res.ok) { setError(data?.error || `Ошибка ${res.status}`); setSaving(false); return }
     setModal(null); load()
     setSaving(false)
   }
 
   const handleDelete = async (post: NewsPost) => {
-    if (!confirm(`РЈРґР°Р»РёС‚СЊ В«${post.title_ru}В»?`)) return
+    if (!confirm(`Удалить «${post.title_ru}»?`)) return
     setDeletingId(post.id)
     await fetch(`/api/admin/news/${post.id}`, { method: 'DELETE' })
     setPosts(prev => prev.filter(p => p.id !== post.id))
@@ -104,43 +104,51 @@ export default function AdminNewsPage() {
     <div className="p-4 sm:p-8 max-w-5xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-black text-white mb-0.5">РќРѕРІРѕСЃС‚Рё Рё СѓРІРµРґРѕРјР»РµРЅРёСЏ</h1>
+          <h1 className="text-xl font-black text-white mb-0.5">Новости и уведомления</h1>
           <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            {posts.filter(p => p.is_published).length} РѕРїСѓР±Р»РёРєРѕРІР°РЅРѕ В· {posts.length} РІСЃРµРіРѕ
+            {posts.filter(p => p.is_published).length} опубликовано · {posts.length} всего
           </p>
         </div>
         {can('content', 'create') && (
           <button onClick={openCreate}
             className="flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold"
             style={{ background: 'linear-gradient(135deg,#1D4ED8,#3B82F6)', color: 'white' }}>
-            <Plus size={14} /> Р”РѕР±Р°РІРёС‚СЊ
+            <Plus size={14} /> Добавить
           </button>
         )}
       </div>
 
       <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
         {loading ? (
-          <div className="flex justify-center py-12"><Loader2 size={20} className="animate-spin" style={{ color: '#3B82F6' }} /></div>
+          <div className="flex justify-center py-12">
+            <Loader2 size={20} className="animate-spin" style={{ color: '#3B82F6' }} />
+          </div>
         ) : posts.length === 0 ? (
-          <div className="py-12 text-center text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>РџРѕСЃС‚РѕРІ РЅРµС‚ вЂ” СЃРѕР·РґР°Р№С‚Рµ РїРµСЂРІС‹Р№</div>
+          <div className="py-12 text-center text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>
+            Постов нет — создайте первый
+          </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr style={{ background: '#0D1421', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                <th className="px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Р—Р°РіРѕР»РѕРІРѕРє</th>
-                <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>РўРёРї</th>
-                <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>РЎС‚Р°С‚СѓСЃ</th>
-                <th className="px-5 py-3 text-right text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Р”Р°С‚Р°</th>
+                <th className="px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Заголовок</th>
+                <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Тип</th>
+                <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Статус</th>
+                <th className="px-5 py-3 text-right text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Дата</th>
                 <th className="px-5 py-3 w-28" />
               </tr>
             </thead>
             <tbody>
               {posts.map((post, i) => (
-                <tr key={post.id} style={{ background: i % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                <tr key={post.id} style={{
+                  background: i % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent',
+                  borderBottom: '1px solid rgba(255,255,255,0.04)',
+                }}>
                   <td className="px-5 py-3">
                     <div className="flex items-center gap-2">
                       {post.image_url && (
-                        <img src={post.image_url} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0" style={{ border: '1px solid rgba(255,255,255,0.1)' }} />
+                        <img src={post.image_url} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0"
+                          style={{ border: '1px solid rgba(255,255,255,0.1)' }} />
                       )}
                       <span className="text-white text-xs font-medium truncate max-w-xs">{post.title_ru}</span>
                     </div>
@@ -154,28 +162,29 @@ export default function AdminNewsPage() {
                   <td className="px-5 py-3 text-center">
                     {can('content', 'update') ? (
                       <button onClick={() => togglePublish(post)}
-                        className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        className="text-[10px] font-bold px-2 py-0.5 rounded-full transition-colors"
                         style={{
                           background: post.is_published ? 'rgba(52,211,153,0.12)' : 'rgba(255,255,255,0.06)',
                           color: post.is_published ? '#34D399' : 'rgba(255,255,255,0.3)',
                         }}>
-                        {post.is_published ? 'РћРїСѓР±Р»РёРєРѕРІР°РЅРѕ' : 'Р§РµСЂРЅРѕРІРёРє'}
+                        {post.is_published ? 'Опубликовано' : 'Черновик'}
                       </button>
                     ) : (
                       <span className="text-xs" style={{ color: post.is_published ? '#34D399' : 'rgba(255,255,255,0.3)' }}>
-                        {post.is_published ? 'РћРїСѓР±Р»РёРєРѕРІР°РЅРѕ' : 'Р§РµСЂРЅРѕРІРёРє'}
+                        {post.is_published ? 'Опубликовано' : 'Черновик'}
                       </span>
                     )}
                   </td>
                   <td className="px-5 py-3 text-right text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
                     {post.published_at
                       ? new Date(post.published_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })
-                      : 'вЂ”'}
+                      : '—'}
                   </td>
                   <td className="px-5 py-3">
                     <div className="flex items-center justify-center gap-1.5">
                       {can('content', 'update') && (
-                        <button onClick={() => openEdit(post)} className="p-1.5 rounded" style={{ color: '#60A5FA', background: 'rgba(59,130,246,0.1)' }}>
+                        <button onClick={() => openEdit(post)} className="p-1.5 rounded"
+                          style={{ color: '#60A5FA', background: 'rgba(59,130,246,0.1)' }}>
                           <Pencil size={12} />
                         </button>
                       )}
@@ -196,20 +205,28 @@ export default function AdminNewsPage() {
 
       {/* Modal */}
       {modal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
-          <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl p-6" style={{ background: '#0D1421', border: '1px solid rgba(255,255,255,0.08)' }}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
+          onMouseDown={e => { if (e.target === e.currentTarget) setModal(null) }}>
+          <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl p-6"
+            style={{ background: '#0D1421', border: '1px solid rgba(255,255,255,0.08)' }}>
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-base font-black text-white">{modal.mode === 'create' ? 'РќРѕРІС‹Р№ РїРѕСЃС‚' : 'Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ'}</h2>
-              <button onClick={() => setModal(null)} className="text-white/40 hover:text-white/70"><X size={18} /></button>
+              <h2 className="text-base font-black text-white">
+                {modal.mode === 'create' ? 'Новый пост' : 'Редактировать'}
+              </h2>
+              <button onClick={() => setModal(null)} className="text-white/40 hover:text-white/70">
+                <X size={18} />
+              </button>
             </div>
 
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>РўРёРї</label>
-                  <select className="steel-input w-full" value={form.type} onChange={e => set('type', e.target.value as 'news' | 'announcement')}>
-                    <option value="news">РќРѕРІРѕСЃС‚СЊ</option>
-                    <option value="announcement">РЈРІРµРґРѕРјР»РµРЅРёРµ</option>
+                  <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Тип</label>
+                  <select className="steel-input w-full" value={form.type}
+                    onChange={e => set('type', e.target.value as 'news' | 'announcement')}>
+                    <option value="news">Новость</option>
+                    <option value="announcement">Уведомление</option>
                   </select>
                 </div>
                 <div className="flex items-end pb-0.5">
@@ -217,36 +234,40 @@ export default function AdminNewsPage() {
                     <input type="checkbox" checked={form.is_published}
                       onChange={e => set('is_published', e.target.checked)}
                       className="w-4 h-4 rounded accent-blue-500" />
-                    <span className="text-sm font-medium" style={{ color: form.is_published ? '#34D399' : 'rgba(255,255,255,0.5)' }}>
-                      {form.is_published ? 'РћРїСѓР±Р»РёРєРѕРІР°РЅРѕ' : 'Р§РµСЂРЅРѕРІРёРє'}
+                    <span className="text-sm font-medium"
+                      style={{ color: form.is_published ? '#34D399' : 'rgba(255,255,255,0.5)' }}>
+                      {form.is_published ? 'Опубликовано' : 'Черновик'}
                     </span>
                   </label>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Р—Р°РіРѕР»РѕРІРѕРє (Р СѓСЃ) *</label>
-                <input className="steel-input w-full" value={form.title_ru} onChange={e => set('title_ru', e.target.value)} />
+                <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Заголовок (Рус) *</label>
+                <input className="steel-input w-full" value={form.title_ru}
+                  onChange={e => set('title_ru', e.target.value)} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Р—Р°РіРѕР»РѕРІРѕРє (РљР°Р·)</label>
-                  <input className="steel-input w-full" value={form.title_kk} onChange={e => set('title_kk', e.target.value)} />
+                  <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Заголовок (Каз)</label>
+                  <input className="steel-input w-full" value={form.title_kk}
+                    onChange={e => set('title_kk', e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Р—Р°РіРѕР»РѕРІРѕРє (Eng)</label>
-                  <input className="steel-input w-full" value={form.title_en} onChange={e => set('title_en', e.target.value)} />
+                  <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Заголовок (Eng)</label>
+                  <input className="steel-input w-full" value={form.title_en}
+                    onChange={e => set('title_en', e.target.value)} />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>РўРµРєСЃС‚ (Р СѓСЃ)</label>
-                <textarea className="steel-input w-full resize-none" rows={4} value={form.content_ru} onChange={e => set('content_ru', e.target.value)} />
+                <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Текст (Рус)</label>
+                <textarea className="steel-input w-full resize-none" rows={4} value={form.content_ru}
+                  onChange={e => set('content_ru', e.target.value)} />
               </div>
 
-              {/* Р¤РѕС‚Рѕ */}
               <div>
-                <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Р¤РѕС‚Рѕ</label>
+                <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Фото</label>
                 {form.image_url ? (
                   <div className="relative inline-block">
                     <img src={form.image_url} alt="" className="h-28 w-auto rounded-lg object-cover" />
@@ -260,27 +281,29 @@ export default function AdminNewsPage() {
                   <label className="flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer w-fit text-xs font-medium"
                     style={{ border: '1px dashed rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.5)' }}>
                     {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
-                    Р—Р°РіСЂСѓР·РёС‚СЊ С„РѕС‚Рѕ
-                    <input type="file" accept="image/*" className="hidden" onChange={e => handleUpload(e.target.files)} disabled={uploading} />
+                    Загрузить фото
+                    <input type="file" accept="image/*" className="hidden"
+                      onChange={e => handleUpload(e.target.files)} disabled={uploading} />
                   </label>
                 )}
               </div>
 
-              {/* Instagram URL */}
               <div>
                 <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                  РЎСЃС‹Р»РєР° РЅР° РїРѕСЃС‚ РІ Instagram <span style={{ color: 'rgba(255,255,255,0.3)' }}>(РЅРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)</span>
+                  Ссылка на пост в Instagram{' '}
+                  <span style={{ color: 'rgba(255,255,255,0.3)' }}>(необязательно)</span>
                 </label>
                 <input className="steel-input w-full" value={form.instagram_url}
                   onChange={e => set('instagram_url', e.target.value)}
                   placeholder="https://www.instagram.com/p/..." />
                 <p className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                  РќР° РїСѓР±Р»РёС‡РЅРѕР№ СЃС‚СЂР°РЅРёС†Рµ РїРѕРєР°Р¶РµС‚СЃСЏ РєРЅРѕРїРєР° В«РЎРјРѕС‚СЂРµС‚СЊ РІ InstagramВ»
+                  На публичной странице покажется кнопка «Смотреть в Instagram»
                 </p>
               </div>
 
               {error && (
-                <p className="text-xs px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+                <p className="text-xs px-3 py-2 rounded-lg"
+                  style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
                   {error}
                 </p>
               )}
@@ -289,9 +312,9 @@ export default function AdminNewsPage() {
                 <button onClick={handleSave} disabled={saving}
                   className="px-5 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
                   style={{ background: 'linear-gradient(135deg,#1D4ED8,#3B82F6)', color: 'white' }}>
-                  {saving ? <><Loader2 size={13} className="animate-spin" />РЎРѕС…СЂР°РЅСЏРµРј...</> : 'РЎРѕС…СЂР°РЅРёС‚СЊ'}
+                  {saving ? <><Loader2 size={13} className="animate-spin" />Сохраняем...</> : 'Сохранить'}
                 </button>
-                <button onClick={() => setModal(null)} className="btn-secondary px-4 text-sm">РћС‚РјРµРЅР°</button>
+                <button onClick={() => setModal(null)} className="btn-secondary px-4 text-sm">Отмена</button>
               </div>
             </div>
           </div>

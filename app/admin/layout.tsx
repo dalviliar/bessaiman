@@ -61,9 +61,10 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-      style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
+      style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(6px)' }}
       onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}>
-      <div className="w-full max-w-sm rounded-2xl p-6" style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.1)' }}>
+      <div className="w-full max-w-sm rounded-2xl p-6"
+        style={{ background: '#111E35', border: '1px solid rgba(255,255,255,0.12)' }}>
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-sm font-bold text-white flex items-center gap-2">
             <KeyRound size={14} style={{ color: '#60A5FA' }} /> Сменить пароль
@@ -77,8 +78,8 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
         ) : (
           <form onSubmit={submit} className="space-y-3">
             {[
-              { label: 'Текущий пароль', val: cur, set: setCur, show: showCur, toggle: () => setShowCur(v => !v) },
-              { label: 'Новый пароль',   val: next, set: setNext, show: showNew, toggle: () => setShowNew(v => !v) },
+              { label: 'Текущий пароль',  val: cur,     set: setCur,  show: showCur, toggle: () => setShowCur(v => !v) },
+              { label: 'Новый пароль',    val: next,    set: setNext, show: showNew, toggle: () => setShowNew(v => !v) },
               { label: 'Повторите новый', val: confirm, set: setConf, show: showNew, toggle: () => setShowNew(v => !v) },
             ].map(({ label, val, set, show, toggle }, i) => (
               <div key={i}>
@@ -93,7 +94,11 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
                 </div>
               </div>
             ))}
-            {error && <p className="text-xs px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171' }}>{error}</p>}
+            {error && (
+              <p className="text-xs px-3 py-2 rounded-lg"
+                style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171' }}>{error}
+              </p>
+            )}
             <button type="submit" disabled={loading}
               className="w-full py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
               style={{ background: 'linear-gradient(135deg,#1D4ED8,#3B82F6)', color: 'white' }}>
@@ -113,7 +118,8 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
 
   if (loading) {
     return (
-      <div className="w-64 flex items-center justify-center h-full" style={{ background: '#080E1C', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="w-72 flex items-center justify-center h-full"
+        style={{ background: '#0A1628', borderRight: '1px solid rgba(255,255,255,0.07)' }}>
         <Loader2 size={22} className="animate-spin" style={{ color: '#3B82F6' }} />
       </div>
     )
@@ -122,22 +128,27 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
   const roleColor = ROLE_COLORS[user?.role?.name ?? ''] ?? '#6B7280'
 
   return (
-    <div className="w-64 flex flex-col h-full" style={{ background: '#080E1C', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+    <div className="w-72 flex flex-col h-full"
+      style={{ background: '#0A1628', borderRight: '1px solid rgba(255,255,255,0.07)' }}>
 
-      {/* Logo + close button on mobile */}
-      <div className="px-5 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      {/* Logo */}
+      <div className="px-5 py-5 flex items-center justify-between"
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm"
-            style={{ background: 'rgba(59,130,246,0.15)', color: '#3B82F6', border: '1px solid rgba(59,130,246,0.25)' }}>
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm"
+            style={{ background: 'rgba(59,130,246,0.2)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.3)' }}>
             B
           </div>
           <div>
-            <div className="font-black text-xs tracking-wide text-white">BES SAIMAN</div>
-            <div className="text-[9px] tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>ADMIN PANEL</div>
+            <div className="font-black text-sm tracking-wide text-white">BES SAIMAN</div>
+            <div className="text-[9px] tracking-widest font-medium" style={{ color: 'rgba(255,255,255,0.3)' }}>
+              ADMIN PANEL
+            </div>
           </div>
         </div>
         {onClose && (
-          <button onClick={onClose} className="lg:hidden p-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <button onClick={onClose} className="lg:hidden p-1.5 rounded-lg hover:bg-white/5"
+            style={{ color: 'rgba(255,255,255,0.4)' }}>
             <X size={16} />
           </button>
         )}
@@ -152,39 +163,39 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
           return (
             <Link key={href} href={href}
               onClick={onClose}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all"
+              className="flex items-center gap-3 px-3.5 py-3 rounded-xl text-[13px] font-semibold transition-all"
               style={{
-                background: active ? 'rgba(59,130,246,0.12)' : 'transparent',
-                color: active ? '#60A5FA' : 'rgba(255,255,255,0.5)',
-                borderLeft: active ? '2px solid #3B82F6' : '2px solid transparent',
+                background: active ? 'rgba(59,130,246,0.15)' : 'transparent',
+                color: active ? '#93C5FD' : 'rgba(255,255,255,0.55)',
+                borderLeft: active ? '3px solid #3B82F6' : '3px solid transparent',
               }}>
-              <Icon size={15} />
+              <Icon size={16} style={{ flexShrink: 0 }} />
               {label}
-              {active && <ChevronRight size={12} className="ml-auto" />}
+              {active && <ChevronRight size={13} className="ml-auto" style={{ color: '#60A5FA' }} />}
             </Link>
           )
         })}
 
-        <div className="pt-3 mt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="pt-3 mt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
           <Link href="/" target="_blank"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+            className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-[13px] font-medium transition-colors"
             style={{ color: 'rgba(255,255,255,0.3)' }}>
-            <ExternalLink size={14} />
+            <ExternalLink size={15} />
             Открыть сайт
           </Link>
         </div>
       </nav>
 
       {/* User info */}
-      <div className="px-4 py-4" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="px-4 py-4" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="flex items-start gap-3 mb-3">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-            style={{ background: `${roleColor}25`, color: roleColor, border: `1px solid ${roleColor}40` }}>
+          <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0"
+            style={{ background: `${roleColor}25`, color: roleColor, border: `1px solid ${roleColor}50` }}>
             {user?.full_name?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || '?'}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-semibold text-white truncate">{user?.full_name || user?.email}</p>
-            <p className="text-[10px] font-medium" style={{ color: roleColor }}>
+            <p className="text-sm font-semibold text-white truncate">{user?.full_name || user?.email}</p>
+            <p className="text-[11px] font-medium" style={{ color: roleColor }}>
               {user?.role?.display_name_ru || '—'}
             </p>
           </div>
@@ -192,12 +203,12 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
         <div className="flex gap-1.5">
           <button onClick={() => setShowPwModal(true)}
             className="flex-1 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors"
-            style={{ color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.03)' }}>
+            style={{ color: 'rgba(255,255,255,0.45)', background: 'rgba(255,255,255,0.04)' }}>
             <KeyRound size={11} /> Сменить пароль
           </button>
           <button onClick={logout}
             className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors hover:bg-red-500/10"
-            style={{ color: 'rgba(248,113,113,0.6)' }}>
+            style={{ color: 'rgba(248,113,113,0.7)' }}>
             <LogOut size={11} /> Выйти
           </button>
         </div>
@@ -211,24 +222,24 @@ function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
-  // Close sidebar on route change
   useEffect(() => { setSidebarOpen(false) }, [pathname])
 
   if (pathname === '/admin/login') return <>{children}</>
 
   return (
-    <div className="fixed inset-0 z-[100] flex" style={{ background: '#0A1221', color: 'white', fontFamily: 'Inter, sans-serif' }}>
+    <div className="fixed inset-0 z-[100] flex"
+      style={{ background: '#0D1829', color: 'white', fontFamily: 'Inter, sans-serif' }}>
 
       {/* Mobile backdrop */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-[110] lg:hidden"
-          style={{ background: 'rgba(0,0,0,0.6)' }}
+          style={{ background: 'rgba(0,0,0,0.65)' }}
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
-      {/* Sidebar: slide-in on mobile, always visible on lg+ */}
+      {/* Sidebar */}
       <div className={`
         fixed lg:relative inset-y-0 left-0 z-[120] flex-shrink-0
         transition-transform duration-200 ease-in-out
@@ -241,14 +252,14 @@ function AdminShell({ children }: { children: React.ReactNode }) {
       <main className="flex-1 overflow-auto min-w-0 flex flex-col">
         {/* Mobile top bar */}
         <div className="lg:hidden flex items-center gap-3 px-4 py-3 flex-shrink-0"
-          style={{ background: '#080E1C', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          style={{ background: '#0A1628', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
           <button onClick={() => setSidebarOpen(true)} style={{ color: 'rgba(255,255,255,0.6)' }}>
             <Menu size={20} />
           </button>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded flex items-center justify-center font-black text-xs"
-              style={{ background: 'rgba(59,130,246,0.15)', color: '#3B82F6' }}>B</div>
-            <span className="font-black text-xs tracking-wide text-white">BES SAIMAN</span>
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs"
+              style={{ background: 'rgba(59,130,246,0.2)', color: '#60A5FA' }}>B</div>
+            <span className="font-black text-sm tracking-wide text-white">BES SAIMAN</span>
           </div>
         </div>
 

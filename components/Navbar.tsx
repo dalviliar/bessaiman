@@ -22,11 +22,10 @@ export default function Navbar() {
   const [langOpen, setLangOpen] = useState(false)
 
   const links = [
-    { href: '/',          label: tr.nav.home },
-    { href: '/catalog',   label: tr.nav.catalog },
-    { href: '/about',     label: tr.nav.about },
-    { href: '/contacts',  label: tr.nav.contacts },
-    { href: '/warehouse', label: tr.nav.warehouse },
+    { href: '/',         label: tr.nav.home },
+    { href: '/catalog',  label: tr.nav.catalog },
+    { href: '/about',    label: tr.nav.about },
+    { href: '/contacts', label: tr.nav.contacts },
   ]
 
   return (
