@@ -92,6 +92,7 @@ export interface WarehouseTransaction {
   type: 'in' | 'out'
   quantity: number
   note: string | null
+  performed_by_name: string | null
   created_at: string
   product?: Product
 }

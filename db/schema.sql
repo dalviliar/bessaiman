@@ -168,6 +168,8 @@ CREATE TABLE IF NOT EXISTS news_posts (
 );
 CREATE INDEX IF NOT EXISTS idx_news_published ON news_posts(published_at DESC) WHERE is_published = true;
 
+ALTER TABLE warehouse_transactions ADD COLUMN IF NOT EXISTS performed_by_name text;
+
 -- ── Indexes ─────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_products_category   ON products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_slug       ON products(slug);

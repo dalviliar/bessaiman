@@ -144,6 +144,7 @@ export default function WarehousePage() {
       type: txMode,
       quantity: qty,
       note: note || null,
+      performed_by_name: null,
     })
     setBarcode('')
     setFoundItem(null)

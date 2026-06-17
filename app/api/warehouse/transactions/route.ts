@@ -22,7 +22,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   const tx = await request.json()
-  const { product_id, barcode, type, quantity, note } = tx
+  const { product_id, barcode, type, quantity, note, performed_by_name } = tx
 
   if (!product_id || !type || !quantity) {
     return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
@@ -33,9 +33,9 @@ export async function POST(request: Request) {
     await client.query('BEGIN')
 
     await client.query(
-      `INSERT INTO warehouse_transactions (product_id, barcode, type, quantity, note)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [product_id, barcode ?? null, type, quantity, note ?? null],
+      `INSERT INTO warehouse_transactions (product_id, barcode, type, quantity, note, performed_by_name)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [product_id, barcode ?? null, type, quantity, note ?? null, performed_by_name ?? null],
     )
 
     const delta = type === 'in' ? quantity : -quantity

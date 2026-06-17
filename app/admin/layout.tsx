@@ -3,9 +3,10 @@
 import { AdminAuthProvider, useAdminAuth } from '@/context/AdminAuthContext'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { useState } from 'react'
 import {
   LayoutDashboard, Users, Shield, Package, Warehouse, FileText, History,
-  LogOut, ChevronRight, Loader2, ExternalLink, Newspaper, Tag,
+  LogOut, ChevronRight, Loader2, ExternalLink, Newspaper, Tag, KeyRound, X, Eye, EyeOff,
 } from 'lucide-react'
 
 const NAV = [
@@ -31,9 +32,83 @@ const ROLE_COLORS: Record<string, string> = {
   viewer:               '#6B7280',
 }
 
+function ChangePasswordModal({ onClose }: { onClose: () => void }) {
+  const [cur, setCur]       = useState('')
+  const [next, setNext]     = useState('')
+  const [confirm, setConf]  = useState('')
+  const [showCur, setShowCur]   = useState(false)
+  const [showNew, setShowNew]   = useState(false)
+  const [loading, setLoading]   = useState(false)
+  const [error, setError]       = useState('')
+  const [success, setSuccess]   = useState(false)
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (next !== confirm) { setError('Пароли не совпадают'); return }
+    setLoading(true); setError('')
+    const res = await fetch('/api/admin/auth/change-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ current_password: cur, new_password: next }),
+    })
+    const data = await res.json()
+    setLoading(false)
+    if (!res.ok) { setError(data.error || 'Ошибка'); return }
+    setSuccess(true)
+    setTimeout(onClose, 1500)
+  }
+
+  return (
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
+      onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="w-full max-w-sm rounded-2xl p-6" style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.1)' }}>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-sm font-bold text-white flex items-center gap-2">
+            <KeyRound size={14} style={{ color: '#60A5FA' }} /> Сменить пароль
+          </h2>
+          <button onClick={onClose} style={{ color: 'rgba(255,255,255,0.4)' }}><X size={16} /></button>
+        </div>
+        {success ? (
+          <div className="py-6 text-center">
+            <p className="text-sm font-bold" style={{ color: '#34d399' }}>✓ Пароль успешно изменён</p>
+          </div>
+        ) : (
+          <form onSubmit={submit} className="space-y-3">
+            {[
+              { label: 'Текущий пароль', val: cur, set: setCur, show: showCur, toggle: () => setShowCur(v => !v) },
+              { label: 'Новый пароль',   val: next, set: setNext, show: showNew, toggle: () => setShowNew(v => !v) },
+              { label: 'Повторите новый', val: confirm, set: setConf, show: showNew, toggle: () => setShowNew(v => !v) },
+            ].map(({ label, val, set, show, toggle }, i) => (
+              <div key={i}>
+                <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>{label}</label>
+                <div className="relative">
+                  <input type={show ? 'text' : 'password'} value={val} onChange={e => set(e.target.value)}
+                    className="steel-input w-full pr-9" required minLength={i === 0 ? 1 : 8} />
+                  <button type="button" onClick={toggle}
+                    className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }}>
+                    {show ? <EyeOff size={13} /> : <Eye size={13} />}
+                  </button>
+                </div>
+              </div>
+            ))}
+            {error && <p className="text-xs px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171' }}>{error}</p>}
+            <button type="submit" disabled={loading}
+              className="w-full py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
+              style={{ background: 'linear-gradient(135deg,#1D4ED8,#3B82F6)', color: 'white' }}>
+              {loading ? <><Loader2 size={13} className="animate-spin" /> Сохранение...</> : 'Сохранить'}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function Sidebar() {
   const { user, loading, logout, can } = useAdminAuth()
   const pathname = usePathname()
+  const [showPwModal, setShowPwModal] = useState(false)
 
   if (loading) {
     return (
@@ -107,13 +182,20 @@ function Sidebar() {
             </p>
           </div>
         </div>
-        <button onClick={logout}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-colors hover:bg-red-500/10"
-          style={{ color: 'rgba(248,113,113,0.6)' }}>
-          <LogOut size={13} />
-          Выйти
-        </button>
+        <div className="flex gap-1.5">
+          <button onClick={() => setShowPwModal(true)}
+            className="flex-1 flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors"
+            style={{ color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.03)' }}>
+            <KeyRound size={11} /> Сменить пароль
+          </button>
+          <button onClick={logout}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium transition-colors hover:bg-red-500/10"
+            style={{ color: 'rgba(248,113,113,0.6)' }}>
+            <LogOut size={11} /> Выйти
+          </button>
+        </div>
       </div>
+      {showPwModal && <ChangePasswordModal onClose={() => setShowPwModal(false)} />}
     </div>
   )
 }
