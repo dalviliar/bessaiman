@@ -2,26 +2,11 @@ import React from 'react'
 import path from 'path'
 import { readFileSync } from 'fs'
 import { NextResponse } from 'next/server'
-import { pdf, Font, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
+import { renderToBuffer, Font, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 import { query } from '@/lib/db'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-
-// Load fonts as base64 data URIs so react-pdf decodes in-memory (no fetch/fontkit.open path issues)
-const fontsDir = path.join(process.cwd(), 'public', 'fonts')
-const stampPath = path.join(process.cwd(), 'public', 'brand', 'stamp.jpg')
-
-const toDataUri = (filePath: string) =>
-  `data:font/truetype;base64,${readFileSync(filePath).toString('base64')}`
-
-Font.register({
-  family: 'Roboto',
-  fonts: [
-    { src: toDataUri(path.join(fontsDir, 'Roboto-Regular.ttf')) },
-    { src: toDataUri(path.join(fontsDir, 'Roboto-Bold.ttf')), fontWeight: 'bold' },
-  ],
-})
 
 const C = {
   primary: '#1A4A8A',
@@ -37,7 +22,6 @@ const C = {
 const s = StyleSheet.create({
   page: { fontFamily: 'Roboto', fontSize: 9, color: C.text, paddingTop: 36, paddingBottom: 52, paddingHorizontal: 44 },
 
-  // Header
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
   logoBox: { width: 68, height: 42, backgroundColor: C.primaryLight, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.border },
   logoMain: { fontSize: 16, fontWeight: 'bold', color: C.primary },
@@ -50,12 +34,10 @@ const s = StyleSheet.create({
   dividerBlue: { borderBottomWidth: 2, borderBottomColor: C.primary, marginVertical: 10 },
   dividerThin: { borderBottomWidth: 0.5, borderBottomColor: C.border, marginVertical: 8 },
 
-  // Title banner
   titleBanner: { backgroundColor: C.primary, paddingVertical: 10, paddingHorizontal: 14, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   titleMain: { fontSize: 13, fontWeight: 'bold', color: C.white, letterSpacing: 0.5 },
   titleNum: { fontSize: 8, color: 'rgba(255,255,255,0.75)' },
 
-  // Parties
   parties: { flexDirection: 'row', gap: 10, marginBottom: 12 },
   partyBox: { flex: 1, backgroundColor: C.lightGray, padding: 10, borderLeftWidth: 3, borderLeftColor: C.primary },
   partyLabel: { fontSize: 7, fontWeight: 'bold', color: C.primary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 5 },
@@ -64,7 +46,6 @@ const s = StyleSheet.create({
 
   sectionTitle: { fontSize: 8.5, fontWeight: 'bold', color: C.primary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 5, marginTop: 4 },
 
-  // Product table
   tableHead: { flexDirection: 'row', backgroundColor: C.primary, paddingVertical: 6, paddingHorizontal: 6 },
   tableRow: { flexDirection: 'row', paddingVertical: 7, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: C.border },
   tableRowAlt: { backgroundColor: C.lightGray },
@@ -81,36 +62,31 @@ const s = StyleSheet.create({
   tdUnit: { width: 28, fontSize: 8.5, textAlign: 'center', color: C.gray },
   tdPrice: { width: 76, fontSize: 8.5, fontWeight: 'bold', textAlign: 'right', color: C.primary },
 
-  // Specs
   specsBox: { borderWidth: 0.5, borderColor: C.border, marginBottom: 10 },
   specRow: { flexDirection: 'row', paddingVertical: 4.5, paddingHorizontal: 8, borderBottomWidth: 0.5, borderBottomColor: C.border },
   specRowAlt: { backgroundColor: C.lightGray },
   specKey: { width: '46%', fontSize: 8, color: C.gray },
   specVal: { flex: 1, fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark },
 
-  // Conditions
   condRow: { flexDirection: 'row', marginBottom: 4, alignItems: 'flex-start' },
   condBullet: { width: 10, fontSize: 8, color: C.primary },
   condLabel: { width: 128, fontSize: 8, color: C.gray },
   condValue: { flex: 1, fontSize: 8, fontWeight: 'bold', color: C.primaryDark },
 
-  // Bank
   bankBox: { backgroundColor: C.primaryLight, borderWidth: 0.5, borderColor: C.border, padding: 10, marginBottom: 12 },
   bankTitle: { fontSize: 7.5, fontWeight: 'bold', color: C.primary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 },
   bankRow: { flexDirection: 'row', marginBottom: 3.5 },
   bankLabel: { width: 90, fontSize: 7.5, color: C.gray },
   bankValue: { flex: 1, fontSize: 8, fontWeight: 'bold', color: C.primaryDark },
 
-  // Signature
   sigSection: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 14 },
   sigBox: { width: 200 },
   sigRole: { fontSize: 8, color: C.gray, marginBottom: 4 },
   sigTitle: { fontSize: 8, fontWeight: 'bold', color: C.primaryDark, marginBottom: 14 },
   sigLine: { borderBottomWidth: 0.5, borderBottomColor: C.primaryDark, height: 24, marginBottom: 4 },
   sigName: { fontSize: 9, fontWeight: 'bold', color: C.primaryDark },
-  stampWrap: { width: 90, height: 90, position: 'relative' },
+  stampWrap: { width: 90, height: 90 },
 
-  // Footer
   footer: { position: 'absolute', bottom: 20, left: 44, right: 44, borderTopWidth: 0.5, borderTopColor: C.border, paddingTop: 5, flexDirection: 'row', justifyContent: 'space-between' },
   footerLeft: { fontSize: 6.5, color: C.gray },
   footerRight: { fontSize: 6.5, color: C.gray },
@@ -159,12 +135,14 @@ function KPDocument({
   lang,
   kpNumber,
   dateStr,
+  stampDataUri,
 }: {
   product: ProductData
   clientInfo: ClientInfo
   lang: string
   kpNumber: string
   dateStr: string
+  stampDataUri: string | null
 }) {
   const productName =
     (lang === 'kk' ? product.name_kk : lang === 'en' ? product.name_en : null) ||
@@ -176,7 +154,7 @@ function KPDocument({
     <Document>
       <Page size="A4" style={s.page}>
 
-        {/* ── HEADER ── */}
+        {/* HEADER */}
         <View style={s.header}>
           <View style={s.logoBox}>
             <Text style={s.logoMain}>BS</Text>
@@ -193,13 +171,13 @@ function KPDocument({
 
         <View style={s.dividerBlue} />
 
-        {/* ── TITLE BANNER ── */}
+        {/* TITLE BANNER */}
         <View style={s.titleBanner}>
           <Text style={s.titleMain}>КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</Text>
           <Text style={s.titleNum}>№ {kpNumber}  |  {dateStr}</Text>
         </View>
 
-        {/* ── PARTIES ── */}
+        {/* PARTIES */}
         <View style={s.parties}>
           <View style={s.partyBox}>
             <Text style={s.partyLabel}>Поставщик</Text>
@@ -225,7 +203,7 @@ function KPDocument({
 
         <View style={s.dividerThin} />
 
-        {/* ── PRODUCT TABLE ── */}
+        {/* PRODUCT TABLE */}
         <Text style={s.sectionTitle}>Предмет коммерческого предложения</Text>
         <View style={{ marginBottom: 10 }}>
           <View style={s.tableHead}>
@@ -244,13 +222,13 @@ function KPDocument({
             <Text style={s.tdUnit}>шт.</Text>
             <Text style={s.tdPrice}>
               {product.price
-                ? `${product.price.toLocaleString('ru-RU')} ₸`
+                ? `${product.price.toLocaleString('ru-RU')} T`
                 : 'По запросу'}
             </Text>
           </View>
         </View>
 
-        {/* ── SPECS ── */}
+        {/* SPECS */}
         {specs.length > 0 && (
           <>
             <Text style={s.sectionTitle}>Технические характеристики</Text>
@@ -265,7 +243,7 @@ function KPDocument({
           </>
         )}
 
-        {/* ── NOTE ── */}
+        {/* NOTE */}
         {clientInfo.note ? (
           <>
             <Text style={s.sectionTitle}>Особые условия</Text>
@@ -273,7 +251,7 @@ function KPDocument({
           </>
         ) : null}
 
-        {/* ── CONDITIONS ── */}
+        {/* CONDITIONS */}
         <Text style={s.sectionTitle}>Условия</Text>
         <View style={{ marginBottom: 10 }}>
           {CONDITIONS.map(([label, value]) => (
@@ -287,7 +265,7 @@ function KPDocument({
 
         <View style={s.dividerThin} />
 
-        {/* ── BANK ── */}
+        {/* BANK */}
         <View style={s.bankBox}>
           <Text style={s.bankTitle}>Банковские реквизиты</Text>
           {BANK_ROWS.map(([label, value]) => (
@@ -298,24 +276,22 @@ function KPDocument({
           ))}
         </View>
 
-        {/* ── SIGNATURE + STAMP ── */}
+        {/* SIGNATURE + STAMP */}
         <View style={s.sigSection}>
-
-          {/* Left — signature block */}
           <View style={s.sigBox}>
             <Text style={s.sigRole}>Генеральный директор</Text>
             <Text style={s.sigTitle}>ТОО «Bes Saiman Group»</Text>
             <View style={s.sigLine} />
             <Text style={s.sigName}>Елеуов М.А.</Text>
           </View>
-
-          {/* Right — company stamp (печать) */}
-          <View style={s.stampWrap}>
-            <Image src={stampPath} style={{ width: 90, height: 90, opacity: 0.92 }} />
-          </View>
+          {stampDataUri && (
+            <View style={s.stampWrap}>
+              <Image src={stampDataUri} style={{ width: 90, height: 90 }} />
+            </View>
+          )}
         </View>
 
-        {/* ── FOOTER (fixed) ── */}
+        {/* FOOTER */}
         <View style={s.footer} fixed>
           <Text style={s.footerLeft}>
             ТОО «Bes Saiman Group»  ·  БИН 210440034775  ·  +7 (701) 101-34-33  ·  bessaimangroup1@gmail.com
@@ -344,6 +320,33 @@ function generateKPNumber(): string {
   return `КП-${year}-${num}`
 }
 
+let fontsRegistered = false
+
+function ensureFontsRegistered() {
+  if (fontsRegistered) return
+  const fontsDir = path.join(process.cwd(), 'public', 'fonts')
+  const toDataUri = (filePath: string) =>
+    `data:font/truetype;base64,${readFileSync(filePath).toString('base64')}`
+  Font.register({
+    family: 'Roboto',
+    fonts: [
+      { src: toDataUri(path.join(fontsDir, 'Roboto-Regular.ttf')) },
+      { src: toDataUri(path.join(fontsDir, 'Roboto-Bold.ttf')), fontWeight: 'bold' },
+    ],
+  })
+  fontsRegistered = true
+}
+
+function loadStampDataUri(): string | null {
+  try {
+    const stampPath = path.join(process.cwd(), 'public', 'brand', 'stamp.jpg')
+    const data = readFileSync(stampPath).toString('base64')
+    return `data:image/jpeg;base64,${data}`
+  } catch {
+    return null
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -352,6 +355,9 @@ export async function POST(request: Request) {
       clientInfo: ClientInfo
       lang: string
     }
+
+    ensureFontsRegistered()
+    const stampDataUri = loadStampDataUri()
 
     const kpNumber = generateKPNumber()
     const dateStr = formatDate(new Date())
@@ -362,14 +368,20 @@ export async function POST(request: Request) {
       [product.id ?? null, product.model ?? null, product.name_ru, kpNumber, clientInfo.name, clientInfo.company ?? null, clientInfo.email ?? null, clientInfo.phone ?? null, clientInfo.quantity, clientInfo.note ?? null, lang],
     ).catch(err => console.error('kp_requests insert failed:', err))
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const buffer = await (pdf as any)(
-      <KPDocument product={product} clientInfo={clientInfo} lang={lang} kpNumber={kpNumber} dateStr={dateStr} />
-    ).toBuffer()
+    const buffer = await renderToBuffer(
+      <KPDocument
+        product={product}
+        clientInfo={clientInfo}
+        lang={lang}
+        kpNumber={kpNumber}
+        dateStr={dateStr}
+        stampDataUri={stampDataUri}
+      />
+    )
 
     const filename = `KP_BesS_${product.model || product.slug}_${new Date().getFullYear()}.pdf`
 
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
@@ -378,6 +390,7 @@ export async function POST(request: Request) {
     })
   } catch (err) {
     console.error('KP generation error:', err)
-    return NextResponse.json({ error: 'PDF generation failed' }, { status: 500 })
+    const message = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: 'PDF generation failed', detail: message }, { status: 500 })
   }
 }
