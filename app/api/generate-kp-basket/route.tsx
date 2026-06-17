@@ -2,25 +2,11 @@ import React from 'react'
 import path from 'path'
 import { readFileSync } from 'fs'
 import { NextResponse } from 'next/server'
-import { pdf, Font, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
+import { renderToBuffer, Font, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 import { query } from '@/lib/db'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-
-const fontsDir = path.join(process.cwd(), 'public', 'fonts')
-const stampPath = path.join(process.cwd(), 'public', 'brand', 'stamp.jpg')
-
-const toDataUri = (filePath: string) =>
-  `data:font/truetype;base64,${readFileSync(filePath).toString('base64')}`
-
-Font.register({
-  family: 'Roboto',
-  fonts: [
-    { src: toDataUri(path.join(fontsDir, 'Roboto-Regular.ttf')) },
-    { src: toDataUri(path.join(fontsDir, 'Roboto-Bold.ttf')), fontWeight: 'bold' },
-  ],
-})
 
 const C = {
   primary: '#1A4A8A',
@@ -61,24 +47,26 @@ const s = StyleSheet.create({
   sectionTitle: { fontSize: 8.5, fontWeight: 'bold', color: C.primary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 5, marginTop: 4 },
 
   tableHead: { flexDirection: 'row', backgroundColor: C.primary, paddingVertical: 6, paddingHorizontal: 6 },
-  tableRow: { flexDirection: 'row', paddingVertical: 6, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: C.border },
+  tableRow: { flexDirection: 'row', paddingVertical: 7, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: C.border },
   tableRowAlt: { backgroundColor: C.lightGray },
-  thN:     { width: 18,  fontSize: 7.5, fontWeight: 'bold', color: C.white },
-  thName:  { flex: 2.8,  fontSize: 7.5, fontWeight: 'bold', color: C.white },
-  thArt:   { flex: 1.2,  fontSize: 7.5, fontWeight: 'bold', color: C.white },
-  thQty:   { width: 32,  fontSize: 7.5, fontWeight: 'bold', color: C.white, textAlign: 'center' },
-  thUnit:  { width: 28,  fontSize: 7.5, fontWeight: 'bold', color: C.white, textAlign: 'center' },
-  thPrice: { width: 76,  fontSize: 7.5, fontWeight: 'bold', color: C.white, textAlign: 'right' },
-  thTotal: { width: 76,  fontSize: 7.5, fontWeight: 'bold', color: C.white, textAlign: 'right' },
-  tdN:     { width: 18,  fontSize: 8, color: C.gray },
-  tdName:  { flex: 2.8,  fontSize: 8, fontWeight: 'bold', color: C.primaryDark },
-  tdArt:   { flex: 1.2,  fontSize: 7.5, color: C.gray },
-  tdQty:   { width: 32,  fontSize: 8.5, textAlign: 'center', color: C.text },
-  tdUnit:  { width: 28,  fontSize: 8, textAlign: 'center', color: C.gray },
-  tdPrice: { width: 76,  fontSize: 8, textAlign: 'right', color: C.primaryDark },
-  tdTotal: { width: 76,  fontSize: 8.5, fontWeight: 'bold', textAlign: 'right', color: C.primary },
+  thN: { width: 18, fontSize: 7.5, fontWeight: 'bold', color: C.white },
+  thName: { flex: 2.5, fontSize: 7.5, fontWeight: 'bold', color: C.white },
+  thModel: { flex: 1.2, fontSize: 7.5, fontWeight: 'bold', color: C.white },
+  thQty: { width: 32, fontSize: 7.5, fontWeight: 'bold', color: C.white, textAlign: 'center' },
+  thUnit: { width: 28, fontSize: 7.5, fontWeight: 'bold', color: C.white, textAlign: 'center' },
+  thPrice: { width: 72, fontSize: 7.5, fontWeight: 'bold', color: C.white, textAlign: 'right' },
+  thTotal: { width: 80, fontSize: 7.5, fontWeight: 'bold', color: C.white, textAlign: 'right' },
+  tdN: { width: 18, fontSize: 8, color: C.gray },
+  tdName: { flex: 2.5, fontSize: 8, fontWeight: 'bold', color: C.primaryDark },
+  tdModel: { flex: 1.2, fontSize: 7.5, color: C.gray },
+  tdQty: { width: 32, fontSize: 8, textAlign: 'center', color: C.text },
+  tdUnit: { width: 28, fontSize: 8, textAlign: 'center', color: C.gray },
+  tdPrice: { width: 72, fontSize: 8, textAlign: 'right', color: C.gray },
+  tdTotal: { width: 80, fontSize: 8, fontWeight: 'bold', textAlign: 'right', color: C.primary },
 
-  totalRow: { flexDirection: 'row', paddingVertical: 7, paddingHorizontal: 6, backgroundColor: C.primaryLight, borderTopWidth: 2, borderTopColor: C.primary },
+  totalRow: { flexDirection: 'row', paddingVertical: 8, paddingHorizontal: 6, backgroundColor: C.primaryLight, borderTopWidth: 1.5, borderTopColor: C.primary },
+  totalLabel: { flex: 1, fontSize: 9, fontWeight: 'bold', color: C.primaryDark },
+  totalValue: { width: 80, fontSize: 9, fontWeight: 'bold', color: C.primary, textAlign: 'right' },
 
   condRow: { flexDirection: 'row', marginBottom: 4, alignItems: 'flex-start' },
   condBullet: { width: 10, fontSize: 8, color: C.primary },
@@ -97,12 +85,22 @@ const s = StyleSheet.create({
   sigTitle: { fontSize: 8, fontWeight: 'bold', color: C.primaryDark, marginBottom: 14 },
   sigLine: { borderBottomWidth: 0.5, borderBottomColor: C.primaryDark, height: 24, marginBottom: 4 },
   sigName: { fontSize: 9, fontWeight: 'bold', color: C.primaryDark },
-  stampWrap: { width: 90, height: 90, position: 'relative' },
+  stampWrap: { width: 90, height: 90 },
 
   footer: { position: 'absolute', bottom: 20, left: 44, right: 44, borderTopWidth: 0.5, borderTopColor: C.border, paddingTop: 5, flexDirection: 'row', justifyContent: 'space-between' },
   footerLeft: { fontSize: 6.5, color: C.gray },
   footerRight: { fontSize: 6.5, color: C.gray },
 })
+
+interface CartItem {
+  id?: string
+  name_ru: string
+  model?: string
+  specs?: Record<string, string>
+  price?: number
+  slug: string
+  quantity: number
+}
 
 interface ClientInfo {
   name: string
@@ -110,16 +108,6 @@ interface ClientInfo {
   phone?: string
   email?: string
   note?: string
-}
-
-interface BasketItem {
-  id?: string
-  name_ru: string
-  model?: string | null
-  specs?: Record<string, string> | null
-  price?: number | null
-  slug: string
-  quantity: number
 }
 
 const CONDITIONS = [
@@ -144,20 +132,22 @@ function KPBasketDocument({
   clientInfo,
   kpNumber,
   dateStr,
+  stampDataUri,
 }: {
-  items: BasketItem[]
+  items: CartItem[]
   clientInfo: ClientInfo
   kpNumber: string
   dateStr: string
+  stampDataUri: string | null
 }) {
-  const grandTotal = items.reduce((s, i) => s + (i.price ?? 0) * i.quantity, 0)
-  const hasAllPrices = items.every(i => i.price)
+  const totalKnown = items.reduce((s, i) => s + (i.price ?? 0) * i.quantity, 0)
+  const hasUnknown = items.some(i => !i.price)
 
   return (
     <Document>
       <Page size="A4" style={s.page}>
 
-        {/* ── HEADER ── */}
+        {/* HEADER */}
         <View style={s.header}>
           <View style={s.logoBox}>
             <Text style={s.logoMain}>BS</Text>
@@ -174,13 +164,13 @@ function KPBasketDocument({
 
         <View style={s.dividerBlue} />
 
-        {/* ── TITLE ── */}
+        {/* TITLE BANNER */}
         <View style={s.titleBanner}>
           <Text style={s.titleMain}>КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</Text>
           <Text style={s.titleNum}>№ {kpNumber}  |  {dateStr}</Text>
         </View>
 
-        {/* ── PARTIES ── */}
+        {/* PARTIES */}
         <View style={s.parties}>
           <View style={s.partyBox}>
             <Text style={s.partyLabel}>Поставщик</Text>
@@ -206,53 +196,50 @@ function KPBasketDocument({
 
         <View style={s.dividerThin} />
 
-        {/* ── PRODUCT TABLE ── */}
-        <Text style={s.sectionTitle}>Спецификация товаров</Text>
+        {/* PRODUCT TABLE */}
+        <Text style={s.sectionTitle}>Перечень товаров</Text>
         <View style={{ marginBottom: 10 }}>
           <View style={s.tableHead}>
             <Text style={s.thN}>№</Text>
-            <Text style={s.thName}>Наименование товара</Text>
-            <Text style={s.thArt}>Артикул</Text>
-            <Text style={s.thQty}>Кол.</Text>
+            <Text style={s.thName}>Наименование</Text>
+            <Text style={s.thModel}>Модель</Text>
+            <Text style={s.thQty}>Кол-во</Text>
             <Text style={s.thUnit}>Ед.</Text>
             <Text style={s.thPrice}>Цена</Text>
             <Text style={s.thTotal}>Сумма</Text>
           </View>
 
-          {items.map((item, idx) => {
-            const rowTotal = (item.price ?? 0) * item.quantity
-            return (
-              <View key={item.id ?? idx} style={[s.tableRow, idx % 2 === 1 ? s.tableRowAlt : {}]}>
-                <Text style={s.tdN}>{idx + 1}</Text>
-                <Text style={s.tdName}>{item.name_ru}</Text>
-                <Text style={s.tdArt}>{item.model || '—'}</Text>
-                <Text style={s.tdQty}>{item.quantity}</Text>
-                <Text style={s.tdUnit}>шт.</Text>
-                <Text style={s.tdPrice}>
-                  {item.price ? `${item.price.toLocaleString('ru-RU')} ₸` : 'По запросу'}
-                </Text>
-                <Text style={s.tdTotal}>
-                  {rowTotal > 0 ? `${rowTotal.toLocaleString('ru-RU')} ₸` : '—'}
-                </Text>
-              </View>
-            )
-          })}
+          {items.map((item, i) => (
+            <View key={i} style={[s.tableRow, i % 2 === 1 ? s.tableRowAlt : {}]}>
+              <Text style={s.tdN}>{i + 1}</Text>
+              <Text style={s.tdName}>{item.name_ru}</Text>
+              <Text style={s.tdModel}>{item.model || '—'}</Text>
+              <Text style={s.tdQty}>{item.quantity}</Text>
+              <Text style={s.tdUnit}>шт.</Text>
+              <Text style={s.tdPrice}>
+                {item.price ? `${item.price.toLocaleString('ru-RU')} T` : 'По запросу'}
+              </Text>
+              <Text style={s.tdTotal}>
+                {item.price
+                  ? `${(item.price * item.quantity).toLocaleString('ru-RU')} T`
+                  : '—'}
+              </Text>
+            </View>
+          ))}
 
-          {/* Итого */}
           <View style={s.totalRow}>
-            <Text style={{ flex: 1, fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark, paddingLeft: 6 }}>
-              ИТОГО:
+            <Text style={s.totalLabel}>
+              ИТОГО{hasUnknown ? ' (без позиций «По запросу»)' : ''}:
             </Text>
-            <Text style={{ width: 76, fontSize: 9.5, fontWeight: 'bold', textAlign: 'right', color: C.primary, paddingRight: 6 }}>
-              {grandTotal > 0
-                ? `${grandTotal.toLocaleString('ru-RU')} ₸${!hasAllPrices ? ' + по запросу' : ''}`
-                : 'По запросу'
-              }
+            <Text style={s.totalValue}>
+              {totalKnown > 0
+                ? `${totalKnown.toLocaleString('ru-RU')} T`
+                : 'По запросу'}
             </Text>
           </View>
         </View>
 
-        {/* ── NOTE ── */}
+        {/* NOTE */}
         {clientInfo.note ? (
           <>
             <Text style={s.sectionTitle}>Особые условия</Text>
@@ -260,7 +247,7 @@ function KPBasketDocument({
           </>
         ) : null}
 
-        {/* ── CONDITIONS ── */}
+        {/* CONDITIONS */}
         <Text style={s.sectionTitle}>Условия</Text>
         <View style={{ marginBottom: 10 }}>
           {CONDITIONS.map(([label, value]) => (
@@ -274,7 +261,7 @@ function KPBasketDocument({
 
         <View style={s.dividerThin} />
 
-        {/* ── BANK ── */}
+        {/* BANK */}
         <View style={s.bankBox}>
           <Text style={s.bankTitle}>Банковские реквизиты</Text>
           {BANK_ROWS.map(([label, value]) => (
@@ -285,7 +272,7 @@ function KPBasketDocument({
           ))}
         </View>
 
-        {/* ── SIGNATURE + STAMP ── */}
+        {/* SIGNATURE + STAMP */}
         <View style={s.sigSection}>
           <View style={s.sigBox}>
             <Text style={s.sigRole}>Генеральный директор</Text>
@@ -293,13 +280,14 @@ function KPBasketDocument({
             <View style={s.sigLine} />
             <Text style={s.sigName}>Елеуов М.А.</Text>
           </View>
-
-          <View style={s.stampWrap}>
-            <Image src={stampPath} style={{ width: 90, height: 90, opacity: 0.92 }} />
-          </View>
+          {stampDataUri && (
+            <View style={s.stampWrap}>
+              <Image src={stampDataUri} style={{ width: 90, height: 90 }} />
+            </View>
+          )}
         </View>
 
-        {/* ── FOOTER ── */}
+        {/* FOOTER */}
         <View style={s.footer} fixed>
           <Text style={s.footerLeft}>
             ТОО «Bes Saiman Group»  ·  БИН 210440034775  ·  +7 (701) 101-34-33  ·  bessaimangroup1@gmail.com
@@ -323,38 +311,77 @@ function formatDate(d: Date): string {
 }
 
 function generateKPNumber(): string {
-  return `КП-${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`
+  const year = new Date().getFullYear()
+  const num = String(Date.now()).slice(-5)
+  return `КП-${year}-${num}`
+}
+
+let fontsRegistered = false
+
+function ensureFontsRegistered() {
+  if (fontsRegistered) return
+  const fontsDir = path.join(process.cwd(), 'public', 'fonts')
+  const toDataUri = (filePath: string) =>
+    `data:font/truetype;base64,${readFileSync(filePath).toString('base64')}`
+  Font.register({
+    family: 'Roboto',
+    fonts: [
+      { src: toDataUri(path.join(fontsDir, 'Roboto-Regular.ttf')) },
+      { src: toDataUri(path.join(fontsDir, 'Roboto-Bold.ttf')), fontWeight: 'bold' },
+    ],
+  })
+  fontsRegistered = true
+}
+
+function loadStampDataUri(): string | null {
+  try {
+    const stampPath = path.join(process.cwd(), 'public', 'brand', 'stamp.jpg')
+    return `data:image/jpeg;base64,${readFileSync(stampPath).toString('base64')}`
+  } catch {
+    return null
+  }
 }
 
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { items, clientInfo } = body as { items: BasketItem[]; clientInfo: ClientInfo; lang: string }
+    const { items, clientInfo, lang = 'ru' } = body as {
+      items: CartItem[]
+      clientInfo: ClientInfo
+      lang: string
+    }
 
     if (!items?.length) {
-      return NextResponse.json({ error: 'No items' }, { status: 400 })
+      return NextResponse.json({ error: 'Нет товаров' }, { status: 400 })
     }
+
+    ensureFontsRegistered()
+    const stampDataUri = loadStampDataUri()
 
     const kpNumber = generateKPNumber()
     const dateStr = formatDate(new Date())
 
-    const totalQty = items.reduce((s, i) => s + i.quantity, 0)
-    const productNames = items.map(i => i.name_ru).join(', ')
-    const productModels = items.map(i => i.model).filter(Boolean).join(', ')
-    query(
-      `INSERT INTO kp_requests (product_id, product_model, product_name, kp_number, client_name, client_company, client_email, client_phone, quantity, note, lang)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
-      [items[0]?.id ?? null, productModels || null, productNames, kpNumber, clientInfo.name, clientInfo.company ?? null, clientInfo.email ?? null, clientInfo.phone ?? null, totalQty, clientInfo.note ?? null, 'ru'],
-    ).catch(err => console.error('kp_requests insert failed:', err))
+    for (const item of items) {
+      query(
+        `INSERT INTO kp_requests (product_id, product_model, product_name, kp_number, client_name, client_company, client_email, client_phone, quantity, note, lang)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+        [item.id ?? null, item.model ?? null, item.name_ru, kpNumber, clientInfo.name, clientInfo.company ?? null, clientInfo.email ?? null, clientInfo.phone ?? null, item.quantity, clientInfo.note ?? null, lang],
+      ).catch(err => console.error('kp_requests insert failed:', err))
+    }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const buffer = await (pdf as any)(
-      <KPBasketDocument items={items} clientInfo={clientInfo} kpNumber={kpNumber} dateStr={dateStr} />
-    ).toBuffer()
+    const buffer = await renderToBuffer(
+      <KPBasketDocument
+        items={items}
+        clientInfo={clientInfo}
+        kpNumber={kpNumber}
+        dateStr={dateStr}
+        stampDataUri={stampDataUri}
+      />
+    )
 
-    const filename = `KP_BesS_${new Date().toISOString().slice(0,10)}.pdf`
+    const filename = `КП_BesS_${new Date().toISOString().slice(0, 10)}.pdf`
 
-    return new NextResponse(buffer, {
+    return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',
@@ -363,6 +390,7 @@ export async function POST(request: Request) {
     })
   } catch (err) {
     console.error('KP basket generation error:', err)
-    return NextResponse.json({ error: 'PDF generation failed' }, { status: 500 })
+    const message = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: 'PDF generation failed', detail: message }, { status: 500 })
   }
 }
