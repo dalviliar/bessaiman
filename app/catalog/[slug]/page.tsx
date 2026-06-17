@@ -83,6 +83,8 @@ export default function ProductDetailPage() {
         setCompatibleAccessories(acc)
       }
       setLoading(false)
+      // Track product view (fire-and-forget)
+      fetch(`/api/products/${slug}/view`, { method: 'POST' }).catch(() => {})
     }).catch(() => setLoading(false))
   }, [slug])
 

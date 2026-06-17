@@ -170,6 +170,16 @@ CREATE INDEX IF NOT EXISTS idx_news_published ON news_posts(published_at DESC) W
 
 ALTER TABLE warehouse_transactions ADD COLUMN IF NOT EXISTS performed_by_name text;
 
+-- ── Просмотры товаров ────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS product_views (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  product_id  uuid NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+  ip_hash     text,
+  viewed_at   timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_product_views_product ON product_views(product_id);
+CREATE INDEX IF NOT EXISTS idx_product_views_at     ON product_views(viewed_at DESC);
+
 -- ── Indexes ─────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_products_category   ON products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_slug       ON products(slug);

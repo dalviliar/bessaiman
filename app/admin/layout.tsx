@@ -6,19 +6,20 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import {
   LayoutDashboard, Users, Shield, Package, Warehouse, FileText, History,
-  LogOut, ChevronRight, Loader2, ExternalLink, Newspaper, Tag, KeyRound, X, Eye, EyeOff, Menu,
+  LogOut, ChevronRight, Loader2, ExternalLink, Newspaper, Tag, KeyRound, X, Eye, EyeOff, Menu, BarChart3,
 } from 'lucide-react'
 
 const NAV = [
-  { href: '/admin',           label: 'Дашборд',         icon: LayoutDashboard, resource: null },
-  { href: '/admin/users',     label: 'Пользователи',    icon: Users,           resource: 'users' },
-  { href: '/admin/roles',     label: 'Роли',            icon: Shield,          resource: 'roles' },
-  { href: '/admin/products',    label: 'Каталог',          icon: Package,    resource: 'products' },
-  { href: '/admin/categories',  label: 'Категории',        icon: Tag,        resource: 'products' },
-  { href: '/admin/warehouse',   label: 'Склад',            icon: Warehouse,  resource: 'warehouse' },
-  { href: '/admin/news',        label: 'Новости',          icon: Newspaper,  resource: 'content' },
-  { href: '/admin/kp',          label: 'Запросы КП',       icon: FileText,   resource: 'kp_requests' },
-  { href: '/admin/audit',       label: 'Журнал действий',  icon: History,    resource: 'audit' },
+  { href: '/admin',             label: 'Дашборд',         icon: LayoutDashboard, resource: null },
+  { href: '/admin/users',       label: 'Пользователи',    icon: Users,           resource: 'users' },
+  { href: '/admin/roles',       label: 'Роли',            icon: Shield,          resource: 'roles' },
+  { href: '/admin/products',    label: 'Каталог',         icon: Package,         resource: 'products' },
+  { href: '/admin/categories',  label: 'Категории',       icon: Tag,             resource: 'products' },
+  { href: '/admin/warehouse',   label: 'Склад',           icon: Warehouse,       resource: 'warehouse' },
+  { href: '/admin/news',        label: 'Новости',         icon: Newspaper,       resource: 'content' },
+  { href: '/admin/kp',          label: 'Запросы КП',      icon: FileText,        resource: 'kp_requests' },
+  { href: '/admin/analytics',   label: 'Аналитика',       icon: BarChart3,       resource: 'kp_requests' },
+  { href: '/admin/audit',       label: 'Журнал действий', icon: History,         resource: 'audit' },
 ]
 
 const ROLE_COLORS: Record<string, string> = {
