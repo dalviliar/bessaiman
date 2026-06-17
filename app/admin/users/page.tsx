@@ -66,7 +66,7 @@ function CreateUserModal({ onClose, onCreated }: {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+      onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}>
       <div className="w-full max-w-md rounded-2xl p-6" style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.1)' }}>
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold text-white">Новый пользователь</h2>
@@ -178,7 +178,7 @@ export default function AdminUsersPage() {
   )
 
   return (
-    <div className="p-8 max-w-5xl">
+    <div className="p-4 sm:p-8 max-w-5xl">
 
       <div className="flex items-center justify-between mb-6">
         <div>

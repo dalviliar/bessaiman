@@ -3,10 +3,10 @@
 import { AdminAuthProvider, useAdminAuth } from '@/context/AdminAuthContext'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   LayoutDashboard, Users, Shield, Package, Warehouse, FileText, History,
-  LogOut, ChevronRight, Loader2, ExternalLink, Newspaper, Tag, KeyRound, X, Eye, EyeOff,
+  LogOut, ChevronRight, Loader2, ExternalLink, Newspaper, Tag, KeyRound, X, Eye, EyeOff, Menu,
 } from 'lucide-react'
 
 const NAV = [
@@ -105,14 +105,14 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
   )
 }
 
-function Sidebar() {
+function Sidebar({ onClose }: { onClose?: () => void }) {
   const { user, loading, logout, can } = useAdminAuth()
   const pathname = usePathname()
   const [showPwModal, setShowPwModal] = useState(false)
 
   if (loading) {
     return (
-      <div className="w-60 flex items-center justify-center" style={{ background: '#080E1C', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="w-64 flex items-center justify-center h-full" style={{ background: '#080E1C', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
         <Loader2 size={22} className="animate-spin" style={{ color: '#3B82F6' }} />
       </div>
     )
@@ -121,11 +121,11 @@ function Sidebar() {
   const roleColor = ROLE_COLORS[user?.role?.name ?? ''] ?? '#6B7280'
 
   return (
-    <div className="w-60 flex flex-col flex-shrink-0 h-full" style={{ background: '#080E1C', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+    <div className="w-64 flex flex-col h-full" style={{ background: '#080E1C', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
 
-      {/* Logo */}
-      <div className="px-5 py-5" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-        <div className="flex items-center gap-3 mb-1">
+      {/* Logo + close button on mobile */}
+      <div className="px-5 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm"
             style={{ background: 'rgba(59,130,246,0.15)', color: '#3B82F6', border: '1px solid rgba(59,130,246,0.25)' }}>
             B
@@ -135,6 +135,11 @@ function Sidebar() {
             <div className="text-[9px] tracking-widest" style={{ color: 'rgba(255,255,255,0.3)' }}>ADMIN PANEL</div>
           </div>
         </div>
+        {onClose && (
+          <button onClick={onClose} className="lg:hidden p-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            <X size={16} />
+          </button>
+        )}
       </div>
 
       {/* Nav */}
@@ -145,6 +150,7 @@ function Sidebar() {
           const active = pathname === href || (href !== '/admin' && pathname.startsWith(href))
           return (
             <Link key={href} href={href}
+              onClick={onClose}
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all"
               style={{
                 background: active ? 'rgba(59,130,246,0.12)' : 'transparent',
@@ -202,12 +208,53 @@ function Sidebar() {
 
 function AdminShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  // Close sidebar on route change
+  useEffect(() => { setSidebarOpen(false) }, [pathname])
+
   if (pathname === '/admin/login') return <>{children}</>
 
   return (
     <div className="fixed inset-0 z-[100] flex" style={{ background: '#0A1221', color: 'white', fontFamily: 'Inter, sans-serif' }}>
-      <Sidebar />
-      <main className="flex-1 overflow-auto">{children}</main>
+
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-[110] lg:hidden"
+          style={{ background: 'rgba(0,0,0,0.6)' }}
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Sidebar: slide-in on mobile, always visible on lg+ */}
+      <div className={`
+        fixed lg:relative inset-y-0 left-0 z-[120] flex-shrink-0
+        transition-transform duration-200 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+      `}>
+        <Sidebar onClose={() => setSidebarOpen(false)} />
+      </div>
+
+      {/* Main area */}
+      <main className="flex-1 overflow-auto min-w-0 flex flex-col">
+        {/* Mobile top bar */}
+        <div className="lg:hidden flex items-center gap-3 px-4 py-3 flex-shrink-0"
+          style={{ background: '#080E1C', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+          <button onClick={() => setSidebarOpen(true)} style={{ color: 'rgba(255,255,255,0.6)' }}>
+            <Menu size={20} />
+          </button>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded flex items-center justify-center font-black text-xs"
+              style={{ background: 'rgba(59,130,246,0.15)', color: '#3B82F6' }}>B</div>
+            <span className="font-black text-xs tracking-wide text-white">BES SAIMAN</span>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-auto">
+          {children}
+        </div>
+      </main>
     </div>
   )
 }

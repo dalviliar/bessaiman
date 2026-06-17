@@ -6,13 +6,14 @@ import { canManageRole, type AdminRole, type Permissions } from '@/lib/admin'
 import { Shield, Lock, Plus, Check, X, Loader2 } from 'lucide-react'
 
 const PERM_SECTIONS = [
-  { key: 'products',    label: 'Товары',      actions: ['create','read','update','delete'] },
-  { key: 'categories',  label: 'Категории',   actions: ['create','read','update','delete'] },
-  { key: 'warehouse',   label: 'Склад',       actions: ['read','write'] },
-  { key: 'kp_requests', label: 'Запросы КП',  actions: ['read','delete'] },
-  { key: 'users',       label: 'Пользователи',actions: ['create','read','update','delete'] },
-  { key: 'roles',       label: 'Роли',        actions: ['create','read','update','delete'] },
-  { key: 'settings',    label: 'Настройки',   actions: ['read','update'] },
+  { key: 'products',    label: 'Товары',               actions: ['create','read','update','delete'] },
+  { key: 'categories',  label: 'Категории',            actions: ['create','read','update','delete'] },
+  { key: 'content',     label: 'Новости/уведомления',  actions: ['create','read','update','delete'] },
+  { key: 'warehouse',   label: 'Склад',                actions: ['read','write'] },
+  { key: 'kp_requests', label: 'Запросы КП',           actions: ['read','delete'] },
+  { key: 'users',       label: 'Пользователи',         actions: ['create','read','update','delete'] },
+  { key: 'roles',       label: 'Роли',                 actions: ['create','read','update','delete'] },
+  { key: 'settings',    label: 'Настройки',            actions: ['read','update'] },
 ]
 
 const ACTION_LABELS: Record<string, string> = {
@@ -67,7 +68,7 @@ function RoleCard({ role, myLevel, onSelect }: { role: AdminRole; myLevel: numbe
             if (!allowed.length) return null
             return (
               <div key={sec.key} className="flex items-start gap-2">
-                <span className="text-[10px] w-24 flex-shrink-0 mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>{sec.label}</span>
+                <span className="text-[10px] w-28 flex-shrink-0 mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>{sec.label}</span>
                 <div className="flex flex-wrap gap-1">
                   {allowed.map(a => (
                     <span key={a} className="text-[9px] px-1.5 py-0.5 rounded-full font-medium"
@@ -117,7 +118,7 @@ function CreateRoleModal({ myLevel, onClose, onCreated }: { myLevel: number; onC
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto"
       style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
-      onClick={e => { if (e.target === e.currentTarget) onClose() }}>
+      onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}>
       <div className="w-full max-w-lg rounded-2xl p-6 my-4" style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.1)' }}>
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold text-white">Новая роль</h2>
@@ -210,7 +211,7 @@ export default function AdminRolesPage() {
   useEffect(() => { load() }, [])
 
   return (
-    <div className="p-8 max-w-5xl">
+    <div className="p-4 sm:p-8 max-w-5xl">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-black text-white mb-0.5">Роли и права доступа</h1>

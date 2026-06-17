@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useAdminAuth } from '@/context/AdminAuthContext'
@@ -57,28 +57,28 @@ export default function AdminDashboard() {
   }, [])
 
   const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Доброе утро' : hour < 17 ? 'Добрый день' : 'Добрый вечер'
+  const greeting = hour < 12 ? 'Р”РѕР±СЂРѕРµ СѓС‚СЂРѕ' : hour < 17 ? 'Р”РѕР±СЂС‹Р№ РґРµРЅСЊ' : 'Р”РѕР±СЂС‹Р№ РІРµС‡РµСЂ'
 
   return (
-    <div className="p-8 max-w-6xl">
+    <div className="p-4 sm:p-8 max-w-6xl">
 
       {/* Header */}
       <div className="mb-8">
         <p className="text-sm mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
           {greeting}, <span className="text-white font-semibold">{user?.full_name || user?.email}</span>
         </p>
-        <h1 className="text-2xl font-black text-white">Панель управления</h1>
+        <h1 className="text-2xl font-black text-white">РџР°РЅРµР»СЊ СѓРїСЂР°РІР»РµРЅРёСЏ</h1>
         <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
-          {user?.role?.display_name_ru} · Bes Saiman Group Admin
+          {user?.role?.display_name_ru} В· Bes Saiman Group Admin
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard icon={Package}    label="Товаров в каталоге" value={stats.products}       color="#3B82F6" href="/admin/products" />
-        <StatCard icon={Users}      label="Пользователей"      value={stats.users}          color="#10B981" href="/admin/users" />
-        <StatCard icon={FileText}   label="Запросов КП"        value={stats.kpRequests}     color="#F59E0B" href="/admin/kp" />
-        <StatCard icon={Boxes}      label="Позиций на складе"  value={stats.warehouseItems} color="#8B5CF6" href="/admin/warehouse" />
+        <StatCard icon={Package}    label="РўРѕРІР°СЂРѕРІ РІ РєР°С‚Р°Р»РѕРіРµ" value={stats.products}       color="#3B82F6" href="/admin/products" />
+        <StatCard icon={Users}      label="РџРѕР»СЊР·РѕРІР°С‚РµР»РµР№"      value={stats.users}          color="#10B981" href="/admin/users" />
+        <StatCard icon={FileText}   label="Р—Р°РїСЂРѕСЃРѕРІ РљРџ"        value={stats.kpRequests}     color="#F59E0B" href="/admin/kp" />
+        <StatCard icon={Boxes}      label="РџРѕР·РёС†РёР№ РЅР° СЃРєР»Р°РґРµ"  value={stats.warehouseItems} color="#8B5CF6" href="/admin/warehouse" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -87,11 +87,11 @@ export default function AdminDashboard() {
         <div className="rounded-xl p-5" style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.07)' }}>
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp size={15} style={{ color: '#F59E0B' }} />
-            <h2 className="text-sm font-semibold text-white">КП сегодня</h2>
+            <h2 className="text-sm font-semibold text-white">РљРџ СЃРµРіРѕРґРЅСЏ</h2>
             <span className="ml-auto text-2xl font-black font-mono" style={{ color: '#F59E0B' }}>{stats.todayKP}</span>
           </div>
           {recentKP.length === 0 ? (
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>Запросов пока нет</p>
+            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>Р—Р°РїСЂРѕСЃРѕРІ РїРѕРєР° РЅРµС‚</p>
           ) : (
             <div className="space-y-2">
               {recentKP.map((r, i) => (
@@ -119,21 +119,21 @@ export default function AdminDashboard() {
         <div className="rounded-xl p-5" style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.07)' }}>
           <div className="flex items-center gap-2 mb-4">
             <BarChart3 size={15} style={{ color: '#3B82F6' }} />
-            <h2 className="text-sm font-semibold text-white">Быстрые действия</h2>
+            <h2 className="text-sm font-semibold text-white">Р‘С‹СЃС‚СЂС‹Рµ РґРµР№СЃС‚РІРёСЏ</h2>
           </div>
           <div className="space-y-2">
             {[
-              { label: 'Добавить товар',    href: '/admin/products?action=new', color: '#3B82F6' },
-              { label: 'Просмотр заявок КП', href: '/admin/kp',                color: '#F59E0B' },
-              { label: 'Управление складом', href: '/admin/warehouse',          color: '#8B5CF6' },
-              { label: 'Новый пользователь', href: '/admin/users?action=new',  color: '#10B981' },
+              { label: 'Р”РѕР±Р°РІРёС‚СЊ С‚РѕРІР°СЂ',    href: '/admin/products?action=new', color: '#3B82F6' },
+              { label: 'РџСЂРѕСЃРјРѕС‚СЂ Р·Р°СЏРІРѕРє РљРџ', href: '/admin/kp',                color: '#F59E0B' },
+              { label: 'РЈРїСЂР°РІР»РµРЅРёРµ СЃРєР»Р°РґРѕРј', href: '/admin/warehouse',          color: '#8B5CF6' },
+              { label: 'РќРѕРІС‹Р№ РїРѕР»СЊР·РѕРІР°С‚РµР»СЊ', href: '/admin/users?action=new',  color: '#10B981' },
             ].map(a => (
               <Link key={a.href} href={a.href}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all hover:translate-x-1"
                 style={{ color: a.color, background: `${a.color}0A`, border: `1px solid ${a.color}20` }}>
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: a.color, flexShrink: 0 }} />
                 {a.label}
-                <span className="ml-auto opacity-50">→</span>
+                <span className="ml-auto opacity-50">в†’</span>
               </Link>
             ))}
           </div>

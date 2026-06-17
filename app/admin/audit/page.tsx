@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { Loader2, Plus, Pencil, Trash2 } from 'lucide-react'
@@ -14,15 +14,15 @@ interface AuditLog {
 }
 
 const ACTION_META: Record<string, { label: string; color: string; icon: typeof Plus }> = {
-  create: { label: 'Создал(а)',    color: '#34D399', icon: Plus },
-  update: { label: 'Изменил(а)',   color: '#60A5FA', icon: Pencil },
-  delete: { label: 'Удалил(а)',    color: '#F87171', icon: Trash2 },
+  create: { label: 'РЎРѕР·РґР°Р»(Р°)',    color: '#34D399', icon: Plus },
+  update: { label: 'РР·РјРµРЅРёР»(Р°)',   color: '#60A5FA', icon: Pencil },
+  delete: { label: 'РЈРґР°Р»РёР»(Р°)',    color: '#F87171', icon: Trash2 },
 }
 
 const ENTITY_LABELS: Record<string, string> = {
-  product: 'товар',
-  user: 'пользователя',
-  role: 'роль',
+  product: 'С‚РѕРІР°СЂ',
+  user: 'РїРѕР»СЊР·РѕРІР°С‚РµР»СЏ',
+  role: 'СЂРѕР»СЊ',
 }
 
 export default function AdminAuditPage() {
@@ -36,11 +36,11 @@ export default function AdminAuditPage() {
   }, [])
 
   return (
-    <div className="p-8 max-w-4xl">
+    <div className="p-4 sm:p-8 max-w-4xl">
       <div className="mb-6">
-        <h1 className="text-xl font-black text-white mb-0.5">Журнал действий</h1>
+        <h1 className="text-xl font-black text-white mb-0.5">Р–СѓСЂРЅР°Р» РґРµР№СЃС‚РІРёР№</h1>
         <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-          Кто и когда создавал, менял или удалял товары, пользователей и роли
+          РљС‚Рѕ Рё РєРѕРіРґР° СЃРѕР·РґР°РІР°Р», РјРµРЅСЏР» РёР»Рё СѓРґР°Р»СЏР» С‚РѕРІР°СЂС‹, РїРѕР»СЊР·РѕРІР°С‚РµР»РµР№ Рё СЂРѕР»Рё
         </p>
       </div>
 
@@ -48,7 +48,7 @@ export default function AdminAuditPage() {
         {loading ? (
           <div className="flex justify-center py-12"><Loader2 size={20} className="animate-spin" style={{ color: '#3B82F6' }} /></div>
         ) : logs.length === 0 ? (
-          <div className="py-12 text-center text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>Записей пока нет</div>
+          <div className="py-12 text-center text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>Р—Р°РїРёСЃРµР№ РїРѕРєР° РЅРµС‚</div>
         ) : (
           <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.05)' }}>
             {logs.map(log => {

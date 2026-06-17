@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { FileText, Search, Clock, Phone, Mail, Building2, Package } from 'lucide-react'
@@ -42,19 +42,19 @@ export default function AdminKPPage() {
   const todayCount = requests.filter(r => r.created_at.startsWith(today)).length
 
   return (
-    <div className="p-8 max-w-6xl">
+    <div className="p-4 sm:p-8 max-w-6xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-black text-white mb-0.5">Запросы КП</h1>
+          <h1 className="text-xl font-black text-white mb-0.5">Р—Р°РїСЂРѕСЃС‹ РљРџ</h1>
           <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            {requests.length} всего · <span style={{ color: '#F59E0B' }}>{todayCount} сегодня</span>
+            {requests.length} РІСЃРµРіРѕ В· <span style={{ color: '#F59E0B' }}>{todayCount} СЃРµРіРѕРґРЅСЏ</span>
           </p>
         </div>
       </div>
 
       <div className="relative mb-5">
         <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.3)' }} />
-        <input type="text" placeholder="Поиск по имени, компании, товару..."
+        <input type="text" placeholder="РџРѕРёСЃРє РїРѕ РёРјРµРЅРё, РєРѕРјРїР°РЅРёРё, С‚РѕРІР°СЂСѓ..."
           value={search} onChange={e => setSearch(e.target.value)}
           className="steel-input w-full pl-10" />
       </div>
@@ -67,7 +67,7 @@ export default function AdminKPPage() {
         ) : filtered.length === 0 ? (
           <div className="col-span-2 py-16 text-center" style={{ color: 'rgba(255,255,255,0.3)' }}>
             <FileText size={40} className="mx-auto mb-3 opacity-30" />
-            <p>Запросов пока нет</p>
+            <p>Р—Р°РїСЂРѕСЃРѕРІ РїРѕРєР° РЅРµС‚</p>
           </div>
         ) : filtered.map(r => (
           <div key={r.id}
@@ -94,9 +94,9 @@ export default function AdminKPPage() {
             <div className="flex items-center gap-2 p-2.5 rounded-lg mb-3"
               style={{ background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.12)' }}>
               <Package size={12} style={{ color: '#60A5FA' }} />
-              <span className="text-xs text-white font-medium">{r.product_name || '—'}</span>
+              <span className="text-xs text-white font-medium">{r.product_name || 'вЂ”'}</span>
               {r.product_model && <span className="font-mono text-[10px] ml-auto" style={{ color: '#60A5FA' }}>{r.product_model}</span>}
-              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>× {r.quantity}</span>
+              <span className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>Г— {r.quantity}</span>
             </div>
             <div className="flex items-center gap-4">
               {r.client_phone && (
@@ -112,7 +112,7 @@ export default function AdminKPPage() {
             </div>
             {r.note && (
               <p className="text-[11px] mt-2 italic" style={{ color: 'rgba(255,255,255,0.35)' }}>
-                «{r.note}»
+                В«{r.note}В»
               </p>
             )}
           </div>
@@ -126,20 +126,20 @@ export default function AdminKPPage() {
           onClick={e => { if (e.target === e.currentTarget) setSelected(null) }}>
           <div className="w-full max-w-md rounded-2xl p-6" style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.1)' }}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="font-bold text-white">Детали запроса</h2>
-              <button onClick={() => setSelected(null)} style={{ color: 'rgba(255,255,255,0.4)' }}>✕</button>
+              <h2 className="font-bold text-white">Р”РµС‚Р°Р»Рё Р·Р°РїСЂРѕСЃР°</h2>
+              <button onClick={() => setSelected(null)} style={{ color: 'rgba(255,255,255,0.4)' }}>вњ•</button>
             </div>
             {[
-              ['КП номер', selected.kp_number],
-              ['Дата', new Date(selected.created_at).toLocaleString('ru-RU')],
-              ['Клиент', selected.client_name],
-              ['Компания', selected.client_company],
-              ['Телефон', selected.client_phone],
+              ['РљРџ РЅРѕРјРµСЂ', selected.kp_number],
+              ['Р”Р°С‚Р°', new Date(selected.created_at).toLocaleString('ru-RU')],
+              ['РљР»РёРµРЅС‚', selected.client_name],
+              ['РљРѕРјРїР°РЅРёСЏ', selected.client_company],
+              ['РўРµР»РµС„РѕРЅ', selected.client_phone],
               ['Email', selected.client_email],
-              ['Товар', selected.product_name],
-              ['Модель', selected.product_model],
-              ['Количество', `${selected.quantity} шт.`],
-              ['Примечание', selected.note],
+              ['РўРѕРІР°СЂ', selected.product_name],
+              ['РњРѕРґРµР»СЊ', selected.product_model],
+              ['РљРѕР»РёС‡РµСЃС‚РІРѕ', `${selected.quantity} С€С‚.`],
+              ['РџСЂРёРјРµС‡Р°РЅРёРµ', selected.note],
             ].filter(([,v]) => v).map(([label, value]) => (
               <div key={label} className="flex gap-3 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                 <span className="text-xs w-24 flex-shrink-0" style={{ color: 'rgba(255,255,255,0.4)' }}>{label}</span>

@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -19,7 +19,7 @@ function RestockModal({ item, onClose, onDone }: {
   const [note, setNote] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const name = (item.product as { name_ru?: string } | undefined)?.name_ru || '—'
+  const name = (item.product as { name_ru?: string } | undefined)?.name_ru || 'вЂ”'
 
   const submit = async () => {
     setLoading(true)
@@ -47,7 +47,7 @@ function RestockModal({ item, onClose, onDone }: {
       <div className="w-full max-w-sm rounded-2xl p-6" style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.1)' }}>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-sm font-bold text-white">Пополнить запас</h2>
+            <h2 className="text-sm font-bold text-white">РџРѕРїРѕР»РЅРёС‚СЊ Р·Р°РїР°СЃ</h2>
             <p className="text-[11px] mt-0.5 line-clamp-1" style={{ color: 'rgba(255,255,255,0.4)' }}>{name}</p>
           </div>
           <button onClick={onClose} style={{ color: 'rgba(255,255,255,0.4)' }}><X size={16} /></button>
@@ -56,12 +56,12 @@ function RestockModal({ item, onClose, onDone }: {
         <div className="space-y-3">
           <div>
             <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
-              Добавить количество (сейчас: <span style={{ color: '#34d399' }}>{item.quantity}</span>)
+              Р”РѕР±Р°РІРёС‚СЊ РєРѕР»РёС‡РµСЃС‚РІРѕ (СЃРµР№С‡Р°СЃ: <span style={{ color: '#34d399' }}>{item.quantity}</span>)
             </label>
             <div className="flex items-center gap-0">
               <button onClick={() => setQty(q => Math.max(1, q - 1))}
                 style={{ width: 40, height: 40, borderRadius: '8px 0 0 8px', background: '#1f2937', border: '1px solid rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer' }}>
-                −
+                в€’
               </button>
               <div style={{ flex: 1, height: 40, border: '1px solid rgba(255,255,255,0.1)', borderLeft: 'none', borderRight: 'none', background: '#0d1421', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span className="text-white font-bold text-lg">{qty}</span>
@@ -73,19 +73,19 @@ function RestockModal({ item, onClose, onDone }: {
             </div>
           </div>
           <div>
-            <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Примечание</label>
+            <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>РџСЂРёРјРµС‡Р°РЅРёРµ</label>
             <input type="text" value={note} onChange={e => setNote(e.target.value)}
-              placeholder="Поставка, возврат..."
+              placeholder="РџРѕСЃС‚Р°РІРєР°, РІРѕР·РІСЂР°С‚..."
               className="steel-input w-full text-sm" />
           </div>
           <div className="flex gap-2 pt-1">
             <button onClick={submit} disabled={loading}
               style={{ flex: 1, padding: '10px', borderRadius: 8, background: 'linear-gradient(135deg,#10B981,#059669)', color: 'white', fontWeight: 700, fontSize: 13, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
               {loading ? <Loader2 size={14} className="animate-spin" /> : <PackagePlus size={14} />}
-              Добавить +{qty} шт.
+              Р”РѕР±Р°РІРёС‚СЊ +{qty} С€С‚.
             </button>
             <button onClick={onClose} style={{ padding: '10px 16px', borderRadius: 8, background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontSize: 13 }}>
-              Отмена
+              РћС‚РјРµРЅР°
             </button>
           </div>
         </div>
@@ -135,31 +135,31 @@ export default function AdminWarehousePage() {
   })
 
   const kpiCards = [
-    { label: 'Позиций (SKU)', value: items.length, color: '#3B82F6', icon: Boxes,         view: 'all'  as View, active: view === 'all' },
-    { label: 'Единиц всего',  value: totalStock,    color: '#10B981', icon: BarChart3,     view: 'all'  as View, active: false },
-    { label: 'Мало (<3 шт.)', value: lowStock.length, color: '#F59E0B', icon: AlertTriangle, view: 'low' as View, active: view === 'low' },
-    { label: 'Нет в наличии', value: outStock.length, color: '#EF4444', icon: AlertTriangle, view: 'out' as View, active: view === 'out' },
+    { label: 'РџРѕР·РёС†РёР№ (SKU)', value: items.length, color: '#3B82F6', icon: Boxes,         view: 'all'  as View, active: view === 'all' },
+    { label: 'Р•РґРёРЅРёС† РІСЃРµРіРѕ',  value: totalStock,    color: '#10B981', icon: BarChart3,     view: 'all'  as View, active: false },
+    { label: 'РњР°Р»Рѕ (<3 С€С‚.)', value: lowStock.length, color: '#F59E0B', icon: AlertTriangle, view: 'low' as View, active: view === 'low' },
+    { label: 'РќРµС‚ РІ РЅР°Р»РёС‡РёРё', value: outStock.length, color: '#EF4444', icon: AlertTriangle, view: 'out' as View, active: view === 'out' },
   ]
 
   return (
-    <div className="p-8 max-w-6xl">
+    <div className="p-4 sm:p-8 max-w-6xl">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-xl font-black text-white mb-0.5">Обзор склада</h1>
+          <h1 className="text-xl font-black text-white mb-0.5">РћР±Р·РѕСЂ СЃРєР»Р°РґР°</h1>
           <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            {view === 'low' ? `Показаны товары с остатком &lt;3 шт.` :
-             view === 'out' ? 'Показаны товары с нулевым остатком' :
-             'Все позиции склада'}
+            {view === 'low' ? `РџРѕРєР°Р·Р°РЅС‹ С‚РѕРІР°СЂС‹ СЃ РѕСЃС‚Р°С‚РєРѕРј &lt;3 С€С‚.` :
+             view === 'out' ? 'РџРѕРєР°Р·Р°РЅС‹ С‚РѕРІР°СЂС‹ СЃ РЅСѓР»РµРІС‹Рј РѕСЃС‚Р°С‚РєРѕРј' :
+             'Р’СЃРµ РїРѕР·РёС†РёРё СЃРєР»Р°РґР°'}
           </p>
         </div>
         <Link href="/warehouse" target="_blank"
           className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-lg"
           style={{ background: 'rgba(59,130,246,0.1)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.2)' }}>
-          Приложение склада <ChevronRight size={12} />
+          РџСЂРёР»РѕР¶РµРЅРёРµ СЃРєР»Р°РґР° <ChevronRight size={12} />
         </Link>
       </div>
 
-      {/* KPI cards — clickable */}
+      {/* KPI cards вЂ” clickable */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {kpiCards.map(({ label, value, color, icon: Icon, view: cardView, active }) => (
           <button key={label}
@@ -179,7 +179,7 @@ export default function AdminWarehousePage() {
             <p className="text-2xl font-black font-mono text-white">{value}</p>
             {(cardView === 'low' || cardView === 'out') && (
               <p className="text-[10px] mt-1" style={{ color: active ? color : 'rgba(255,255,255,0.25)' }}>
-                {active ? 'Фильтр активен — нажмите для сброса' : 'Нажмите для фильтра →'}
+                {active ? 'Р¤РёР»СЊС‚СЂ Р°РєС‚РёРІРµРЅ вЂ” РЅР°Р¶РјРёС‚Рµ РґР»СЏ СЃР±СЂРѕСЃР°' : 'РќР°Р¶РјРёС‚Рµ РґР»СЏ С„РёР»СЊС‚СЂР° в†’'}
               </p>
             )}
           </button>
@@ -193,12 +193,12 @@ export default function AdminWarehousePage() {
           <AlertTriangle size={14} style={{ color: view === 'out' ? '#f87171' : '#fbbf24', flexShrink: 0 }} />
           <p className="text-xs font-medium flex-1" style={{ color: view === 'out' ? '#f87171' : '#fbbf24' }}>
             {view === 'out'
-              ? `${outStock.length} позиций с нулевым остатком — требуется пополнение`
-              : `${lowStock.length} позиций с критически малым остатком (<3 шт.)`}
+              ? `${outStock.length} РїРѕР·РёС†РёР№ СЃ РЅСѓР»РµРІС‹Рј РѕСЃС‚Р°С‚РєРѕРј вЂ” С‚СЂРµР±СѓРµС‚СЃСЏ РїРѕРїРѕР»РЅРµРЅРёРµ`
+              : `${lowStock.length} РїРѕР·РёС†РёР№ СЃ РєСЂРёС‚РёС‡РµСЃРєРё РјР°Р»С‹Рј РѕСЃС‚Р°С‚РєРѕРј (<3 С€С‚.)`}
           </p>
           <button onClick={() => setView('all')} className="text-[10px] font-semibold underline"
             style={{ color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}>
-            Показать все
+            РџРѕРєР°Р·Р°С‚СЊ РІСЃРµ
           </button>
         </div>
       )}
@@ -209,7 +209,7 @@ export default function AdminWarehousePage() {
           {view === 'all' && (
             <div className="relative mb-4">
               <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.3)' }} />
-              <input type="text" placeholder="Поиск по названию, артикулу..." value={search} onChange={e => setSearch(e.target.value)}
+              <input type="text" placeholder="РџРѕРёСЃРє РїРѕ РЅР°Р·РІР°РЅРёСЋ, Р°СЂС‚РёРєСѓР»Сѓ..." value={search} onChange={e => setSearch(e.target.value)}
                 className="steel-input w-full pl-10" />
             </div>
           )}
@@ -218,9 +218,9 @@ export default function AdminWarehousePage() {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ background: '#0D1421', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                  <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Товар</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Остаток</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Место</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>РўРѕРІР°СЂ</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>РћСЃС‚Р°С‚РѕРє</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>РњРµСЃС‚Рѕ</th>
                   <th className="px-4 py-3 w-20" />
                 </tr>
               </thead>
@@ -231,7 +231,7 @@ export default function AdminWarehousePage() {
                   </td></tr>
                 ) : filtered.length === 0 ? (
                   <tr><td colSpan={4} className="px-4 py-8 text-center text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
-                    Позиций не найдено
+                    РџРѕР·РёС†РёР№ РЅРµ РЅР°Р№РґРµРЅРѕ
                   </td></tr>
                 ) : filtered.map((item, i) => {
                   const isOut = item.quantity === 0
@@ -239,7 +239,7 @@ export default function AdminWarehousePage() {
                   return (
                     <tr key={item.id} style={{ background: i % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
                       <td className="px-4 py-3">
-                        <p className="text-xs font-medium text-white">{(item.product as { name_ru?: string } | undefined)?.name_ru || '—'}</p>
+                        <p className="text-xs font-medium text-white">{(item.product as { name_ru?: string } | undefined)?.name_ru || 'вЂ”'}</p>
                         <p className="font-mono text-[10px]" style={{ color: '#0EA5E9' }}>{(item.product as { model?: string } | undefined)?.model}</p>
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -247,16 +247,16 @@ export default function AdminWarehousePage() {
                           style={{ color: isOut ? '#f87171' : isLow ? '#fbbf24' : '#34d399' }}>
                           {item.quantity}
                         </span>
-                        {isOut && <p className="text-[9px] font-bold" style={{ color: '#f87171' }}>НЕТ</p>}
-                        {isLow && <p className="text-[9px] font-bold" style={{ color: '#fbbf24' }}>МАЛО</p>}
+                        {isOut && <p className="text-[9px] font-bold" style={{ color: '#f87171' }}>РќР•Рў</p>}
+                        {isLow && <p className="text-[9px] font-bold" style={{ color: '#fbbf24' }}>РњРђР›Рћ</p>}
                       </td>
-                      <td className="px-4 py-3 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{item.location || '—'}</td>
+                      <td className="px-4 py-3 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{item.location || 'вЂ”'}</td>
                       <td className="px-4 py-3 text-right">
                         {(isOut || isLow) && (
                           <button onClick={() => setRestockItem(item)}
                             className="flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg ml-auto"
                             style={{ background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.2)', cursor: 'pointer' }}>
-                            <PackagePlus size={11} /> Пополнить
+                            <PackagePlus size={11} /> РџРѕРїРѕР»РЅРёС‚СЊ
                           </button>
                         )}
                       </td>
@@ -270,10 +270,10 @@ export default function AdminWarehousePage() {
 
         {/* Transaction log */}
         <div className="lg:col-span-2">
-          <h2 className="text-sm font-bold text-white mb-3">Журнал движений</h2>
+          <h2 className="text-sm font-bold text-white mb-3">Р–СѓСЂРЅР°Р» РґРІРёР¶РµРЅРёР№</h2>
           <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
             {transactions.length === 0 ? (
-              <p className="text-xs text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>Нет данных</p>
+              <p className="text-xs text-center py-8" style={{ color: 'rgba(255,255,255,0.3)' }}>РќРµС‚ РґР°РЅРЅС‹С…</p>
             ) : transactions.map(tx => {
               const isIn = tx.type === 'in'
               const pName = (tx.product as { name_ru?: string } | undefined)?.name_ru
@@ -291,7 +291,7 @@ export default function AdminWarehousePage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       {/* Product */}
-                      <p className="text-xs text-white font-medium truncate">{pName || '—'}</p>
+                      <p className="text-xs text-white font-medium truncate">{pName || 'вЂ”'}</p>
                       {/* Who + when */}
                       <div className="flex items-center gap-2 mt-0.5">
                         {tx.performed_by_name && (
@@ -313,7 +313,7 @@ export default function AdminWarehousePage() {
                     {/* Delta */}
                     <span className="font-black font-mono text-sm flex-shrink-0"
                       style={{ color: isIn ? '#34d399' : '#f87171' }}>
-                      {isIn ? '+' : '−'}{tx.quantity}
+                      {isIn ? '+' : 'в€’'}{tx.quantity}
                     </span>
                   </div>
                 </div>

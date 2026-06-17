@@ -18,7 +18,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const me = await getCurrentAdminUser()
-    if (!me || !me.role?.permissions?.all) {
+    if (!me || !can(me.role, 'categories', 'create')) {
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
     const { slug, name_ru, name_kk, name_en, description_ru, classification_code } = await request.json()
