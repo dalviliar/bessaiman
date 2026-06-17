@@ -2,11 +2,19 @@
 
 import { useEffect, useState } from 'react'
 import { useAdminAuth } from '@/context/AdminAuthContext'
-import { Loader2, Plus, Pencil, Trash2, Upload, X } from 'lucide-react'
+import { Loader2, Plus, Pencil, Trash2, Upload, X, Check } from 'lucide-react'
 import type { NewsPost } from '@/types'
 
 const TYPE_LABELS = { news: 'Новость', announcement: 'Уведомление' }
 const TYPE_COLORS = { news: '#3B82F6', announcement: '#F59E0B' }
+
+type LangKey = 'ru' | 'kk' | 'en'
+
+const LANGS: { key: LangKey; label: string; hint: string }[] = [
+  { key: 'ru', label: 'RU', hint: 'Русский' },
+  { key: 'kk', label: 'KK', hint: 'Қазақша' },
+  { key: 'en', label: 'EN', hint: 'English' },
+]
 
 const EMPTY_FORM = {
   title_ru: '', title_kk: '', title_en: '',
@@ -20,14 +28,15 @@ type FormState = typeof EMPTY_FORM
 
 export default function AdminNewsPage() {
   const { can } = useAdminAuth()
-  const [posts, setPosts] = useState<NewsPost[]>([])
-  const [loading, setLoading] = useState(true)
-  const [modal, setModal] = useState<null | { mode: 'create' | 'edit'; post?: NewsPost }>(null)
-  const [form, setForm] = useState<FormState>(EMPTY_FORM)
-  const [saving, setSaving] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [error, setError] = useState('')
+  const [posts, setPosts]           = useState<NewsPost[]>([])
+  const [loading, setLoading]       = useState(true)
+  const [modal, setModal]           = useState<null | { mode: 'create' | 'edit'; post?: NewsPost }>(null)
+  const [form, setForm]             = useState<FormState>(EMPTY_FORM)
+  const [saving, setSaving]         = useState(false)
+  const [uploading, setUploading]   = useState(false)
+  const [error, setError]           = useState('')
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [activeLang, setActiveLang] = useState<LangKey>('ru')
 
   const load = () => {
     fetch('/api/admin/news').then(r => r.json()).then(data => {
@@ -37,7 +46,10 @@ export default function AdminNewsPage() {
   }
   useEffect(() => { load() }, [])
 
-  const openCreate = () => { setForm(EMPTY_FORM); setError(''); setModal({ mode: 'create' }) }
+  const openCreate = () => {
+    setForm(EMPTY_FORM); setError(''); setActiveLang('ru')
+    setModal({ mode: 'create' })
+  }
   const openEdit = (post: NewsPost) => {
     setForm({
       title_ru: post.title_ru, title_kk: post.title_kk ?? '', title_en: post.title_en ?? '',
@@ -45,7 +57,7 @@ export default function AdminNewsPage() {
       image_url: post.image_url ?? '', instagram_url: post.instagram_url ?? '',
       type: post.type, is_published: post.is_published,
     })
-    setError('')
+    setError(''); setActiveLang('ru')
     setModal({ mode: 'edit', post })
   }
 
@@ -65,7 +77,7 @@ export default function AdminNewsPage() {
   }
 
   const handleSave = async () => {
-    if (!form.title_ru) { setError('Заполните заголовок'); return }
+    if (!form.title_ru) { setError('Заполните заголовок на русском'); return }
     setSaving(true); setError('')
     const url = modal?.mode === 'edit' ? `/api/admin/news/${modal.post!.id}` : '/api/admin/news'
     const res = await fetch(url, {
@@ -100,6 +112,10 @@ export default function AdminNewsPage() {
     }
   }
 
+  // Check if a language has at least a title filled
+  const langHasContent = (lang: LangKey) =>
+    !!form[`title_${lang}`] || !!form[`content_${lang}`]
+
   return (
     <div className="p-4 sm:p-8 max-w-5xl">
       <div className="flex items-center justify-between mb-6">
@@ -132,10 +148,11 @@ export default function AdminNewsPage() {
             <thead>
               <tr style={{ background: '#0D1421', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
                 <th className="px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Заголовок</th>
+                <th className="px-5 py-3 text-center text-xs font-medium hidden sm:table-cell" style={{ color: 'rgba(255,255,255,0.4)' }}>Языки</th>
                 <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Тип</th>
                 <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Статус</th>
-                <th className="px-5 py-3 text-right text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Дата</th>
-                <th className="px-5 py-3 w-28" />
+                <th className="px-5 py-3 text-right text-xs font-medium hidden sm:table-cell" style={{ color: 'rgba(255,255,255,0.4)' }}>Дата</th>
+                <th className="px-5 py-3 w-24" />
               </tr>
             </thead>
             <tbody>
@@ -150,7 +167,24 @@ export default function AdminNewsPage() {
                         <img src={post.image_url} alt="" className="w-8 h-8 rounded object-cover flex-shrink-0"
                           style={{ border: '1px solid rgba(255,255,255,0.1)' }} />
                       )}
-                      <span className="text-white text-xs font-medium truncate max-w-xs">{post.title_ru}</span>
+                      <span className="text-white text-xs font-medium truncate max-w-[200px]">{post.title_ru}</span>
+                    </div>
+                  </td>
+                  <td className="px-5 py-3 text-center hidden sm:table-cell">
+                    <div className="flex items-center justify-center gap-1">
+                      {(['ru','kk','en'] as LangKey[]).map(lang => {
+                        const hasIt = !!(lang === 'ru' ? post.title_ru : lang === 'kk' ? post.title_kk : post.title_en)
+                        return (
+                          <span key={lang}
+                            className="text-[9px] font-bold px-1.5 py-0.5 rounded"
+                            style={{
+                              background: hasIt ? 'rgba(52,211,153,0.1)' : 'rgba(255,255,255,0.04)',
+                              color: hasIt ? '#34D399' : 'rgba(255,255,255,0.2)',
+                            }}>
+                            {lang.toUpperCase()}
+                          </span>
+                        )
+                      })}
                     </div>
                   </td>
                   <td className="px-5 py-3 text-center">
@@ -175,7 +209,7 @@ export default function AdminNewsPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-5 py-3 text-right text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                  <td className="px-5 py-3 text-right text-xs hidden sm:table-cell" style={{ color: 'rgba(255,255,255,0.4)' }}>
                     {post.published_at
                       ? new Date(post.published_at).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' })
                       : '—'}
@@ -206,23 +240,28 @@ export default function AdminNewsPage() {
       {/* Modal */}
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(4px)' }}
+          style={{ background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(4px)' }}
           onMouseDown={e => { if (e.target === e.currentTarget) setModal(null) }}>
-          <div className="w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-2xl p-6"
+          <div className="w-full max-w-lg max-h-[92vh] overflow-y-auto rounded-2xl"
             style={{ background: '#0D1421', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <div className="flex items-center justify-between mb-5">
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 pt-5 pb-4"
+              style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
               <h2 className="text-base font-black text-white">
-                {modal.mode === 'create' ? 'Новый пост' : 'Редактировать'}
+                {modal.mode === 'create' ? 'Новый пост' : 'Редактировать пост'}
               </h2>
               <button onClick={() => setModal(null)} className="text-white/40 hover:text-white/70">
                 <X size={18} />
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div className="px-6 py-5 space-y-5">
+
+              {/* Type + Published */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Тип</label>
+                  <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Тип</label>
                   <select className="steel-input w-full" value={form.type}
                     onChange={e => set('type', e.target.value as 'news' | 'announcement')}>
                     <option value="news">Новость</option>
@@ -230,43 +269,97 @@ export default function AdminNewsPage() {
                   </select>
                 </div>
                 <div className="flex items-end pb-0.5">
-                  <label className="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" checked={form.is_published}
-                      onChange={e => set('is_published', e.target.checked)}
-                      className="w-4 h-4 rounded accent-blue-500" />
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <div
+                      onClick={() => set('is_published', !form.is_published)}
+                      className="w-10 h-5 rounded-full transition-colors flex-shrink-0 relative cursor-pointer"
+                      style={{ background: form.is_published ? '#3B82F6' : 'rgba(255,255,255,0.1)' }}>
+                      <div className="w-4 h-4 rounded-full bg-white absolute top-0.5 transition-all"
+                        style={{ left: form.is_published ? '22px' : '2px' }} />
+                    </div>
                     <span className="text-sm font-medium"
-                      style={{ color: form.is_published ? '#34D399' : 'rgba(255,255,255,0.5)' }}>
+                      style={{ color: form.is_published ? '#34D399' : 'rgba(255,255,255,0.4)' }}>
                       {form.is_published ? 'Опубликовано' : 'Черновик'}
                     </span>
                   </label>
                 </div>
               </div>
 
+              {/* Language tabs */}
               <div>
-                <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Заголовок (Рус) *</label>
-                <input className="steel-input w-full" value={form.title_ru}
-                  onChange={e => set('title_ru', e.target.value)} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Заголовок (Каз)</label>
-                  <input className="steel-input w-full" value={form.title_kk}
-                    onChange={e => set('title_kk', e.target.value)} />
+                <div className="flex items-center gap-1 mb-4">
+                  <span className="text-xs font-medium mr-2" style={{ color: 'rgba(255,255,255,0.4)' }}>Язык:</span>
+                  {LANGS.map(lang => {
+                    const active = activeLang === lang.key
+                    const filled = langHasContent(lang.key)
+                    return (
+                      <button key={lang.key} type="button"
+                        onClick={() => setActiveLang(lang.key)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
+                        style={{
+                          background: active ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.04)',
+                          color: active ? '#93C5FD' : 'rgba(255,255,255,0.4)',
+                          border: `1px solid ${active ? 'rgba(59,130,246,0.4)' : 'rgba(255,255,255,0.07)'}`,
+                        }}>
+                        {lang.label}
+                        {filled && (
+                          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                            style={{ background: active ? '#60A5FA' : '#34D399' }} />
+                        )}
+                      </button>
+                    )
+                  })}
+                  <span className="text-[10px] ml-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                    {LANGS.find(l => l.key === activeLang)?.hint}
+                  </span>
                 </div>
+
+                {/* Title for active language */}
+                <div className="mb-3">
+                  <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                    Заголовок
+                    {activeLang === 'ru' && <span style={{ color: '#f87171' }}> *</span>}
+                  </label>
+                  <input
+                    className="steel-input w-full"
+                    value={form[`title_${activeLang}`]}
+                    onChange={e => set(`title_${activeLang}`, e.target.value)}
+                    placeholder={activeLang === 'ru' ? 'Введите заголовок...' : activeLang === 'kk' ? 'Тақырыбын енгізіңіз...' : 'Enter title...'}
+                  />
+                </div>
+
+                {/* Content for active language */}
                 <div>
-                  <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Заголовок (Eng)</label>
-                  <input className="steel-input w-full" value={form.title_en}
-                    onChange={e => set('title_en', e.target.value)} />
+                  <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Текст</label>
+                  <textarea
+                    className="steel-input w-full resize-none"
+                    rows={5}
+                    value={form[`content_${activeLang}`]}
+                    onChange={e => set(`content_${activeLang}`, e.target.value)}
+                    placeholder={activeLang === 'ru' ? 'Введите текст поста...' : activeLang === 'kk' ? 'Пост мәтінін енгізіңіз...' : 'Enter post text...'}
+                  />
+                </div>
+
+                {/* Fill indicator */}
+                <div className="flex items-center gap-2 mt-2">
+                  {LANGS.map(lang => (
+                    <div key={lang.key} className="flex items-center gap-1">
+                      <div className="w-1.5 h-1.5 rounded-full"
+                        style={{ background: langHasContent(lang.key) ? '#34D399' : 'rgba(255,255,255,0.15)' }} />
+                      <span className="text-[10px]"
+                        style={{ color: langHasContent(lang.key) ? 'rgba(52,211,153,0.7)' : 'rgba(255,255,255,0.2)' }}>
+                        {lang.label}
+                      </span>
+                    </div>
+                  ))}
+                  <span className="text-[10px] ml-1" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                    — заполненные языки
+                  </span>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Текст (Рус)</label>
-                <textarea className="steel-input w-full resize-none" rows={4} value={form.content_ru}
-                  onChange={e => set('content_ru', e.target.value)} />
-              </div>
-
-              <div>
+              {/* Photo */}
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1.25rem' }}>
                 <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Фото</label>
                 {form.image_url ? (
                   <div className="relative inline-block">
@@ -288,16 +381,17 @@ export default function AdminNewsPage() {
                 )}
               </div>
 
+              {/* Instagram */}
               <div>
-                <label className="block text-xs mb-1" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                  Ссылка на пост в Instagram{' '}
-                  <span style={{ color: 'rgba(255,255,255,0.3)' }}>(необязательно)</span>
+                <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  Ссылка на Instagram{' '}
+                  <span style={{ color: 'rgba(255,255,255,0.25)' }}>(необязательно)</span>
                 </label>
                 <input className="steel-input w-full" value={form.instagram_url}
                   onChange={e => set('instagram_url', e.target.value)}
                   placeholder="https://www.instagram.com/p/..." />
                 <p className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
-                  На публичной странице покажется кнопка «Смотреть в Instagram»
+                  На публичной странице появится кнопка «Смотреть в Instagram»
                 </p>
               </div>
 
@@ -308,13 +402,14 @@ export default function AdminNewsPage() {
                 </p>
               )}
 
-              <div className="flex gap-3 pt-2">
+              {/* Actions */}
+              <div className="flex gap-3 pt-1" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: '1.25rem' }}>
                 <button onClick={handleSave} disabled={saving}
-                  className="px-5 py-2.5 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
+                  className="flex-1 py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50"
                   style={{ background: 'linear-gradient(135deg,#1D4ED8,#3B82F6)', color: 'white' }}>
-                  {saving ? <><Loader2 size={13} className="animate-spin" />Сохраняем...</> : 'Сохранить'}
+                  {saving ? <><Loader2 size={13} className="animate-spin" />Сохраняем...</> : <><Check size={13} />Сохранить</>}
                 </button>
-                <button onClick={() => setModal(null)} className="btn-secondary px-4 text-sm">Отмена</button>
+                <button onClick={() => setModal(null)} className="btn-secondary px-5 text-sm">Отмена</button>
               </div>
             </div>
           </div>
