@@ -100,6 +100,14 @@ export default function ProductForm({ product }: { product?: Product }) {
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm(f => ({ ...f, [key]: value }))
 
+  const handleCategoryChange = (categoryId: string) => {
+    set('category_id', categoryId)
+    const cat = categories.find(c => c.id === categoryId)
+    if (cat?.classification_code) {
+      set('classification_code', cat.classification_code)
+    }
+  }
+
   const handleUpload = async (files: FileList | null) => {
     if (!files?.length) return
     setUploading(true)
@@ -206,7 +214,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       <Section title="Основное">
         <div className="grid grid-cols-2 gap-3">
           <Field label="Категория *">
-            <select className="steel-input w-full" value={form.category_id} onChange={e => set('category_id', e.target.value)} required>
+            <select className="steel-input w-full" value={form.category_id} onChange={e => handleCategoryChange(e.target.value)} required>
               <option value="">— Выберите —</option>
               {categories.map(c => <option key={c.id} value={c.id}>{c.name_ru}</option>)}
             </select>
@@ -220,7 +228,9 @@ export default function ProductForm({ product }: { product?: Product }) {
             <input className="steel-input w-full" value={form.model} onChange={e => set('model', e.target.value)} />
           </Field>
           <Field label="Код классификации">
-            <input className="steel-input w-full" value={form.classification_code} onChange={e => set('classification_code', e.target.value.toUpperCase())} placeholder="напр. SFM" />
+            <input className="steel-input w-full" value={form.classification_code}
+              onChange={e => set('classification_code', e.target.value.toUpperCase())}
+              placeholder="Подставится из категории" />
           </Field>
           <Field label="Штрихкод">
             <input className="steel-input w-full" value={form.barcode} onChange={e => set('barcode', e.target.value)} />

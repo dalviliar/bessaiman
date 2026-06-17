@@ -5,17 +5,19 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import {
   LayoutDashboard, Users, Shield, Package, Warehouse, FileText, History,
-  LogOut, ChevronRight, Loader2, ExternalLink,
+  LogOut, ChevronRight, Loader2, ExternalLink, Newspaper, Tag,
 } from 'lucide-react'
 
 const NAV = [
   { href: '/admin',           label: 'Дашборд',         icon: LayoutDashboard, resource: null },
   { href: '/admin/users',     label: 'Пользователи',    icon: Users,           resource: 'users' },
   { href: '/admin/roles',     label: 'Роли',            icon: Shield,          resource: 'roles' },
-  { href: '/admin/products',  label: 'Каталог',         icon: Package,         resource: 'products' },
-  { href: '/admin/warehouse', label: 'Склад',           icon: Warehouse,       resource: 'warehouse' },
-  { href: '/admin/kp',        label: 'Запросы КП',      icon: FileText,        resource: 'kp_requests' },
-  { href: '/admin/audit',     label: 'Журнал действий', icon: History,         resource: 'audit' },
+  { href: '/admin/products',    label: 'Каталог',          icon: Package,    resource: 'products' },
+  { href: '/admin/categories',  label: 'Категории',        icon: Tag,        resource: 'products' },
+  { href: '/admin/warehouse',   label: 'Склад',            icon: Warehouse,  resource: 'warehouse' },
+  { href: '/admin/news',        label: 'Новости',          icon: Newspaper,  resource: 'content' },
+  { href: '/admin/kp',          label: 'Запросы КП',       icon: FileText,   resource: 'kp_requests' },
+  { href: '/admin/audit',       label: 'Журнал действий',  icon: History,    resource: 'audit' },
 ]
 
 const ROLE_COLORS: Record<string, string> = {

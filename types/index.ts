@@ -10,6 +10,23 @@ export interface Category {
   description_kk: string | null
   description_en: string | null
   image_url: string | null
+  classification_code: string | null
+  created_at: string
+}
+
+export interface NewsPost {
+  id: string
+  title_ru: string
+  title_kk: string | null
+  title_en: string | null
+  content_ru: string | null
+  content_kk: string | null
+  content_en: string | null
+  image_url: string | null
+  instagram_url: string | null
+  type: 'news' | 'announcement'
+  is_published: boolean
+  published_at: string | null
   created_at: string
 }
 

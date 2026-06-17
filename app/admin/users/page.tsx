@@ -11,6 +11,7 @@ import {
 const PERM_SECTIONS = [
   { key: 'users',    label: 'Управление пользователями', actions: ['create', 'read', 'update', 'delete'] },
   { key: 'products', label: 'Управление товарами',       actions: ['create', 'read', 'update', 'delete'] },
+  { key: 'content',  label: 'Новости и уведомления',     actions: ['create', 'read', 'update', 'delete'] },
 ] as const
 
 const ACTION_LABELS: Record<string, string> = {

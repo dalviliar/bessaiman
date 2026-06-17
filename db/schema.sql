@@ -137,12 +137,36 @@ CREATE TABLE IF NOT EXISTS admin_audit_log (
 
 CREATE INDEX IF NOT EXISTS idx_audit_log_created ON admin_audit_log(created_at DESC);
 
--- ── Доп. поля товара: вес и единица измерения ──────────────
+-- ── Доп. поля товара: вес, габариты, ед. измерения ─────────
 ALTER TABLE products ADD COLUMN IF NOT EXISTS weight_kg numeric;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS unit text NOT NULL DEFAULT 'шт';
 ALTER TABLE products ADD COLUMN IF NOT EXISTS length_cm numeric;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS width_cm numeric;
 ALTER TABLE products ADD COLUMN IF NOT EXISTS height_cm numeric;
+
+-- ── Код классификации для категорий ─────────────────────────
+ALTER TABLE categories ADD COLUMN IF NOT EXISTS classification_code text;
+UPDATE categories SET classification_code = UPPER(slug)
+  WHERE slug IN ('sfm','sfth','sftv','sftm','sm','ss','pa');
+UPDATE categories SET classification_code = 'LF' WHERE slug = 'furniture';
+
+-- ── Новости и уведомления ────────────────────────────────────
+CREATE TABLE IF NOT EXISTS news_posts (
+  id             uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  title_ru       text NOT NULL,
+  title_kk       text,
+  title_en       text,
+  content_ru     text,
+  content_kk     text,
+  content_en     text,
+  image_url      text,
+  instagram_url  text,
+  type           text NOT NULL DEFAULT 'news',  -- 'news' | 'announcement'
+  is_published   boolean NOT NULL DEFAULT false,
+  published_at   timestamptz,
+  created_at     timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_news_published ON news_posts(published_at DESC) WHERE is_published = true;
 
 -- ── Indexes ─────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_products_category   ON products(category_id);
