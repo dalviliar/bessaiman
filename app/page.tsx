@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import type { NewsPost } from '@/types'
+import { useLang } from '@/context/LanguageContext'
 
 const VacuumChamber3D = dynamic(() => import('@/components/VacuumChamber3D'), {
   ssr: false,
@@ -87,9 +88,77 @@ const STATS = [
   { num: 50,  suf: '+', label: 'партнёров' },
 ]
 
+function NewsModal({ post, onClose, postTitle, postContent }: {
+  post: NewsPost
+  onClose: () => void
+  postTitle: (p: NewsPost) => string
+  postContent: (p: NewsPost) => string | null
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-[200] flex items-center justify-center p-4"
+      style={{ background: 'rgba(15,23,42,0.75)', backdropFilter: 'blur(6px)' }}
+      onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl"
+        style={{ background: 'white', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
+        {post.image_url && (
+          <div className="relative w-full" style={{ height: 260 }}>
+            <img src={post.image_url} alt={postTitle(post)} className="w-full h-full object-cover" style={{ borderRadius: '16px 16px 0 0' }} />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(15,23,42,0.5) 0%, transparent 60%)', borderRadius: '16px 16px 0 0' }} />
+          </div>
+        )}
+        <div className="p-7">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-[10px] font-black tracking-wide px-3 py-1 rounded-full"
+              style={{ background: post.type === 'announcement' ? '#FEF3C7' : '#EFF6FF', color: post.type === 'announcement' ? '#B45309' : '#1D4ED8' }}>
+              {post.type === 'announcement' ? '⚡ Уведомление' : '● Новость'}
+            </span>
+            {post.published_at && (
+              <span className="text-[11px]" style={{ color: '#94A3B8' }}>
+                {new Date(post.published_at).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })}
+              </span>
+            )}
+          </div>
+          <h2 className="font-black text-xl leading-tight mb-4" style={{ color: '#0F172A' }}>
+            {postTitle(post)}
+          </h2>
+          {postContent(post) && (
+            <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: '#475569' }}>
+              {postContent(post)}
+            </p>
+          )}
+          {post.instagram_url && (
+            <a href={post.instagram_url} target="_blank" rel="noopener noreferrer"
+              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold py-2.5 px-5 rounded-full"
+              style={{ background: 'linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)', color: 'white' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+              Посмотреть в Instagram
+            </a>
+          )}
+          <div className="mt-6 flex justify-end">
+            <button onClick={onClose}
+              className="px-5 py-2 rounded-lg text-sm font-semibold"
+              style={{ border: '1.5px solid #E2E8F0', color: '#64748B' }}>
+              Закрыть
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function HomePage() {
+  const { lang } = useLang()
   const [hovCard, setHovCard] = useState<string | null>(null)
   const [news, setNews] = useState<NewsPost[]>([])
+  const [selectedPost, setSelectedPost] = useState<NewsPost | null>(null)
+
+  const postTitle = (p: NewsPost) =>
+    (lang === 'kk' ? p.title_kk : lang === 'en' ? p.title_en : null) || p.title_ru
+  const postContent = (p: NewsPost) =>
+    (lang === 'kk' ? p.content_kk : lang === 'en' ? p.content_en : null) || p.content_ru
 
   useEffect(() => {
     fetch('/api/news?limit=5').then(r => r.json()).then(d => setNews(Array.isArray(d) ? d : []))
@@ -97,6 +166,14 @@ export default function HomePage() {
 
   return (
     <div style={{ background: '#F8FAFC', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
+      {selectedPost && (
+        <NewsModal
+          post={selectedPost}
+          onClose={() => setSelectedPost(null)}
+          postTitle={postTitle}
+          postContent={postContent}
+        />
+      )}
       <style>{`
         @keyframes spin { to { transform: rotate(360deg) } }
         @keyframes fade-up { from { opacity:0; transform:translateY(20px) } to { opacity:1; transform:none } }
@@ -190,6 +267,150 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* ══ НОВОСТИ & УВЕДОМЛЕНИЯ ══ */}
+      {news.length > 0 && (
+        <section style={{ background: '#F1F5F9', borderTop: '1px solid #E2E8F0', padding: '56px 0' }}>
+          <div className="max-w-7xl mx-auto px-6 lg:px-8">
+
+            <div className="flex items-end justify-between mb-8">
+              <div>
+                <div className="flex items-center gap-2.5 mb-2">
+                  <div style={{ width: 28, height: 2.5, background: 'linear-gradient(90deg,#1565C0,#0EA5E9)', borderRadius: 2 }} />
+                  <span className="text-[10px] font-mono tracking-[0.22em] font-bold" style={{ color: '#1565C0' }}>АКТУАЛЬНО</span>
+                </div>
+                <h2 className="font-black leading-tight" style={{ fontSize: 'clamp(1.4rem,3vw,1.9rem)', color: '#0F172A' }}>
+                  Новости и акции
+                </h2>
+              </div>
+              <Link href="/news"
+                className="flex items-center gap-2 text-xs font-semibold px-5 py-2.5 rounded-full transition-all hover:-translate-y-0.5"
+                style={{ background: 'white', color: '#1565C0', border: '1px solid #BFDBFE', boxShadow: '0 2px 8px rgba(21,101,192,0.08)' }}>
+                Все публикации →
+              </Link>
+            </div>
+
+            <div className="grid lg:grid-cols-5 gap-5 items-start">
+
+              {/* FEATURED */}
+              <div className="lg:col-span-3">
+                {(() => {
+                  const post = news[0]
+                  const isAnn = post.type === 'announcement'
+                  return (
+                    <button
+                      onClick={() => setSelectedPost(post)}
+                      className="relative overflow-hidden rounded-2xl flex flex-col justify-end w-full text-left cursor-pointer transition-all hover:-translate-y-1"
+                      style={{
+                        height: 380,
+                        background: post.image_url
+                          ? undefined
+                          : isAnn
+                            ? 'linear-gradient(135deg,#92400E,#B45309,#D97706)'
+                            : 'linear-gradient(135deg,#0F172A,#1E3A5F,#1565C0)',
+                        border: 'none',
+                        boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                      }}>
+                      {post.image_url && (
+                        <img src={post.image_url} alt={postTitle(post)}
+                          className="absolute inset-0 w-full h-full object-cover" />
+                      )}
+                      <div className="absolute inset-0" style={{
+                        background: post.image_url
+                          ? 'linear-gradient(to top, rgba(10,20,40,0.92) 0%, rgba(10,20,40,0.5) 55%, rgba(10,20,40,0.1) 100%)'
+                          : 'none',
+                      }} />
+                      <div className="absolute top-0 left-0 right-0 h-1"
+                        style={{ background: isAnn ? 'linear-gradient(90deg,#F59E0B,#FCD34D)' : 'linear-gradient(90deg,#1565C0,#0EA5E9)' }} />
+                      <div className="relative z-10 p-7">
+                        <div className="inline-flex items-center gap-1.5 mb-3 px-3 py-1.5 rounded-full"
+                          style={{ background: isAnn ? 'rgba(245,158,11,0.95)' : 'rgba(21,101,192,0.95)', backdropFilter: 'blur(8px)' }}>
+                          <span className="text-[10px] font-black tracking-widest text-white">
+                            {isAnn ? '⚡ УВЕДОМЛЕНИЕ' : '● НОВОСТЬ'}
+                          </span>
+                        </div>
+                        <h3 className="font-black leading-tight mb-2 text-white"
+                          style={{ fontSize: 'clamp(1rem,2.5vw,1.4rem)', textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}>
+                          {postTitle(post)}
+                        </h3>
+                        {postContent(post) && (
+                          <p className="text-sm leading-relaxed line-clamp-2 mb-4"
+                            style={{ color: 'rgba(255,255,255,0.75)' }}>
+                            {postContent(post)}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-3">
+                          <span className="text-[11px] font-mono" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                            {post.published_at
+                              ? new Date(post.published_at).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })
+                              : ''}
+                          </span>
+                          <span className="text-[11px] font-semibold px-3 py-1 rounded-full"
+                            style={{ background: 'rgba(255,255,255,0.15)', color: 'white', backdropFilter: 'blur(8px)' }}>
+                            Читать →
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                  )
+                })()}
+              </div>
+
+              {/* SECONDARY STACK */}
+              <div className="lg:col-span-2 flex flex-col gap-3">
+                {news.slice(1, 4).map((post) => {
+                  const isAnn = post.type === 'announcement'
+                  return (
+                    <button key={post.id}
+                      onClick={() => setSelectedPost(post)}
+                      className="flex overflow-hidden rounded-xl transition-all hover:-translate-y-0.5 w-full text-left"
+                      style={{ background: 'white', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)', cursor: 'pointer' }}>
+                      {post.image_url ? (
+                        <div className="relative flex-shrink-0 overflow-hidden" style={{ width: 88, minHeight: 88 }}>
+                          <img src={post.image_url} alt={postTitle(post)}
+                            className="absolute inset-0 w-full h-full object-cover" />
+                        </div>
+                      ) : (
+                        <div className="flex-shrink-0" style={{ width: 4, background: isAnn ? '#F59E0B' : '#1565C0' }} />
+                      )}
+                      <div className="px-4 py-3.5 flex flex-col justify-center flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-[9px] font-black tracking-wide px-2 py-0.5 rounded-full"
+                            style={{ background: isAnn ? '#FEF3C7' : '#EFF6FF', color: isAnn ? '#92400E' : '#1D4ED8' }}>
+                            {isAnn ? '⚡ ВАЖНО' : '● НОВОСТЬ'}
+                          </span>
+                          <span className="text-[9px] font-mono" style={{ color: '#94A3B8' }}>
+                            {post.published_at
+                              ? new Date(post.published_at).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' })
+                              : ''}
+                          </span>
+                        </div>
+                        <h4 className="font-bold text-xs leading-snug line-clamp-2 mb-1" style={{ color: '#0F172A' }}>
+                          {postTitle(post)}
+                        </h4>
+                        {postContent(post) && (
+                          <p className="text-[11px] leading-relaxed line-clamp-2" style={{ color: '#64748B' }}>
+                            {postContent(post)}
+                          </p>
+                        )}
+                      </div>
+                    </button>
+                  )
+                })}
+                <Link href="/news"
+                  className="flex items-center justify-between px-5 py-4 rounded-xl transition-all hover:-translate-y-0.5"
+                  style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', boxShadow: '0 4px 16px rgba(21,101,192,0.25)' }}>
+                  <div>
+                    <p className="text-xs font-black text-white mb-0.5">Все публикации</p>
+                    <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.6)' }}>Новости, акции, уведомления</p>
+                  </div>
+                  <span className="text-white text-lg font-black">→</span>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ══ CATEGORIES ══ */}
       <section className="py-14 px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
@@ -260,189 +481,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ══ НОВОСТИ & УВЕДОМЛЕНИЯ ══ */}
-      {news.length > 0 && (
-        <section style={{ background: '#F1F5F9', borderTop: '1px solid #E2E8F0', padding: '72px 0' }}>
-          <div className="max-w-7xl mx-auto px-6 lg:px-8">
-
-            {/* Header */}
-            <div className="flex items-end justify-between mb-10">
-              <div>
-                <div className="flex items-center gap-2.5 mb-2">
-                  <div style={{ width: 28, height: 2.5, background: 'linear-gradient(90deg,#1565C0,#0EA5E9)', borderRadius: 2 }} />
-                  <span className="text-[10px] font-mono tracking-[0.22em] font-bold" style={{ color: '#1565C0' }}>АКТУАЛЬНО</span>
-                </div>
-                <h2 className="font-black leading-tight" style={{ fontSize: 'clamp(1.5rem,3vw,2rem)', color: '#0F172A' }}>
-                  Новости и акции
-                </h2>
-              </div>
-              <Link href="/news"
-                className="flex items-center gap-2 text-xs font-semibold px-5 py-2.5 rounded-full transition-all hover:-translate-y-0.5"
-                style={{ background: 'white', color: '#1565C0', border: '1px solid #BFDBFE', boxShadow: '0 2px 8px rgba(21,101,192,0.08)' }}>
-                Все публикации →
-              </Link>
-            </div>
-
-            {/* Layout: featured big card + side stack */}
-            <div className="grid lg:grid-cols-5 gap-5 items-start">
-
-              {/* ── FEATURED CARD ── */}
-              <div className="lg:col-span-3">
-                {(() => {
-                  const post = news[0]
-                  const isAnn = post.type === 'announcement'
-                  return (
-                    <div className="relative overflow-hidden rounded-2xl flex flex-col justify-end"
-                      style={{
-                        height: 420,
-                        background: post.image_url
-                          ? undefined
-                          : isAnn
-                            ? 'linear-gradient(135deg,#92400E 0%,#B45309 50%,#D97706 100%)'
-                            : 'linear-gradient(135deg,#0F172A 0%,#1E3A5F 60%,#1565C0 100%)',
-                      }}>
-
-                      {/* Background image */}
-                      {post.image_url && (
-                        <img src={post.image_url} alt={post.title_ru}
-                          className="absolute inset-0 w-full h-full object-cover" />
-                      )}
-
-                      {/* Gradient overlay */}
-                      <div className="absolute inset-0" style={{
-                        background: post.image_url
-                          ? 'linear-gradient(to top, rgba(10,20,40,0.92) 0%, rgba(10,20,40,0.5) 55%, rgba(10,20,40,0.1) 100%)'
-                          : 'none',
-                      }} />
-
-                      {/* Decorative accent bar */}
-                      <div className="absolute top-0 left-0 right-0 h-1"
-                        style={{ background: isAnn ? 'linear-gradient(90deg,#F59E0B,#FCD34D)' : 'linear-gradient(90deg,#1565C0,#0EA5E9)' }} />
-
-                      {/* Content */}
-                      <div className="relative z-10 p-7">
-                        {/* Badge */}
-                        <div className="inline-flex items-center gap-1.5 mb-4 px-3.5 py-1.5 rounded-full"
-                          style={{
-                            background: isAnn ? 'rgba(245,158,11,0.95)' : 'rgba(21,101,192,0.95)',
-                            backdropFilter: 'blur(8px)',
-                          }}>
-                          <span className="text-[10px] font-black tracking-widest text-white">
-                            {isAnn ? '⚡ УВЕДОМЛЕНИЕ' : '● НОВОСТЬ'}
-                          </span>
-                        </div>
-
-                        {/* Title */}
-                        <h3 className="font-black leading-tight mb-3 text-white"
-                          style={{ fontSize: 'clamp(1.1rem,2.5vw,1.5rem)', textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}>
-                          {post.title_ru}
-                        </h3>
-
-                        {/* Content preview */}
-                        {post.content_ru && (
-                          <p className="text-sm leading-relaxed mb-5 line-clamp-2"
-                            style={{ color: 'rgba(255,255,255,0.75)' }}>
-                            {post.content_ru}
-                          </p>
-                        )}
-
-                        {/* Footer row */}
-                        <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-mono" style={{ color: 'rgba(255,255,255,0.45)' }}>
-                            {post.published_at
-                              ? new Date(post.published_at).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })
-                              : ''}
-                          </span>
-                          {post.instagram_url && (
-                            <a href={post.instagram_url} target="_blank" rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-[11px] font-bold px-3 py-1.5 rounded-full transition-all hover:scale-105"
-                              style={{ background: 'rgba(255,255,255,0.15)', color: 'white', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.2)' }}>
-                              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                              Instagram
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })()}
-              </div>
-
-              {/* ── SECONDARY CARDS STACK ── */}
-              <div className="lg:col-span-2 flex flex-col gap-3">
-                {news.slice(1, 5).map((post) => {
-                  const isAnn = post.type === 'announcement'
-                  return (
-                    <div key={post.id} className="flex overflow-hidden rounded-xl transition-all hover:-translate-y-0.5"
-                      style={{ background: 'white', border: '1px solid #E2E8F0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
-
-                      {/* Thumbnail or accent bar */}
-                      {post.image_url ? (
-                        <div className="relative flex-shrink-0 overflow-hidden" style={{ width: 88, minHeight: 88 }}>
-                          <img src={post.image_url} alt={post.title_ru}
-                            className="absolute inset-0 w-full h-full object-cover" />
-                        </div>
-                      ) : (
-                        <div className="flex-shrink-0" style={{ width: 4, background: isAnn ? '#F59E0B' : '#1565C0' }} />
-                      )}
-
-                      {/* Text */}
-                      <div className="px-4 py-3.5 flex flex-col justify-center flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-[9px] font-black tracking-wide px-2 py-0.5 rounded-full"
-                            style={{
-                              background: isAnn ? '#FEF3C7' : '#EFF6FF',
-                              color: isAnn ? '#92400E' : '#1D4ED8',
-                            }}>
-                            {isAnn ? '⚡ ВАЖНО' : '● НОВОСТЬ'}
-                          </span>
-                          <span className="text-[9px] font-mono" style={{ color: '#94A3B8' }}>
-                            {post.published_at
-                              ? new Date(post.published_at).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' })
-                              : ''}
-                          </span>
-                        </div>
-
-                        <h4 className="font-bold text-xs leading-snug line-clamp-2 mb-1" style={{ color: '#0F172A' }}>
-                          {post.title_ru}
-                        </h4>
-
-                        {post.content_ru && (
-                          <p className="text-[11px] leading-relaxed line-clamp-2" style={{ color: '#64748B' }}>
-                            {post.content_ru}
-                          </p>
-                        )}
-
-                        {post.instagram_url && (
-                          <a href={post.instagram_url} target="_blank" rel="noopener noreferrer"
-                            className="mt-1.5 text-[10px] font-semibold flex items-center gap-1"
-                            style={{ color: '#E1306C' }}>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                            Instagram
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-
-                {/* CTA tile — если постов меньше 4 */}
-                {news.length < 4 && (
-                  <Link href="/news"
-                    className="flex items-center justify-between px-5 py-4 rounded-xl transition-all hover:-translate-y-0.5"
-                    style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', boxShadow: '0 4px 16px rgba(21,101,192,0.25)' }}>
-                    <div>
-                      <p className="text-xs font-black text-white mb-0.5">Все публикации</p>
-                      <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.6)' }}>Новости, акции, уведомления</p>
-                    </div>
-                    <span className="text-white text-lg font-black">→</span>
-                  </Link>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
-      )}
 
       {/* ══ FOOTER ══ */}
       <footer style={{ borderTop: '1px solid #E2E8F0', background: 'white' }}>
