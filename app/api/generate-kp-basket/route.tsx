@@ -30,7 +30,6 @@ const s = StyleSheet.create({
     backgroundColor: C.white,
   },
 
-  // ── Header ──
   header: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   logoBox: { width: 52, height: 52, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', borderRadius: 4, marginRight: 14 },
   logoMain: { fontSize: 18, fontWeight: 'bold', color: C.white },
@@ -40,54 +39,37 @@ const s = StyleSheet.create({
   companyTagline: { fontSize: 7.5, color: C.gray, marginBottom: 2 },
   companyContact: { fontSize: 7, color: C.gray },
 
-  // ── Dividers ──
   dividerBlue: { height: 2, backgroundColor: C.primary, marginVertical: 10 },
   dividerThin: { height: 0.5, backgroundColor: C.border, marginVertical: 8 },
 
-  // ── Title banner ──
   titleBanner: {
     backgroundColor: C.primary,
-    paddingVertical: 9,
-    paddingHorizontal: 14,
+    paddingVertical: 9, paddingHorizontal: 14,
     marginBottom: 12,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
   titleMain: { fontSize: 12, fontWeight: 'bold', color: C.white, letterSpacing: 0.5 },
   titleNum:  { fontSize: 8, color: 'rgba(255,255,255,0.7)' },
 
-  // ── Parties ──
   parties: { flexDirection: 'row', marginBottom: 10 },
   partyBox: {
-    flex: 1,
-    backgroundColor: C.lightGray,
-    padding: 9,
-    borderLeftWidth: 3,
-    borderLeftColor: C.primary,
-    borderRadius: 2,
-    marginRight: 8,
+    flex: 1, backgroundColor: C.lightGray, padding: 9,
+    borderLeftWidth: 3, borderLeftColor: C.primary, borderRadius: 2, marginRight: 8,
   },
   partyBoxLast: {
-    flex: 1,
-    backgroundColor: C.lightGray,
-    padding: 9,
-    borderLeftWidth: 3,
-    borderLeftColor: C.primary,
-    borderRadius: 2,
+    flex: 1, backgroundColor: C.lightGray, padding: 9,
+    borderLeftWidth: 3, borderLeftColor: C.primary, borderRadius: 2,
   },
   partyLabel:  { fontSize: 6.5, fontWeight: 'bold', color: C.primary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
   partyName:   { fontSize: 9, fontWeight: 'bold', color: C.primaryDark, marginBottom: 2 },
   partyDetail: { fontSize: 7.5, color: C.gray, marginBottom: 1.5 },
 
-  // ── Section title ──
   sectionTitle: {
     fontSize: 7.5, fontWeight: 'bold', color: C.primary,
     textTransform: 'uppercase', letterSpacing: 0.8,
     marginBottom: 4, marginTop: 6,
   },
 
-  // ── Product table ──
   tableWrap: { marginBottom: 10, borderWidth: 0.5, borderColor: C.border },
   tableHead: { flexDirection: 'row', backgroundColor: C.primary, paddingVertical: 5, paddingHorizontal: 6 },
   tableRow:  { flexDirection: 'row', paddingVertical: 6, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: C.border },
@@ -112,14 +94,23 @@ const s = StyleSheet.create({
   tdTotalLabel: { flex: 1, fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark },
   tdTotalValue: { width: 78, fontSize: 8.5, fontWeight: 'bold', textAlign: 'right', color: C.primary },
 
-  // ── Description (detail pages) ──
+  // Per-product name row (subtle, between sections)
+  productNameRow: {
+    flexDirection: 'row', alignItems: 'center',
+    marginTop: 10, marginBottom: 4,
+  },
+  productNameLabel: { fontSize: 7, color: C.gray, marginRight: 6 },
+  productNameText:  { fontSize: 9, fontWeight: 'bold', color: C.primaryDark },
+  productModelText: { fontSize: 7.5, color: C.gray, marginLeft: 6 },
+
+  // Description (same as single KP)
   descSection: { flexDirection: 'row', marginBottom: 8 },
   descText:    { flex: 1, marginRight: 10 },
   descLine:    { fontSize: 8, color: C.text, marginBottom: 2, lineHeight: 1.4 },
   descHeading: { fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark, marginBottom: 2, marginTop: 4 },
   descProductImg: { width: 110, height: 110, objectFit: 'contain', borderWidth: 0.5, borderColor: C.border, borderRadius: 2 },
 
-  // ── Specs ──
+  // Specs (same as single KP)
   specsBox:    { borderWidth: 0.5, borderColor: C.border, marginBottom: 8 },
   specRow:     { flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, borderBottomWidth: 0.5, borderBottomColor: C.border },
   specRowLast: { borderBottomWidth: 0 },
@@ -127,26 +118,18 @@ const s = StyleSheet.create({
   specKey: { width: '44%', fontSize: 7.5, color: C.gray },
   specVal: { flex: 1, fontSize: 8, fontWeight: 'bold', color: C.primaryDark },
 
-  // ── Conditions ──
   condRow:    { flexDirection: 'row', marginBottom: 3.5, alignItems: 'flex-start' },
   condBullet: { width: 10, fontSize: 8, color: C.primary },
   condLabel:  { width: 130, fontSize: 7.5, color: C.gray },
   condValue:  { flex: 1, fontSize: 7.5, fontWeight: 'bold', color: C.primaryDark },
 
-  // ── Bank ──
-  bankBox: {
-    backgroundColor: C.primaryLight,
-    borderWidth: 0.5, borderColor: C.border,
-    padding: 9, marginBottom: 10,
-    borderRadius: 2,
-  },
+  bankBox: { backgroundColor: C.primaryLight, borderWidth: 0.5, borderColor: C.border, padding: 9, marginBottom: 10, borderRadius: 2 },
   bankTitle: { fontSize: 7, fontWeight: 'bold', color: C.primary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 },
   bankGrid:  { flexDirection: 'row', flexWrap: 'wrap' },
   bankRow:   { width: '50%', flexDirection: 'row', marginBottom: 3 },
   bankLabel: { width: 68, fontSize: 7, color: C.gray },
   bankValue: { flex: 1, fontSize: 7.5, fontWeight: 'bold', color: C.primaryDark },
 
-  // ── Signature ──
   sigSection: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 10 },
   sigBox:  { flex: 1 },
   sigRole: { fontSize: 7.5, color: C.gray, marginBottom: 3 },
@@ -156,42 +139,15 @@ const s = StyleSheet.create({
   sigDate: { fontSize: 7, color: C.gray, marginTop: 2 },
   stampBox: { width: 110, height: 110, alignItems: 'center', justifyContent: 'center' },
 
-  // ── Footer ──
   footer: {
     position: 'absolute', bottom: 18, left: 40, right: 40,
     borderTopWidth: 0.5, borderTopColor: C.border,
-    paddingTop: 5,
-    flexDirection: 'row', justifyContent: 'space-between',
+    paddingTop: 5, flexDirection: 'row', justifyContent: 'space-between',
   },
   footerText: { fontSize: 6, color: '#999' },
 
-  // ── Watermark ──
-  watermarkWrap: {
-    position: 'absolute',
-    top: 0, left: 0, right: 0, bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  watermarkText: {
-    fontSize: 52,
-    fontWeight: 'bold',
-    color: 'rgba(26,74,138,0.05)',
-    transform: 'rotate(-45deg)',
-    letterSpacing: 3,
-  },
-
-  // ── Detail page banner ──
-  detailBanner: {
-    backgroundColor: C.primaryLight,
-    borderLeftWidth: 3,
-    borderLeftColor: C.primary,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginBottom: 12,
-  },
-  detailBannerLabel: { fontSize: 6.5, fontWeight: 'bold', color: C.primary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 3 },
-  detailBannerName:  { fontSize: 11, fontWeight: 'bold', color: C.primaryDark, marginBottom: 2 },
-  detailBannerModel: { fontSize: 8, color: C.gray },
+  watermarkWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
+  watermarkText: { fontSize: 52, fontWeight: 'bold', color: 'rgba(26,74,138,0.05)', transform: 'rotate(-45deg)', letterSpacing: 3 },
 })
 
 interface CartItem {
@@ -215,10 +171,10 @@ interface ClientInfo {
 }
 
 const CONDITIONS = [
-  ['Срок поставки:',   'По согласованию, в зависимости от наличия на складе'],
-  ['Гарантия:',        '12 месяцев с момента поставки'],
-  ['Условия оплаты:',  'Предоплата 50%, остаток — по факту готовности товара'],
-  ['Действие КП:',     '30 календарных дней с даты выставления'],
+  ['Срок поставки:',  'По согласованию, в зависимости от наличия на складе'],
+  ['Гарантия:',       '12 месяцев с момента поставки'],
+  ['Условия оплаты:', 'Предоплата 50%, остаток — по факту готовности товара'],
+  ['Действие КП:',    '30 календарных дней с даты выставления'],
 ]
 
 const BANK_ROWS = [
@@ -241,60 +197,8 @@ function parseDescriptionLines(text: string): { type: 'heading' | 'bullet' | 'te
   })
 }
 
-function PageWatermark() {
-  return (
-    <View style={s.watermarkWrap} fixed>
-      <Text style={s.watermarkText}>BES SAIMAN GROUP</Text>
-    </View>
-  )
-}
-
-function PageFooter() {
-  return (
-    <View style={s.footer} fixed>
-      <Text style={s.footerText}>
-        ТОО «Bes Saiman Group»  ·  БИН 210440034775  ·  +7 (701) 101-34-33  ·  bessaimangroup1@gmail.com
-      </Text>
-      <Text style={s.footerText}
-        render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
-          `${pageNumber} / ${totalPages}`
-        }
-      />
-    </View>
-  )
-}
-
-function CompanyHeader() {
-  return (
-    <>
-      <View style={s.header}>
-        <View style={s.logoBox}>
-          <Text style={s.logoMain}>BS</Text>
-          <Text style={s.logoSub}>GROUP</Text>
-        </View>
-        <View style={s.headerInfo}>
-          <Text style={s.companyName}>ТОО «Bes Saiman Group»</Text>
-          <Text style={s.companyTagline}>Научно-производственная компания</Text>
-          <Text style={s.companyContact}>
-            +7 (701) 101-34-33  ·  bessaimangroup1@gmail.com  ·  г. Алматы, ул. Тулебаева 38/61
-          </Text>
-        </View>
-        <View style={{ alignItems: 'flex-end' }}>
-          <Text style={{ fontSize: 7, color: C.gray }}>БИН: 210440034775</Text>
-        </View>
-      </View>
-      <View style={s.dividerBlue} />
-    </>
-  )
-}
-
 function KPBasketDocument({
-  items,
-  clientInfo,
-  kpNumber,
-  dateStr,
-  stampDataUri,
-  signatureDataUri,
+  items, clientInfo, kpNumber, dateStr, stampDataUri, signatureDataUri,
 }: {
   items: CartItem[]
   clientInfo: ClientInfo
@@ -305,19 +209,38 @@ function KPBasketDocument({
 }) {
   const totalKnown = items.reduce((s, i) => s + (i.price ?? 0) * i.quantity, 0)
   const hasUnknown = items.some(i => !i.price)
-
-  // Only show detail pages for products that have something to show
-  const detailItems = items.filter(
-    item => item.description_ru || (item.specs && Object.keys(item.specs).length > 0) || item.imageDataUri
+  const hasDetails = items.some(
+    i => i.description_ru || (i.specs && Object.keys(i.specs).length > 0) || i.imageDataUri
   )
 
   return (
     <Document>
-
-      {/* ── PAGE 1: SUMMARY ── */}
       <Page size="A4" style={s.page}>
-        <PageWatermark />
-        <CompanyHeader />
+
+        {/* WATERMARK */}
+        <View style={s.watermarkWrap} fixed>
+          <Text style={s.watermarkText}>BES SAIMAN GROUP</Text>
+        </View>
+
+        {/* HEADER */}
+        <View style={s.header}>
+          <View style={s.logoBox}>
+            <Text style={s.logoMain}>BS</Text>
+            <Text style={s.logoSub}>GROUP</Text>
+          </View>
+          <View style={s.headerInfo}>
+            <Text style={s.companyName}>ТОО «Bes Saiman Group»</Text>
+            <Text style={s.companyTagline}>Научно-производственная компания</Text>
+            <Text style={s.companyContact}>
+              +7 (701) 101-34-33  ·  bessaimangroup1@gmail.com  ·  г. Алматы, ул. Тулебаева 38/61
+            </Text>
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={{ fontSize: 7, color: C.gray }}>БИН: 210440034775</Text>
+          </View>
+        </View>
+
+        <View style={s.dividerBlue} />
 
         {/* TITLE BANNER */}
         <View style={s.titleBanner}>
@@ -363,7 +286,6 @@ function KPBasketDocument({
             <Text style={s.thPrice}>Цена ед.</Text>
             <Text style={s.thTotal}>Сумма</Text>
           </View>
-
           {items.map((item, i) => (
             <View key={i} style={[s.tableRow, i % 2 === 1 ? s.tableRowAlt : {}]}>
               <Text style={s.tdN}>{i + 1}</Text>
@@ -379,7 +301,6 @@ function KPBasketDocument({
               </Text>
             </View>
           ))}
-
           <View style={s.tableTotalRow}>
             <Text style={s.tdTotalLabel}>
               ИТОГО (с НДС 12%){hasUnknown ? ' (без позиций «По запросу»)' : ''}:
@@ -398,6 +319,80 @@ function KPBasketDocument({
           )}
         </View>
 
+        {/* PER-PRODUCT DETAILS — same layout as single KP, no new page */}
+        {hasDetails && (
+          <>
+            <Text style={s.sectionTitle}>Описание товаров</Text>
+            {items.map((item, idx) => {
+              const specs = item.specs ? Object.entries(item.specs).slice(0, 16) : []
+              const descLines = item.description_ru ? parseDescriptionLines(item.description_ru) : []
+              const hasContent = item.imageDataUri || descLines.length > 0 || specs.length > 0
+              if (!hasContent) return null
+
+              return (
+                <View key={idx}>
+                  {/* Product name row — only if more than one product */}
+                  {items.length > 1 && (
+                    <View style={s.productNameRow}>
+                      <Text style={s.productNameLabel}>{idx + 1}.</Text>
+                      <Text style={s.productNameText}>{item.name_ru}</Text>
+                      {item.model ? <Text style={s.productModelText}>/ {item.model}</Text> : null}
+                    </View>
+                  )}
+
+                  {/* Description + image (identical to single KP) */}
+                  {(descLines.length > 0 || item.imageDataUri) && (
+                    <View style={s.descSection}>
+                      {descLines.length > 0 && (
+                        <View style={s.descText}>
+                          {descLines.map((line, i) => {
+                            if (!line.content) return <View key={i} style={{ height: 3 }} />
+                            if (line.type === 'heading') return <Text key={i} style={s.descHeading}>{line.content}</Text>
+                            if (line.type === 'bullet') return (
+                              <View key={i} style={{ flexDirection: 'row', marginBottom: 1.5 }}>
+                                <Text style={{ width: 10, fontSize: 8, color: C.primary }}>•</Text>
+                                <Text style={s.descLine}>{line.content}</Text>
+                              </View>
+                            )
+                            return <Text key={i} style={s.descLine}>{line.content}</Text>
+                          })}
+                        </View>
+                      )}
+                      {item.imageDataUri && (
+                        <Image src={item.imageDataUri} style={s.descProductImg} />
+                      )}
+                    </View>
+                  )}
+
+                  {/* Specs (identical to single KP) */}
+                  {specs.length > 0 && (
+                    <>
+                      <Text style={s.sectionTitle}>Технические характеристики</Text>
+                      <View style={s.specsBox}>
+                        {specs.map(([key, val], i) => (
+                          <View key={key} style={[
+                            s.specRow,
+                            i % 2 === 1 ? s.specRowAlt : {},
+                            i === specs.length - 1 ? s.specRowLast : {},
+                          ]}>
+                            <Text style={s.specKey}>{key}</Text>
+                            <Text style={s.specVal}>{String(val)}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    </>
+                  )}
+
+                  {/* Thin divider between products (not after last) */}
+                  {items.length > 1 && idx < items.length - 1 && (
+                    <View style={s.dividerThin} />
+                  )}
+                </View>
+              )
+            })}
+          </>
+        )}
+
         {/* NOTE */}
         {clientInfo.note ? (
           <>
@@ -405,13 +400,6 @@ function KPBasketDocument({
             <Text style={{ fontSize: 8, color: C.text, marginBottom: 8 }}>{clientInfo.note}</Text>
           </>
         ) : null}
-
-        {/* Hint about detail pages */}
-        {detailItems.length > 0 && (
-          <Text style={{ fontSize: 7, color: C.gray, marginBottom: 8, fontStyle: 'italic' }}>
-            Подробное описание и технические характеристики каждого товара — на следующих страницах.
-          </Text>
-        )}
 
         {/* CONDITIONS */}
         <Text style={s.sectionTitle}>Условия поставки</Text>
@@ -460,84 +448,19 @@ function KPBasketDocument({
           )}
         </View>
 
-        <PageFooter />
+        {/* FOOTER */}
+        <View style={s.footer} fixed>
+          <Text style={s.footerText}>
+            ТОО «Bes Saiman Group»  ·  БИН 210440034775  ·  +7 (701) 101-34-33  ·  bessaimangroup1@gmail.com
+          </Text>
+          <Text style={s.footerText}
+            render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
+              `${pageNumber} / ${totalPages}`
+            }
+          />
+        </View>
+
       </Page>
-
-      {/* ── DETAIL PAGES: one page per product (same layout as single KP) ── */}
-      {detailItems.map((item, idx) => {
-        const specs = item.specs ? Object.entries(item.specs).slice(0, 16) : []
-        const descLines = item.description_ru ? parseDescriptionLines(item.description_ru) : []
-        const itemIndex = items.indexOf(item) + 1
-
-        return (
-          <Page key={idx} size="A4" style={s.page}>
-            <PageWatermark />
-            <CompanyHeader />
-
-            {/* KP reference + product number */}
-            <View style={s.titleBanner}>
-              <Text style={s.titleMain}>ОПИСАНИЕ ТОВАРА</Text>
-              <Text style={s.titleNum}>КП № {kpNumber}  |  Позиция {itemIndex} из {items.length}</Text>
-            </View>
-
-            {/* Product name banner */}
-            <View style={s.detailBanner}>
-              <Text style={s.detailBannerLabel}>Товар № {itemIndex}</Text>
-              <Text style={s.detailBannerName}>{item.name_ru}</Text>
-              {item.model ? <Text style={s.detailBannerModel}>Модель: {item.model}</Text> : null}
-            </View>
-
-            {/* DESCRIPTION + IMAGE (side by side, exactly like single KP) */}
-            {(descLines.length > 0 || item.imageDataUri) && (
-              <>
-                <Text style={s.sectionTitle}>Описание товара</Text>
-                <View style={s.descSection}>
-                  {descLines.length > 0 && (
-                    <View style={s.descText}>
-                      {descLines.map((line, i) => {
-                        if (!line.content) return <View key={i} style={{ height: 3 }} />
-                        if (line.type === 'heading') return <Text key={i} style={s.descHeading}>{line.content}</Text>
-                        if (line.type === 'bullet') return (
-                          <View key={i} style={{ flexDirection: 'row', marginBottom: 1.5 }}>
-                            <Text style={{ width: 10, fontSize: 8, color: C.primary }}>•</Text>
-                            <Text style={s.descLine}>{line.content}</Text>
-                          </View>
-                        )
-                        return <Text key={i} style={s.descLine}>{line.content}</Text>
-                      })}
-                    </View>
-                  )}
-                  {item.imageDataUri && (
-                    <Image src={item.imageDataUri} style={s.descProductImg} />
-                  )}
-                </View>
-              </>
-            )}
-
-            {/* SPECS (exactly like single KP) */}
-            {specs.length > 0 && (
-              <>
-                <Text style={s.sectionTitle}>Технические характеристики</Text>
-                <View style={s.specsBox}>
-                  {specs.map(([key, val], i) => (
-                    <View key={key} style={[
-                      s.specRow,
-                      i % 2 === 1 ? s.specRowAlt : {},
-                      i === specs.length - 1 ? s.specRowLast : {},
-                    ]}>
-                      <Text style={s.specKey}>{key}</Text>
-                      <Text style={s.specVal}>{String(val)}</Text>
-                    </View>
-                  ))}
-                </View>
-              </>
-            )}
-
-            <PageFooter />
-          </Page>
-        )
-      })}
-
     </Document>
   )
 }
@@ -615,7 +538,7 @@ export async function POST(request: Request) {
     const { items, clientInfo, lang = 'ru' } = body as {
       items: CartItem[]
       clientInfo: ClientInfo
-      lang: string
+      lang?: string
     }
 
     if (!items?.length) {
@@ -629,7 +552,6 @@ export async function POST(request: Request) {
     const kpNumber = generateKPNumber()
     const dateStr = formatDate(new Date())
 
-    // Enrich items with description, specs, image from DB
     const enrichedItems: CartItem[] = await Promise.all(
       items.map(async (item) => {
         try {
