@@ -90,6 +90,9 @@ const s = StyleSheet.create({
   footer: { position: 'absolute', bottom: 20, left: 44, right: 44, borderTopWidth: 0.5, borderTopColor: C.border, paddingTop: 5, flexDirection: 'row', justifyContent: 'space-between' },
   footerLeft: { fontSize: 6.5, color: C.gray },
   footerRight: { fontSize: 6.5, color: C.gray },
+
+  watermarkWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
+  watermarkText: { fontSize: 52, fontWeight: 'bold', color: 'rgba(26,74,138,0.05)', transform: 'rotate(-45deg)', letterSpacing: 3 },
 })
 
 interface CartItem {
@@ -148,6 +151,11 @@ function KPBasketDocument({
   return (
     <Document>
       <Page size="A4" style={s.page}>
+
+        {/* WATERMARK */}
+        <View style={s.watermarkWrap} fixed>
+          <Text style={s.watermarkText}>BES SAIMAN GROUP</Text>
+        </View>
 
         {/* HEADER */}
         <View style={s.header}>

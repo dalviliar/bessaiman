@@ -491,7 +491,7 @@ export default function HomePage() {
           </div>
           <span className="font-black text-sm tracking-widest" style={{ color: '#CBD5E1' }}>BES SAIMAN GROUP</span>
           <span className="text-[10px] font-mono" style={{ color: '#94A3B8' }}>
-            © 2025 · Казахстан · bessaimangroup1@gmail.com
+            © 2026 · Казахстан · bessaimangroup1@gmail.com
           </span>
         </div>
       </footer>

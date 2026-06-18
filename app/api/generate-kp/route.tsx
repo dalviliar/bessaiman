@@ -152,6 +152,21 @@ const s = StyleSheet.create({
   sigDate: { fontSize: 7, color: C.gray, marginTop: 2 },
   stampBox: { width: 110, height: 110, alignItems: 'center', justifyContent: 'center' },
 
+  // ── Watermark ──
+  watermarkWrap: {
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  watermarkText: {
+    fontSize: 52,
+    fontWeight: 'bold',
+    color: 'rgba(26,74,138,0.05)',
+    transform: 'rotate(-45deg)',
+    letterSpacing: 3,
+  },
+
   // ── Footer ──
   footer: {
     position: 'absolute', bottom: 18, left: 40, right: 40,
@@ -240,6 +255,11 @@ function KPDocument({
   return (
     <Document>
       <Page size="A4" style={s.page}>
+
+        {/* WATERMARK */}
+        <View style={s.watermarkWrap} fixed>
+          <Text style={s.watermarkText}>BES SAIMAN GROUP</Text>
+        </View>
 
         {/* HEADER */}
         <View style={s.header}>

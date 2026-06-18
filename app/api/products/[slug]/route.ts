@@ -27,7 +27,14 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
        FROM product_accessories pa
        JOIN products acc ON acc.id = pa.accessory_id
        LEFT JOIN categories c ON c.id = acc.category_id
-       WHERE pa.product_id = $1`,
+       WHERE pa.product_id = $1
+       UNION
+       SELECT acc.*,
+         CASE WHEN c.id IS NOT NULL THEN row_to_json(c) END AS category
+       FROM product_accessories pa
+       JOIN products acc ON acc.id = pa.product_id
+       LEFT JOIN categories c ON c.id = acc.category_id
+       WHERE pa.accessory_id = $1`,
       [product.id],
     ),
   ])
