@@ -133,12 +133,14 @@ function KPBasketDocument({
   kpNumber,
   dateStr,
   stampDataUri,
+  signatureDataUri,
 }: {
   items: CartItem[]
   clientInfo: ClientInfo
   kpNumber: string
   dateStr: string
   stampDataUri: string | null
+  signatureDataUri: string | null
 }) {
   const totalKnown = items.reduce((s, i) => s + (i.price ?? 0) * i.quantity, 0)
   const hasUnknown = items.some(i => !i.price)
@@ -277,12 +279,16 @@ function KPBasketDocument({
           <View style={s.sigBox}>
             <Text style={s.sigRole}>Генеральный директор</Text>
             <Text style={s.sigTitle}>ТОО «Bes Saiman Group»</Text>
-            <View style={s.sigLine} />
+            {signatureDataUri ? (
+              <Image src={signatureDataUri} style={{ width: 90, height: 36, marginBottom: 4 }} />
+            ) : (
+              <View style={s.sigLine} />
+            )}
             <Text style={s.sigName}>Елеуов М.А.</Text>
           </View>
           {stampDataUri && (
             <View style={s.stampWrap}>
-              <Image src={stampDataUri} style={{ width: 90, height: 90 }} />
+              <Image src={stampDataUri} style={{ width: 100, height: 100 }} />
             </View>
           )}
         </View>
@@ -333,8 +339,21 @@ function ensureFontsRegistered() {
 
 function loadStampDataUri(): string | null {
   try {
-    const stampPath = path.join(process.cwd(), 'public', 'brand', 'stamp.jpg')
-    return `data:image/jpeg;base64,${readFileSync(stampPath).toString('base64')}`
+    const brandDir = path.join(process.cwd(), 'public', 'brand')
+    try {
+      return `data:image/png;base64,${readFileSync(path.join(brandDir, 'stamp.png')).toString('base64')}`
+    } catch {
+      return `data:image/jpeg;base64,${readFileSync(path.join(brandDir, 'stamp.jpg')).toString('base64')}`
+    }
+  } catch {
+    return null
+  }
+}
+
+function loadSignatureDataUri(): string | null {
+  try {
+    const sigPath = path.join(process.cwd(), 'public', 'brand', 'signature.jpg')
+    return `data:image/jpeg;base64,${readFileSync(sigPath).toString('base64')}`
   } catch {
     return null
   }
@@ -355,6 +374,7 @@ export async function POST(request: Request) {
 
     ensureFontsRegistered()
     const stampDataUri = loadStampDataUri()
+    const signatureDataUri = loadSignatureDataUri()
 
     const kpNumber = generateKPNumber()
     const dateStr = formatDate(new Date())
@@ -374,6 +394,7 @@ export async function POST(request: Request) {
         kpNumber={kpNumber}
         dateStr={dateStr}
         stampDataUri={stampDataUri}
+        signatureDataUri={signatureDataUri}
       />
     )
 

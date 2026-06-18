@@ -35,8 +35,7 @@ export interface Permissions {
 export function can(role: AdminRole | null | undefined, resource: string, action: string): boolean {
   if (!role) return false
   const p = role.permissions as Permissions & Record<string, unknown>
-  // super_admin always has full access — both by permissions.all flag and by role name
-  if (p.all || role.name === 'super_admin') return true
+  if (p.all || role.name === 'super_admin' || role.level === 0) return true
   const section = p[resource] as Record<string, boolean> | undefined
   return section?.[action] === true
 }

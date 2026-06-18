@@ -46,6 +46,7 @@ export default function KPModal({ product, onClose }: Props) {
             specs: product.specs,
             price: product.price,
             slug: product.slug,
+            availability: product.availability,
           },
           clientInfo: {
             name: form.name.trim() || 'Не указано',
