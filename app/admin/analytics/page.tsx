@@ -208,7 +208,7 @@ export default function AdminAnalyticsPage() {
               <div className="py-8 text-center">
                 <p className="text-xs mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Данные накапливаются</p>
                 <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.2)' }}>
-                  Просмотры начнут фиксироваться после деплоя
+                  Появятся по мере просмотра товаров на сайте
                 </p>
               </div>
             ) : data.topViewed.map((v, i) => (
