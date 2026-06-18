@@ -7,12 +7,13 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(
   _request: Request,
-  { params }: { params: { slug: string } },
+  { params }: { params: Promise<{ slug: string }> },
 ) {
   try {
+    const { slug } = await params
     const product = await query<{ id: string }>(
       'SELECT id FROM products WHERE slug = $1',
-      [params.slug],
+      [slug],
     )
     if (!product.length) return NextResponse.json({ ok: false })
 
