@@ -1,10 +1,15 @@
 'use client'
 
-import { Layers, Wrench, Target, Lightbulb, TrendingUp } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Wrench, Target, Lightbulb, TrendingUp } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 
 export default function AboutPage() {
   const { tr } = useLang()
+  const [stats, setStats] = useState({ products: 0, categories: 0, clients: 0, years: 5 })
+  useEffect(() => {
+    fetch('/api/site-stats').then(r => r.json()).then(d => setStats(d)).catch(() => {})
+  }, [])
 
   const values = [
     {
@@ -47,12 +52,12 @@ export default function AboutPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
         {[
-          { value: '200+', label: 'Единиц оборудования' },
-          { value: '50+', label: 'Клиентов' },
-          { value: '5+', label: 'Лет опыта' },
-          { value: '5', label: 'Категорий оборудования' },
+          { value: stats.products > 0 ? `${stats.products}+` : '—', label: 'Единиц оборудования' },
+          { value: stats.clients > 0  ? `${stats.clients}+`  : '—', label: 'Клиентов' },
+          { value: `${stats.years}+`,                                 label: 'Лет опыта' },
+          { value: stats.categories > 0 ? String(stats.categories) : '—', label: 'Категорий оборудования' },
         ].map((s) => (
-          <div key={s.value} className="steel-card p-6 text-center">
+          <div key={s.label} className="steel-card p-6 text-center">
             <div className="text-3xl font-black text-steel-accent mb-1">{s.value}</div>
             <div className="text-steel-silver text-sm">{s.label}</div>
           </div>

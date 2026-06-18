@@ -154,6 +154,11 @@ export default function HomePage() {
   const [hovCard, setHovCard] = useState<string | null>(null)
   const [news, setNews] = useState<NewsPost[]>([])
   const [selectedPost, setSelectedPost] = useState<NewsPost | null>(null)
+  const [siteStats, setSiteStats] = useState({ products: 0, categories: 0, clients: 0, years: 5 })
+
+  useEffect(() => {
+    fetch('/api/site-stats').then(r => r.json()).then(d => setSiteStats(d)).catch(() => {})
+  }, [])
 
   const postTitle = (p: NewsPost) =>
     (lang === 'kk' ? p.title_kk : lang === 'en' ? p.title_en : null) || p.title_ru
@@ -231,7 +236,11 @@ export default function HomePage() {
 
             {/* Stats */}
             <div className="flex items-stretch gap-0 pt-1">
-              {STATS.map(({ num, suf, label }, i) => (
+              {[
+                { num: siteStats.products, suf: '+', label: 'позиций' },
+                { num: siteStats.years,    suf: '+', label: 'лет на рынке' },
+                { num: siteStats.clients,  suf: '+', label: 'партнёров' },
+              ].map(({ num, suf, label }, i) => (
                 <div key={label} className="flex flex-col px-5 py-3 text-center"
                   style={{ borderLeft: i === 0 ? 'none' : '1px solid #E2E8F0' }}>
                   <span className="font-black text-2xl" style={{ color: '#1565C0' }}>
