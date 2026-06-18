@@ -47,7 +47,7 @@ export default function AdminKPPage() {
         <div>
           <h1 className="text-xl font-black text-white mb-0.5">Запросы КП</h1>
           <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-            {requests.length} всего · <span style={{ color: '#F59E0B' }}>{todayCount} сегодня</span>
+            {requests.length} всего · <span style={{ color: '#60A5FA' }}>{todayCount} сегодня</span>
           </p>
         </div>
       </div>

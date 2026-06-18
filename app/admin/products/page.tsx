@@ -9,7 +9,7 @@ import type { Product } from '@/types'
 
 const TYPE_COLORS: Record<string, { label: string; color: string }> = {
   S:  { label: 'Серийный',      color: '#10B981' },
-  PA: { label: 'Комплектующие', color: '#F59E0B' },
+  PA: { label: 'Комплектующие', color: '#94A3B8' },
   PP: { label: 'Для сборки',    color: '#6B7280' },
   I:  { label: 'Под заказ',     color: '#8B5CF6' },
 }

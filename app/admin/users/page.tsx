@@ -19,7 +19,7 @@ const ACTION_LABELS: Record<string, string> = {
 }
 
 const ROLE_COLORS: Record<string, string> = {
-  super_admin: '#EF4444', admin: '#F59E0B', manager: '#3B82F6',
+  super_admin: '#EF4444', admin: '#6366F1', manager: '#3B82F6',
   warehouse_manager: '#8B5CF6', product_manager: '#10B981',
   warehouse_specialist: '#0EA5E9', catalog_editor: '#EC4899', viewer: '#6B7280',
 }
@@ -232,7 +232,7 @@ function EditUserModal({ user, onClose, onSaved }: { user: AdminUser; onClose: (
 
           {isSystemRole ? (
             <div className="px-4 py-3 rounded-lg text-xs"
-              style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', color: '#FCD34D' }}>
+              style={{ background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', color: '#A5B4FC' }}>
               Права управляются системной ролью: <strong>{(user.role as AdminRole)?.display_name_ru}</strong>
             </div>
           ) : (

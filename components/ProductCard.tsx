@@ -16,7 +16,7 @@ const TYPE_META = {
 
 const AVAIL_META = {
   in_stock:    { dot: '#10B981', label: 'В наличии' },
-  on_order:    { dot: '#F59E0B', label: 'Под заказ' },
+  on_order:    { dot: '#D97706', label: 'Под заказ' },
   out_of_stock:{ dot: '#EF4444', label: 'Нет в наличии' },
 }
 

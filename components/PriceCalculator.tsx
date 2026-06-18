@@ -169,7 +169,7 @@ export default function PriceCalculator({ product }: { product: Product }) {
           border: '1px solid #FDE68A',
           display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ width: 30, height: 30, borderRadius: 8,
-            background: '#F59E0B', color: 'white', flexShrink: 0,
+            background: '#D97706', color: 'white', flexShrink: 0,
             display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <TrendingDown size={14} />
           </div>

@@ -6,7 +6,7 @@ import { Loader2, Plus, Pencil, Trash2, Upload, X, Check } from 'lucide-react'
 import type { NewsPost } from '@/types'
 
 const TYPE_LABELS = { news: 'Новость', announcement: 'Уведомление' }
-const TYPE_COLORS = { news: '#3B82F6', announcement: '#F59E0B' }
+const TYPE_COLORS = { news: '#3B82F6', announcement: '#6366F1' }
 
 type LangKey = 'ru' | 'kk' | 'en'
 

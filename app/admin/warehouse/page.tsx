@@ -137,7 +137,7 @@ export default function AdminWarehousePage() {
   const kpiCards = [
     { label: 'Позиций (SKU)', value: items.length,      color: '#3B82F6', icon: Boxes,         view: 'all' as View, active: view === 'all' },
     { label: 'Единиц всего',  value: totalStock,         color: '#10B981', icon: BarChart3,     view: 'all' as View, active: false },
-    { label: 'Мало (<3 шт.)', value: lowStock.length,   color: '#F59E0B', icon: AlertTriangle, view: 'low' as View, active: view === 'low' },
+    { label: 'Мало (<3 шт.)', value: lowStock.length,   color: '#D97706', icon: AlertTriangle, view: 'low' as View, active: view === 'low' },
     { label: 'Нет в наличии', value: outStock.length,   color: '#EF4444', icon: AlertTriangle, view: 'out' as View, active: view === 'out' },
   ]
 

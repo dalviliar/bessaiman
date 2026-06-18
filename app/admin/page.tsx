@@ -77,7 +77,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard icon={Package}    label="Товаров в каталоге" value={stats.products}       color="#3B82F6" href="/admin/products" />
         <StatCard icon={Users}      label="Пользователей"      value={stats.users}          color="#10B981" href="/admin/users" />
-        <StatCard icon={FileText}   label="Запросов КП"        value={stats.kpRequests}     color="#F59E0B" href="/admin/kp" />
+        <StatCard icon={FileText}   label="Запросов КП"        value={stats.kpRequests}     color="#60A5FA" href="/admin/kp" />
         <StatCard icon={Boxes}      label="Позиций на складе"  value={stats.warehouseItems} color="#8B5CF6" href="/admin/warehouse" />
       </div>
 
@@ -86,9 +86,9 @@ export default function AdminDashboard() {
         {/* KP today */}
         <div className="rounded-xl p-5" style={{ background: '#111827', border: '1px solid rgba(255,255,255,0.07)' }}>
           <div className="flex items-center gap-2 mb-4">
-            <TrendingUp size={15} style={{ color: '#F59E0B' }} />
+            <TrendingUp size={15} style={{ color: '#60A5FA' }} />
             <h2 className="text-sm font-semibold text-white">Новые запросы КП</h2>
-            <span className="ml-auto text-2xl font-black font-mono" style={{ color: '#F59E0B' }}>{stats.todayKP}</span>
+            <span className="ml-auto text-2xl font-black font-mono" style={{ color: '#60A5FA' }}>{stats.todayKP}</span>
           </div>
           {recentKP.length === 0 ? (
             <p className="text-sm" style={{ color: 'rgba(255,255,255,0.3)' }}>Запросов пока нет</p>
@@ -98,7 +98,7 @@ export default function AdminDashboard() {
                 <div key={i} className="flex items-start gap-3 py-2.5 px-3 rounded-lg"
                   style={{ background: 'rgba(255,255,255,0.03)' }}>
                   <div className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5"
-                    style={{ background: 'rgba(245,158,11,0.15)', color: '#F59E0B' }}>
+                    style={{ background: 'rgba(245,158,11,0.15)', color: '#60A5FA' }}>
                     {r.client_name?.charAt(0)?.toUpperCase() || '?'}
                   </div>
                   <div className="min-w-0">
@@ -124,7 +124,7 @@ export default function AdminDashboard() {
           <div className="space-y-2">
             {[
               { label: 'Добавить товар',      href: '/admin/products?action=new', color: '#3B82F6' },
-              { label: 'Просмотр заявок КП',  href: '/admin/kp',                 color: '#F59E0B' },
+              { label: 'Просмотр заявок КП',  href: '/admin/kp',                 color: '#60A5FA' },
               { label: 'Управление складом',  href: '/admin/warehouse',           color: '#8B5CF6' },
               { label: 'Новый пользователь',  href: '/admin/users?action=new',   color: '#10B981' },
             ].map(a => (

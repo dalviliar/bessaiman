@@ -24,7 +24,7 @@ const NAV = [
 
 const ROLE_COLORS: Record<string, string> = {
   super_admin:          '#EF4444',
-  admin:                '#F59E0B',
+  admin:                '#6366F1',
   manager:              '#3B82F6',
   warehouse_manager:    '#8B5CF6',
   product_manager:      '#10B981',

@@ -203,7 +203,7 @@ export default function WarehousePage() {
           icon={AlertTriangle}
           label="Мало на складе"
           value={loading ? '—' : lowStock + outOfStock}
-          color={lowStock + outOfStock > 0 ? '#F59E0B' : '#10B981'}
+          color={lowStock + outOfStock > 0 ? '#D97706' : '#10B981'}
           sub={outOfStock > 0 ? `${outOfStock} позиций нет` : 'всё в норме'}
         />
         <KpiCard

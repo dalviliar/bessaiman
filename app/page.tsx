@@ -320,12 +320,12 @@ export default function HomePage() {
                           : 'none',
                       }} />
                       <div className="absolute top-0 left-0 right-0 h-1"
-                        style={{ background: isAnn ? 'linear-gradient(90deg,#F59E0B,#FCD34D)' : 'linear-gradient(90deg,#1565C0,#0EA5E9)' }} />
+                        style={{ background: isAnn ? 'linear-gradient(90deg,#4F46E5,#6366F1)' : 'linear-gradient(90deg,#1565C0,#0EA5E9)' }} />
                       <div className="relative z-10 p-7">
                         <div className="inline-flex items-center gap-1.5 mb-3 px-3 py-1.5 rounded-full"
-                          style={{ background: isAnn ? 'rgba(245,158,11,0.95)' : 'rgba(21,101,192,0.95)', backdropFilter: 'blur(8px)' }}>
+                          style={{ background: isAnn ? 'rgba(79,70,229,0.9)' : 'rgba(21,101,192,0.95)', backdropFilter: 'blur(8px)' }}>
                           <span className="text-[10px] font-black tracking-widest text-white">
-                            {isAnn ? '⚡ УВЕДОМЛЕНИЕ' : '● НОВОСТЬ'}
+                            {isAnn ? '● УВЕДОМЛЕНИЕ' : '● НОВОСТЬ'}
                           </span>
                         </div>
                         <h3 className="font-black leading-tight mb-2 text-white"
@@ -370,13 +370,13 @@ export default function HomePage() {
                             className="absolute inset-0 w-full h-full object-cover" />
                         </div>
                       ) : (
-                        <div className="flex-shrink-0" style={{ width: 4, background: isAnn ? '#F59E0B' : '#1565C0' }} />
+                        <div className="flex-shrink-0" style={{ width: 4, background: isAnn ? '#4F46E5' : '#1565C0' }} />
                       )}
                       <div className="px-4 py-3.5 flex flex-col justify-center flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5">
                           <span className="text-[9px] font-black tracking-wide px-2 py-0.5 rounded-full"
-                            style={{ background: isAnn ? '#FEF3C7' : '#EFF6FF', color: isAnn ? '#92400E' : '#1D4ED8' }}>
-                            {isAnn ? '⚡ ВАЖНО' : '● НОВОСТЬ'}
+                            style={{ background: isAnn ? '#EEF2FF' : '#EFF6FF', color: isAnn ? '#3730A3' : '#1D4ED8' }}>
+                            {isAnn ? '● ВАЖНО' : '● НОВОСТЬ'}
                           </span>
                           <span className="text-[9px] font-mono" style={{ color: '#94A3B8' }}>
                             {post.published_at
