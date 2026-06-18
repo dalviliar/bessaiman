@@ -27,17 +27,33 @@ function MiniBar({ value, max, color }: { value: number; max: number; color: str
 export default function AdminAnalyticsPage() {
   const [data, setData] = useState<Analytics | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     fetch('/api/admin/analytics')
       .then(r => r.json())
-      .then(d => { setData(d); setLoading(false) })
+      .then(d => {
+        if (d?.error) { setError(d.error); return }
+        setData(d)
+      })
+      .catch(() => setError('Не удалось загрузить аналитику'))
+      .finally(() => setLoading(false))
   }, [])
 
   if (loading) {
     return (
       <div className="p-4 sm:p-8 flex justify-center items-center min-h-[400px]">
         <Loader2 size={28} className="animate-spin" style={{ color: '#3B82F6' }} />
+      </div>
+    )
+  }
+  if (error) {
+    return (
+      <div className="p-8">
+        <h1 className="text-xl font-black text-white mb-2">Аналитика</h1>
+        <div className="rounded-xl p-5 text-sm" style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+          {error === 'Доступ запрещён' ? 'Сессия истекла — выйдите и войдите снова.' : error}
+        </div>
       </div>
     )
   }
