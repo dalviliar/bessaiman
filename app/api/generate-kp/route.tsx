@@ -325,13 +325,13 @@ let fontsRegistered = false
 function ensureFontsRegistered() {
   if (fontsRegistered) return
   const fontsDir = path.join(process.cwd(), 'public', 'fonts')
-  const toDataUri = (filePath: string) =>
-    `data:font/truetype;base64,${readFileSync(filePath).toString('base64')}`
   Font.register({
     family: 'Roboto',
     fonts: [
-      { src: toDataUri(path.join(fontsDir, 'Roboto-Regular.ttf')) },
-      { src: toDataUri(path.join(fontsDir, 'Roboto-Bold.ttf')), fontWeight: 'bold' },
+      { src: path.join(fontsDir, 'Roboto-Regular-Latin.woff') },
+      { src: path.join(fontsDir, 'Roboto-Regular-Cyrillic.woff') },
+      { src: path.join(fontsDir, 'Roboto-Bold-Latin.woff'), fontWeight: 'bold' },
+      { src: path.join(fontsDir, 'Roboto-Bold-Cyrillic.woff'), fontWeight: 'bold' },
     ],
   })
   fontsRegistered = true
