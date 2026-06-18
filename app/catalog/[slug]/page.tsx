@@ -154,9 +154,29 @@ export default function ProductDetailPage() {
       </Link>
 
       {/* Main grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-16">
-        {/* Images */}
-        <ImageGallery images={product.images ?? []} name={name} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
+        {/* Left: image + specs */}
+        <div>
+          <ImageGallery images={product.images ?? []} name={name} />
+          {product.specs && Object.keys(product.specs).length > 0 && (
+            <div className="mt-6">
+              <h2 className="section-title text-lg mb-3">{tr.product.specifications}</h2>
+              <div className="steel-card overflow-hidden">
+                <table className="w-full text-sm">
+                  <tbody>
+                    {Object.entries(product.specs).map(([key, val], i) => (
+                      <tr key={key}
+                        className={`border-b border-steel-border/30 last:border-0 ${i % 2 === 0 ? '' : 'bg-[#F8FAFC]'}`}>
+                        <td className="px-5 py-2.5 text-steel-silver font-medium w-1/2 text-xs">{key}</td>
+                        <td className="px-5 py-2.5 text-[#0F172A] text-xs">{val as string}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* Info */}
         <div className="space-y-6">
@@ -216,26 +236,6 @@ export default function ProductDetailPage() {
         <section className="mb-10">
           <div className="steel-card p-6">
             <DescriptionRenderer text={description} />
-          </div>
-        </section>
-      )}
-
-      {/* Specifications */}
-      {product.specs && Object.keys(product.specs).length > 0 && (
-        <section className="mb-16">
-          <h2 className="section-title text-xl mb-6">{tr.product.specifications}</h2>
-          <div className="steel-card overflow-hidden">
-            <table className="w-full text-sm">
-              <tbody>
-                {Object.entries(product.specs).map(([key, val], i) => (
-                  <tr key={key}
-                    className={`border-b border-steel-border/30 last:border-0 ${i % 2 === 0 ? '' : 'bg-[#F8FAFC]'}`}>
-                    <td className="px-6 py-3 text-steel-silver font-medium w-1/2">{key}</td>
-                    <td className="px-6 py-3 text-[#0F172A]">{val as string}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </section>
       )}
