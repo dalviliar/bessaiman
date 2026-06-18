@@ -12,7 +12,77 @@ export default function PriceCalculator({ product }: { product: Product }) {
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
 
-  if (!product.price) return null
+  const handleAdd = () => {
+    addItem(product, qty)
+    setAdded(true)
+    setTimeout(() => setAdded(false), 2000)
+  }
+
+  if (!product.price) {
+    return (
+      <div style={{
+        background: 'white', border: '1.5px solid #E2E8F0',
+        borderRadius: 16, overflow: 'hidden',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+      }}>
+        <div style={{ padding: '20px 20px 16px' }}>
+          <label style={{
+            fontSize: 11, fontWeight: 700, color: '#94A3B8',
+            letterSpacing: '0.1em', textTransform: 'uppercase', display: 'block', marginBottom: 10,
+          }}>
+            {tr.product.quantity}
+          </label>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <button onClick={() => setQty(q => Math.max(1, q - 1))} disabled={qty <= 1} style={{
+              width: 46, height: 50, flexShrink: 0,
+              background: qty <= 1 ? '#F8FAFC' : '#F1F5F9',
+              border: '1.5px solid #E2E8F0', borderRight: 'none',
+              borderRadius: '10px 0 0 10px',
+              color: qty <= 1 ? '#CBD5E1' : '#475569',
+              cursor: qty <= 1 ? 'not-allowed' : 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <Minus size={15} strokeWidth={2.5} />
+            </button>
+            <div style={{
+              flex: 1, height: 50, minWidth: 72,
+              border: '1.5px solid #E2E8F0', background: 'white',
+              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+            }}>
+              <span style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', lineHeight: 1 }}>{qty}</span>
+              <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>шт.</span>
+            </div>
+            <button onClick={() => setQty(q => q + 1)} style={{
+              width: 46, height: 50, flexShrink: 0,
+              background: 'linear-gradient(135deg,#1565C0,#0284C7)',
+              border: '1.5px solid #1565C0', borderLeft: 'none',
+              borderRadius: '0 10px 10px 0', color: 'white', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 2px 8px rgba(21,101,192,0.3)',
+            }}>
+              <Plus size={15} strokeWidth={2.5} />
+            </button>
+          </div>
+        </div>
+        <div style={{ padding: '0 20px 20px' }}>
+          <button onClick={handleAdd} style={{
+            width: '100%', padding: '14px', borderRadius: 10, border: 'none',
+            background: added
+              ? 'linear-gradient(135deg,#10B981,#059669)'
+              : 'linear-gradient(135deg,#1260C0,#0284C7)',
+            color: 'white', fontWeight: 700, fontSize: 14,
+            cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            boxShadow: added ? '0 4px 16px rgba(16,185,129,0.3)' : '0 4px 16px rgba(21,101,192,0.3)',
+            transition: 'all 0.25s',
+          }}>
+            {added ? <Check size={16} /> : <ShoppingCart size={16} />}
+            {added ? 'Добавлено!' : tr.product.addToRequest}
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   const bulkQty    = product.bulk_threshold      ?? 3
   const discountPct = product.bulk_discount_percent ?? 5
@@ -23,12 +93,6 @@ export default function PriceCalculator({ product }: { product: Product }) {
   const savings    = isBulk ? (basePrice - unitPrice) * qty : 0
 
   const changeQty = (delta: number) => setQty(q => Math.max(1, q + delta))
-
-  const handleAdd = () => {
-    addItem(product, qty)
-    setAdded(true)
-    setTimeout(() => setAdded(false), 2000)
-  }
 
   return (
     <div style={{
