@@ -20,76 +20,79 @@ const C = {
 }
 
 const s = StyleSheet.create({
-  page: { fontFamily: 'Roboto', fontSize: 9, color: C.text, paddingTop: 36, paddingBottom: 52, paddingHorizontal: 44 },
+  page: { fontFamily: 'Roboto', fontSize: 9, color: C.text, paddingTop: 32, paddingBottom: 56, paddingHorizontal: 40, backgroundColor: C.white },
 
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
-  logoBox: { width: 68, height: 42, backgroundColor: C.primaryLight, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.border },
-  logoMain: { fontSize: 16, fontWeight: 'bold', color: C.primary },
-  logoSub: { fontSize: 5.5, color: C.gray, letterSpacing: 1.5 },
-  headerInfo: { flex: 1, paddingLeft: 14 },
-  companyName: { fontSize: 14, fontWeight: 'bold', color: C.primary, marginBottom: 2 },
-  companyTagline: { fontSize: 8, color: C.gray, marginBottom: 3 },
-  companyContact: { fontSize: 7.5, color: C.gray },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
+  logoBox: { width: 52, height: 52, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', borderRadius: 4, marginRight: 14 },
+  logoMain: { fontSize: 18, fontWeight: 'bold', color: C.white },
+  logoSub: { fontSize: 5, color: 'rgba(255,255,255,0.7)', letterSpacing: 2 },
+  headerInfo: { flex: 1 },
+  companyName: { fontSize: 13, fontWeight: 'bold', color: C.primary, marginBottom: 2 },
+  companyTagline: { fontSize: 7.5, color: C.gray, marginBottom: 2 },
+  companyContact: { fontSize: 7, color: C.gray },
 
-  dividerBlue: { borderBottomWidth: 2, borderBottomColor: C.primary, marginVertical: 10 },
-  dividerThin: { borderBottomWidth: 0.5, borderBottomColor: C.border, marginVertical: 8 },
+  dividerBlue: { height: 2, backgroundColor: C.primary, marginVertical: 10 },
+  dividerThin: { height: 0.5, backgroundColor: C.border, marginVertical: 8 },
 
-  titleBanner: { backgroundColor: C.primary, paddingVertical: 10, paddingHorizontal: 14, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  titleMain: { fontSize: 13, fontWeight: 'bold', color: C.white, letterSpacing: 0.5 },
-  titleNum: { fontSize: 8, color: 'rgba(255,255,255,0.75)' },
+  titleBanner: { backgroundColor: C.primary, paddingVertical: 9, paddingHorizontal: 14, marginBottom: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  titleMain: { fontSize: 12, fontWeight: 'bold', color: C.white, letterSpacing: 0.5 },
+  titleNum: { fontSize: 8, color: 'rgba(255,255,255,0.7)' },
 
-  parties: { flexDirection: 'row', gap: 10, marginBottom: 12 },
-  partyBox: { flex: 1, backgroundColor: C.lightGray, padding: 10, borderLeftWidth: 3, borderLeftColor: C.primary },
-  partyLabel: { fontSize: 7, fontWeight: 'bold', color: C.primary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 5 },
-  partyName: { fontSize: 9.5, fontWeight: 'bold', color: C.primaryDark, marginBottom: 3 },
-  partyDetail: { fontSize: 8, color: C.gray, marginBottom: 2 },
+  parties: { flexDirection: 'row', gap: 8, marginBottom: 10 },
+  partyBox: { flex: 1, backgroundColor: C.lightGray, padding: 9, borderLeftWidth: 3, borderLeftColor: C.primary, borderRadius: 2 },
+  partyLabel: { fontSize: 6.5, fontWeight: 'bold', color: C.primary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
+  partyName: { fontSize: 9, fontWeight: 'bold', color: C.primaryDark, marginBottom: 2 },
+  partyDetail: { fontSize: 7.5, color: C.gray, marginBottom: 1.5 },
 
-  sectionTitle: { fontSize: 8.5, fontWeight: 'bold', color: C.primary, textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 5, marginTop: 4 },
+  sectionTitle: { fontSize: 7.5, fontWeight: 'bold', color: C.primary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 4, marginTop: 6 },
 
-  tableHead: { flexDirection: 'row', backgroundColor: C.primary, paddingVertical: 6, paddingHorizontal: 6 },
-  tableRow: { flexDirection: 'row', paddingVertical: 7, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: C.border },
+  tableWrap: { marginBottom: 10, borderWidth: 0.5, borderColor: C.border },
+  tableHead: { flexDirection: 'row', backgroundColor: C.primary, paddingVertical: 5, paddingHorizontal: 6 },
+  tableRow: { flexDirection: 'row', paddingVertical: 6, paddingHorizontal: 6, borderBottomWidth: 0.5, borderBottomColor: C.border },
   tableRowAlt: { backgroundColor: C.lightGray },
-  thN: { width: 18, fontSize: 7.5, fontWeight: 'bold', color: C.white },
-  thName: { flex: 2.5, fontSize: 7.5, fontWeight: 'bold', color: C.white },
-  thModel: { flex: 1.2, fontSize: 7.5, fontWeight: 'bold', color: C.white },
-  thQty: { width: 32, fontSize: 7.5, fontWeight: 'bold', color: C.white, textAlign: 'center' },
-  thUnit: { width: 28, fontSize: 7.5, fontWeight: 'bold', color: C.white, textAlign: 'center' },
-  thPrice: { width: 72, fontSize: 7.5, fontWeight: 'bold', color: C.white, textAlign: 'right' },
-  thTotal: { width: 80, fontSize: 7.5, fontWeight: 'bold', color: C.white, textAlign: 'right' },
-  tdN: { width: 18, fontSize: 8, color: C.gray },
+  tableTotalRow: { flexDirection: 'row', paddingVertical: 7, paddingHorizontal: 6, backgroundColor: C.primaryLight, borderTopWidth: 1, borderTopColor: C.primary },
+
+  thN: { width: 16, fontSize: 7, fontWeight: 'bold', color: C.white },
+  thName: { flex: 2.5, fontSize: 7, fontWeight: 'bold', color: C.white },
+  thModel: { flex: 1.2, fontSize: 7, fontWeight: 'bold', color: C.white },
+  thQty: { width: 30, fontSize: 7, fontWeight: 'bold', color: C.white, textAlign: 'center' },
+  thUnit: { width: 26, fontSize: 7, fontWeight: 'bold', color: C.white, textAlign: 'center' },
+  thPrice: { width: 72, fontSize: 7, fontWeight: 'bold', color: C.white, textAlign: 'right' },
+  thTotal: { width: 78, fontSize: 7, fontWeight: 'bold', color: C.white, textAlign: 'right' },
+
+  tdN: { width: 16, fontSize: 8, color: C.gray },
   tdName: { flex: 2.5, fontSize: 8, fontWeight: 'bold', color: C.primaryDark },
   tdModel: { flex: 1.2, fontSize: 7.5, color: C.gray },
-  tdQty: { width: 32, fontSize: 8, textAlign: 'center', color: C.text },
-  tdUnit: { width: 28, fontSize: 8, textAlign: 'center', color: C.gray },
+  tdQty: { width: 30, fontSize: 8, textAlign: 'center', color: C.text },
+  tdUnit: { width: 26, fontSize: 8, textAlign: 'center', color: C.gray },
   tdPrice: { width: 72, fontSize: 8, textAlign: 'right', color: C.gray },
-  tdTotal: { width: 80, fontSize: 8, fontWeight: 'bold', textAlign: 'right', color: C.primary },
+  tdTotal: { width: 78, fontSize: 8, fontWeight: 'bold', textAlign: 'right', color: C.primary },
+  tdTotalLabel: { flex: 1, fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark },
+  tdTotalValue: { width: 78, fontSize: 8.5, fontWeight: 'bold', textAlign: 'right', color: C.primary },
 
-  totalRow: { flexDirection: 'row', paddingVertical: 8, paddingHorizontal: 6, backgroundColor: C.primaryLight, borderTopWidth: 1.5, borderTopColor: C.primary },
-  totalLabel: { flex: 1, fontSize: 9, fontWeight: 'bold', color: C.primaryDark },
-  totalValue: { width: 80, fontSize: 9, fontWeight: 'bold', color: C.primary, textAlign: 'right' },
-
-  condRow: { flexDirection: 'row', marginBottom: 4, alignItems: 'flex-start' },
+  condRow: { flexDirection: 'row', marginBottom: 3.5, alignItems: 'flex-start' },
   condBullet: { width: 10, fontSize: 8, color: C.primary },
-  condLabel: { width: 128, fontSize: 8, color: C.gray },
-  condValue: { flex: 1, fontSize: 8, fontWeight: 'bold', color: C.primaryDark },
+  condLabel: { width: 130, fontSize: 7.5, color: C.gray },
+  condValue: { flex: 1, fontSize: 7.5, fontWeight: 'bold', color: C.primaryDark },
 
-  bankBox: { backgroundColor: C.primaryLight, borderWidth: 0.5, borderColor: C.border, padding: 10, marginBottom: 12 },
-  bankTitle: { fontSize: 7.5, fontWeight: 'bold', color: C.primary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 7 },
-  bankRow: { flexDirection: 'row', marginBottom: 3.5 },
-  bankLabel: { width: 90, fontSize: 7.5, color: C.gray },
-  bankValue: { flex: 1, fontSize: 8, fontWeight: 'bold', color: C.primaryDark },
+  bankBox: { backgroundColor: C.primaryLight, borderWidth: 0.5, borderColor: C.border, padding: 9, marginBottom: 10, borderRadius: 2 },
+  bankTitle: { fontSize: 7, fontWeight: 'bold', color: C.primary, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 },
+  bankGrid: { flexDirection: 'row', flexWrap: 'wrap' },
+  bankRow: { width: '50%', flexDirection: 'row', marginBottom: 3 },
+  bankLabel: { width: 68, fontSize: 7, color: C.gray },
+  bankValue: { flex: 1, fontSize: 7.5, fontWeight: 'bold', color: C.primaryDark },
 
-  sigSection: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 14 },
-  sigBox: { width: 200 },
-  sigRole: { fontSize: 8, color: C.gray, marginBottom: 4 },
-  sigTitle: { fontSize: 8, fontWeight: 'bold', color: C.primaryDark, marginBottom: 14 },
-  sigLine: { borderBottomWidth: 0.5, borderBottomColor: C.primaryDark, height: 24, marginBottom: 4 },
-  sigName: { fontSize: 9, fontWeight: 'bold', color: C.primaryDark },
-  stampWrap: { width: 90, height: 90 },
+  sigSection: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 10 },
+  sigBox: { flex: 1 },
+  sigRole: { fontSize: 7.5, color: C.gray, marginBottom: 3 },
+  sigOrg: { fontSize: 8, fontWeight: 'bold', color: C.primaryDark, marginBottom: 18 },
+  sigLine: { borderBottomWidth: 0.5, borderBottomColor: '#888', marginBottom: 4, marginRight: 60 },
+  sigName: { fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark },
+  sigDate: { fontSize: 7, color: C.gray, marginTop: 2 },
+  stampBox: { width: 110, height: 110, alignItems: 'center', justifyContent: 'center' },
 
-  footer: { position: 'absolute', bottom: 20, left: 44, right: 44, borderTopWidth: 0.5, borderTopColor: C.border, paddingTop: 5, flexDirection: 'row', justifyContent: 'space-between' },
-  footerLeft: { fontSize: 6.5, color: C.gray },
-  footerRight: { fontSize: 6.5, color: C.gray },
+  footer: { position: 'absolute', bottom: 18, left: 40, right: 40, borderTopWidth: 0.5, borderTopColor: C.border, paddingTop: 5, flexDirection: 'row', justifyContent: 'space-between' },
+  footerText: { fontSize: 6, color: '#999' },
 
   watermarkWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   watermarkText: { fontSize: 52, fontWeight: 'bold', color: 'rgba(26,74,138,0.05)', transform: 'rotate(-45deg)', letterSpacing: 3 },
@@ -169,6 +172,9 @@ function KPBasketDocument({
               +7 (701) 101-34-33  ·  bessaimangroup1@gmail.com  ·  г. Алматы, ул. Тулебаева 38/61
             </Text>
           </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            <Text style={{ fontSize: 7, color: C.gray }}>БИН: 210440034775</Text>
+          </View>
         </View>
 
         <View style={s.dividerBlue} />
@@ -206,14 +212,14 @@ function KPBasketDocument({
 
         {/* PRODUCT TABLE */}
         <Text style={s.sectionTitle}>Перечень товаров</Text>
-        <View style={{ marginBottom: 10 }}>
+        <View style={s.tableWrap}>
           <View style={s.tableHead}>
             <Text style={s.thN}>№</Text>
-            <Text style={s.thName}>Наименование</Text>
+            <Text style={s.thName}>Наименование товара</Text>
             <Text style={s.thModel}>Модель</Text>
-            <Text style={s.thQty}>Кол-во</Text>
+            <Text style={s.thQty}>Кол.</Text>
             <Text style={s.thUnit}>Ед.</Text>
-            <Text style={s.thPrice}>Цена</Text>
+            <Text style={s.thPrice}>Цена ед.</Text>
             <Text style={s.thTotal}>Сумма</Text>
           </View>
 
@@ -235,20 +241,18 @@ function KPBasketDocument({
             </View>
           ))}
 
-          <View style={s.totalRow}>
-            <Text style={s.totalLabel}>
-              ИТОГО с НДС 12%{hasUnknown ? ' (без позиций «По запросу»)' : ''}:
+          <View style={s.tableTotalRow}>
+            <Text style={s.tdTotalLabel}>
+              ИТОГО (с НДС 12%){hasUnknown ? ' (без позиций «По запросу»)' : ''}:
             </Text>
-            <Text style={s.totalValue}>
-              {totalKnown > 0
-                ? `${totalKnown.toLocaleString('ru-RU')} T`
-                : 'По запросу'}
+            <Text style={s.tdTotalValue}>
+              {totalKnown > 0 ? `${totalKnown.toLocaleString('ru-RU')} T` : 'По запросу'}
             </Text>
           </View>
           {totalKnown > 0 && (
-            <View style={{ flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 6, backgroundColor: C.primaryLight }}>
+            <View style={{ flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 6, backgroundColor: C.lightGray }}>
               <Text style={{ flex: 1, fontSize: 7, color: C.gray }}>в т.ч. НДС (12%):</Text>
-              <Text style={{ width: 80, fontSize: 7, color: C.gray, textAlign: 'right' }}>
+              <Text style={{ width: 78, fontSize: 7, color: C.gray, textAlign: 'right' }}>
                 {`${Math.round(totalKnown * 12 / 112).toLocaleString('ru-RU')} T`}
               </Text>
             </View>
@@ -259,13 +263,13 @@ function KPBasketDocument({
         {clientInfo.note ? (
           <>
             <Text style={s.sectionTitle}>Особые условия</Text>
-            <Text style={{ fontSize: 8.5, color: C.text, marginBottom: 10 }}>{clientInfo.note}</Text>
+            <Text style={{ fontSize: 8, color: C.text, marginBottom: 8 }}>{clientInfo.note}</Text>
           </>
         ) : null}
 
         {/* CONDITIONS */}
-        <Text style={s.sectionTitle}>Условия</Text>
-        <View style={{ marginBottom: 10 }}>
+        <Text style={s.sectionTitle}>Условия поставки</Text>
+        <View style={{ marginBottom: 8 }}>
           {CONDITIONS.map(([label, value]) => (
             <View key={label} style={s.condRow}>
               <Text style={s.condBullet}>•</Text>
@@ -280,40 +284,42 @@ function KPBasketDocument({
         {/* BANK */}
         <View style={s.bankBox}>
           <Text style={s.bankTitle}>Банковские реквизиты</Text>
-          {BANK_ROWS.map(([label, value]) => (
-            <View key={label} style={s.bankRow}>
-              <Text style={s.bankLabel}>{label}</Text>
-              <Text style={s.bankValue}>{value}</Text>
-            </View>
-          ))}
+          <View style={s.bankGrid}>
+            {BANK_ROWS.map(([label, value]) => (
+              <View key={label} style={s.bankRow}>
+                <Text style={s.bankLabel}>{label}</Text>
+                <Text style={s.bankValue}>{value}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
         {/* SIGNATURE + STAMP */}
         <View style={s.sigSection}>
           <View style={s.sigBox}>
             <Text style={s.sigRole}>Генеральный директор</Text>
-            <Text style={s.sigTitle}>ТОО «Bes Saiman Group»</Text>
+            <Text style={s.sigOrg}>ТОО «Bes Saiman Group»</Text>
             {signatureDataUri ? (
               <Image src={signatureDataUri} style={{ width: 90, height: 36, marginBottom: 4 }} />
             ) : (
               <View style={s.sigLine} />
             )}
             <Text style={s.sigName}>Елеуов М.А.</Text>
+            <Text style={s.sigDate}>{dateStr}</Text>
           </View>
           {stampDataUri && (
-            <View style={s.stampWrap}>
-              <Image src={stampDataUri} style={{ width: 100, height: 100 }} />
+            <View style={s.stampBox}>
+              <Image src={stampDataUri} style={{ width: 105, height: 105 }} />
             </View>
           )}
         </View>
 
         {/* FOOTER */}
         <View style={s.footer} fixed>
-          <Text style={s.footerLeft}>
+          <Text style={s.footerText}>
             ТОО «Bes Saiman Group»  ·  БИН 210440034775  ·  +7 (701) 101-34-33  ·  bessaimangroup1@gmail.com
           </Text>
-          <Text
-            style={s.footerRight}
+          <Text style={s.footerText}
             render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
               `${pageNumber} / ${totalPages}`
             }
