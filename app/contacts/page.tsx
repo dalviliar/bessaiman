@@ -8,15 +8,28 @@ export default function ContactsPage() {
   const { tr } = useLang()
   const [formState, setFormState] = useState({ name: '', email: '', message: '' })
   const [sent, setSent] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    const subject = encodeURIComponent(`Запрос с сайта от ${formState.name}`)
-    const body = encodeURIComponent(`Имя: ${formState.name}\nEmail: ${formState.email}\n\n${formState.message}`)
-    window.open(`mailto:${tr.contacts.email}?subject=${subject}&body=${body}`)
-    setSent(true)
-    setFormState({ name: '', email: '', message: '' })
-    setTimeout(() => setSent(false), 5000)
+    setSending(true)
+    setError('')
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formState),
+      })
+      if (!res.ok) throw new Error()
+      setSent(true)
+      setFormState({ name: '', email: '', message: '' })
+      setTimeout(() => setSent(false), 6000)
+    } catch {
+      setError('Не удалось отправить. Попробуйте позже или напишите напрямую на email.')
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -118,9 +131,14 @@ export default function ContactsPage() {
                   className="steel-input resize-none"
                 />
               </div>
-              <button type="submit" className="btn-primary w-full flex items-center justify-center gap-2">
+              {error && (
+                <p className="text-xs px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.15)' }}>
+                  {error}
+                </p>
+              )}
+              <button type="submit" disabled={sending} className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-60">
                 <Send size={16} />
-                {tr.contacts.send}
+                {sending ? 'Отправка...' : tr.contacts.send}
               </button>
             </form>
           )}

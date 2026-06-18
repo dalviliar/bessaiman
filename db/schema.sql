@@ -180,6 +180,17 @@ CREATE TABLE IF NOT EXISTS product_views (
 CREATE INDEX IF NOT EXISTS idx_product_views_product ON product_views(product_id);
 CREATE INDEX IF NOT EXISTS idx_product_views_at     ON product_views(viewed_at DESC);
 
+-- ── Contact requests ─────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS contact_requests (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name       text NOT NULL,
+  email      text NOT NULL,
+  message    text NOT NULL,
+  is_read    boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_contact_requests_at ON contact_requests(created_at DESC);
+
 -- ── Indexes ─────────────────────────────────────────────────
 CREATE INDEX IF NOT EXISTS idx_products_category   ON products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_slug       ON products(slug);

@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import {
   LayoutDashboard, Users, Shield, Package, Warehouse, FileText, History,
-  LogOut, ChevronRight, Loader2, ExternalLink, Newspaper, Tag, KeyRound, X, Eye, EyeOff, Menu, BarChart3,
+  LogOut, Loader2, ExternalLink, Newspaper, Tag, KeyRound, X, Eye, EyeOff, Menu, BarChart3, MessageSquare,
 } from 'lucide-react'
 
 const NAV = [
@@ -18,6 +18,7 @@ const NAV = [
   { href: '/admin/warehouse',   label: 'Склад',           icon: Warehouse,       resource: 'warehouse' },
   { href: '/admin/news',        label: 'Новости',         icon: Newspaper,       resource: 'content' },
   { href: '/admin/kp',          label: 'Запросы КП',      icon: FileText,        resource: 'kp_requests' },
+  { href: '/admin/contacts',    label: 'Обращения',       icon: MessageSquare,   resource: 'kp_requests' },
   { href: '/admin/analytics',   label: 'Аналитика',       icon: BarChart3,       resource: 'kp_requests' },
   { href: '/admin/audit',       label: 'Журнал действий', icon: History,         resource: 'audit' },
 ]
@@ -42,6 +43,7 @@ const PAGE_LABELS: Record<string, string> = {
   '/admin/warehouse':  'Склад',
   '/admin/news':       'Новости',
   '/admin/kp':         'Запросы КП',
+  '/admin/contacts':   'Обращения',
   '/admin/analytics':  'Аналитика',
   '/admin/audit':      'Журнал действий',
 }
