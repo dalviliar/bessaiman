@@ -26,9 +26,17 @@ export async function GET() {
         COUNT(*)::text AS total,
         COUNT(*) FILTER (WHERE created_at >= date_trunc('month', NOW()))::text AS this_month,
         COUNT(*) FILTER (WHERE created_at >= CURRENT_DATE)::text AS today,
-        (SELECT COUNT(*)::text FROM product_views WHERE viewed_at >= NOW() - INTERVAL '30 days') AS total_views
+        '0' AS total_views
       FROM kp_requests
-    `),
+    `).then(async (rows) => {
+      try {
+        const views = await query<{ c: string }>(
+          `SELECT COUNT(*)::text AS c FROM product_views WHERE viewed_at >= NOW() - INTERVAL '30 days'`
+        )
+        if (rows[0]) rows[0].total_views = views[0]?.c ?? '0'
+      } catch { /* product_views table may not exist yet */ }
+      return rows
+    }),
 
     // Daily KP requests last 30 days
     query<{ day: string; count: string }>(`
