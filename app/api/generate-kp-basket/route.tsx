@@ -473,6 +473,25 @@ function loadSignatureDataUri(): string | null {
   }
 }
 
+async function loadProductImageDataUri(imageUrl: string | undefined): Promise<string | null> {
+  if (!imageUrl) return null
+  try {
+    if (imageUrl.startsWith('/')) {
+      const filePath = path.join(process.cwd(), 'public', imageUrl)
+      const ext = path.extname(imageUrl).toLowerCase()
+      const mime = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg'
+      return `data:${mime};base64,${readFileSync(filePath).toString('base64')}`
+    }
+    const res = await fetch(imageUrl, { signal: AbortSignal.timeout(5000) })
+    if (!res.ok) return null
+    const buf = await res.arrayBuffer()
+    const mime = res.headers.get('content-type')?.split(';')[0] || 'image/jpeg'
+    return `data:${mime};base64,${Buffer.from(buf).toString('base64')}`
+  } catch {
+    return null
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
