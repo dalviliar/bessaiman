@@ -12,6 +12,38 @@ import KPModal from '@/components/KPModal'
 import { getProductBySlug, getCompatibleAccessories } from '@/lib/supabase'
 import type { Product } from '@/types'
 
+function DescriptionRenderer({ text }: { text: string }) {
+  const lines = text.split('\n')
+  return (
+    <div>
+      {lines.map((line, i) => {
+        const trimmed = line.trim()
+        if (!trimmed) return <div key={i} className="h-2" />
+        if (trimmed.endsWith(':')) {
+          return (
+            <p key={i} className="font-bold text-sm mt-3 mb-0.5" style={{ color: '#0F172A' }}>
+              {trimmed}
+            </p>
+          )
+        }
+        if (/^[•*\-]\s/.test(trimmed)) {
+          return (
+            <div key={i} className="flex gap-2 text-sm leading-relaxed" style={{ color: '#475569' }}>
+              <span className="mt-0.5" style={{ color: '#1565C0', flexShrink: 0 }}>•</span>
+              <span>{trimmed.replace(/^[•*\-]\s/, '')}</span>
+            </div>
+          )
+        }
+        return (
+          <p key={i} className="text-sm leading-relaxed" style={{ color: '#475569' }}>
+            {trimmed}
+          </p>
+        )
+      })}
+    </div>
+  )
+}
+
 function AvailabilityBadge({ status }: { status: Product['availability'] }) {
   const { tr } = useLang()
   const map = {
@@ -153,9 +185,7 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {description && (
-            <p className="text-steel-silver leading-relaxed text-sm">{description}</p>
-          )}
+          {description && <DescriptionRenderer text={description} />}
 
           {/* Price & Calculator */}
           <PriceCalculator product={product} />

@@ -39,6 +39,7 @@ export async function POST(request: Request) {
       price, price_with_discount, bulk_threshold, bulk_discount_percent,
       availability, barcode, images, specs, product_type, classification_code,
       compatible_with, weight_kg, unit, quantity, length_cm, width_cm, height_cm,
+      accessory_ids,
     } = body
 
     if (!name_ru || !category_id) {
@@ -77,6 +78,15 @@ export async function POST(request: Request) {
         ],
       )
       const product = result.rows[0]
+
+      if (Array.isArray(accessory_ids) && accessory_ids.length > 0) {
+        for (const aid of accessory_ids) {
+          await client.query(
+            'INSERT INTO product_accessories (product_id, accessory_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [product.id, aid],
+          )
+        }
+      }
 
       const qty = Number(quantity) || 0
       if (qty > 0) {

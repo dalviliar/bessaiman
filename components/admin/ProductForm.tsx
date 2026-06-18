@@ -1,9 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Plus, X, Upload, Image as ImageIcon } from 'lucide-react'
+import { Loader2, Plus, X, Upload, Image as ImageIcon, Search, Package } from 'lucide-react'
 import type { Category, Product, ProductType } from '@/types'
+
+interface AccessoryItem {
+  id: string
+  name_ru: string
+  model: string | null
+  images: string[]
+}
 
 const PRODUCT_TYPES: { value: ProductType; label: string }[] = [
   { value: 'S',  label: 'Серийный' },
@@ -36,6 +43,7 @@ interface FormState {
   specs: { key: string; value: string }[]
   product_type: ProductType
   classification_code: string
+  compatible_with: string[]
   weight_kg: string
   unit: string
   quantity: string
@@ -55,6 +63,7 @@ const EMPTY: FormState = {
   specs: [],
   product_type: 'S',
   classification_code: '',
+  compatible_with: [],
   weight_kg: '',
   unit: 'шт',
   quantity: '',
@@ -63,6 +72,8 @@ const EMPTY: FormState = {
   height_cm: '',
 }
 
+type DescLang = 'ru' | 'kk' | 'en'
+
 export default function ProductForm({ product }: { product?: Product }) {
   const router = useRouter()
   const [categories, setCategories] = useState<Category[]>([])
@@ -70,6 +81,12 @@ export default function ProductForm({ product }: { product?: Product }) {
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [descLang, setDescLang] = useState<DescLang>('ru')
+  const [accSearch, setAccSearch] = useState('')
+  const [accResults, setAccResults] = useState<AccessoryItem[]>([])
+  const [accDropOpen, setAccDropOpen] = useState(false)
+  const [accObjects, setAccObjects] = useState<AccessoryItem[]>([])
+  const accDropRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     fetch('/api/categories').then(r => r.json()).then(data => setCategories(data ?? []))
@@ -88,6 +105,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       specs: product.specs ? Object.entries(product.specs).map(([key, value]) => ({ key, value: String(value) })) : [],
       product_type: product.product_type,
       classification_code: product.classification_code ?? '',
+      compatible_with: product.compatible_with ?? [],
       weight_kg: product.weight_kg?.toString() ?? '',
       unit: product.unit ?? 'шт',
       quantity: product.stock_quantity?.toString() ?? '',
@@ -95,7 +113,39 @@ export default function ProductForm({ product }: { product?: Product }) {
       width_cm: product.width_cm?.toString() ?? '',
       height_cm: product.height_cm?.toString() ?? '',
     })
+    if (product.accessories?.length) {
+      setAccObjects(product.accessories.map(a => ({
+        id: a.id, name_ru: a.name_ru, model: a.model, images: a.images ?? [],
+      })))
+    }
   }, [product])
+
+  useEffect(() => {
+    if (accSearch.length < 2) { setAccResults([]); setAccDropOpen(false); return }
+    const t = setTimeout(() => {
+      fetch(`/api/admin/products/search?q=${encodeURIComponent(accSearch)}`)
+        .then(r => r.json())
+        .then(data => {
+          const results = Array.isArray(data)
+            ? data.filter((p: AccessoryItem) => p.id !== product?.id)
+            : []
+          setAccResults(results)
+          setAccDropOpen(results.length > 0)
+        })
+        .catch(() => {})
+    }, 300)
+    return () => clearTimeout(t)
+  }, [accSearch, product?.id])
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (accDropRef.current && !accDropRef.current.contains(e.target as Node)) {
+        setAccDropOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm(f => ({ ...f, [key]: value }))
@@ -166,7 +216,8 @@ export default function ProductForm({ product }: { product?: Product }) {
       specs: Object.keys(specsObj).length ? specsObj : null,
       product_type: form.product_type,
       classification_code: form.classification_code || null,
-      compatible_with: product?.compatible_with ?? [],
+      compatible_with: form.compatible_with,
+      accessory_ids: accObjects.map(a => a.id),
       weight_kg: form.weight_kg ? Number(form.weight_kg) : null,
       unit: form.unit,
       quantity: form.quantity ? Number(form.quantity) : 0,
@@ -243,6 +294,46 @@ export default function ProductForm({ product }: { product?: Product }) {
         </div>
       </Section>
 
+      {/* Совместимость (для аксессуаров PA) */}
+      {form.product_type === 'PA' && (
+        <Section title="Совместимость — коды серий">
+          <p className="text-[11px] mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            Этот аксессуар будет автоматически показываться на страницах всех товаров с выбранными кодами. Установите коды в разделе «Категории».
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {Array.from(new Set(
+              categories.filter(c => c.classification_code).map(c => c.classification_code!)
+            )).sort().map(code => {
+              const isSelected = form.compatible_with.includes(code)
+              return (
+                <button key={code} type="button"
+                  onClick={() => set('compatible_with',
+                    isSelected ? form.compatible_with.filter(c => c !== code) : [...form.compatible_with, code]
+                  )}
+                  className="px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all"
+                  style={{
+                    background: isSelected ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.05)',
+                    color: isSelected ? '#60A5FA' : 'rgba(255,255,255,0.35)',
+                    border: `1px solid ${isSelected ? '#3B82F6' : 'rgba(255,255,255,0.1)'}`,
+                  }}>
+                  {isSelected ? '✓ ' : '+ '}{code}
+                </button>
+              )
+            })}
+            {!categories.some(c => c.classification_code) && (
+              <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.3)' }}>
+                Нет кодов классификации — задайте их в разделе «Категории»
+              </p>
+            )}
+          </div>
+          {form.compatible_with.length > 0 && (
+            <p className="text-[10px] mt-2" style={{ color: 'rgba(255,255,255,0.35)' }}>
+              Совместим с {form.compatible_with.length} кодом(-ами): {form.compatible_with.join(', ')}
+            </p>
+          )}
+        </Section>
+      )}
+
       {/* Вес, габариты и количество */}
       <Section title="Вес, габариты и количество">
         <div className="grid grid-cols-3 gap-3 mb-3">
@@ -300,17 +391,41 @@ export default function ProductForm({ product }: { product?: Product }) {
 
       {/* Описание */}
       <Section title="Описание">
-        <div className="space-y-3">
-          <Field label="Русский">
-            <textarea className="steel-input w-full resize-none" rows={3} value={form.description_ru} onChange={e => set('description_ru', e.target.value)} />
-          </Field>
-          <Field label="Қазақша">
-            <textarea className="steel-input w-full resize-none" rows={3} value={form.description_kk} onChange={e => set('description_kk', e.target.value)} />
-          </Field>
-          <Field label="English">
-            <textarea className="steel-input w-full resize-none" rows={3} value={form.description_en} onChange={e => set('description_en', e.target.value)} />
-          </Field>
+        <div className="flex gap-1.5 mb-3">
+          {(['ru', 'kk', 'en'] as DescLang[]).map(lang => {
+            const labels: Record<DescLang, string> = { ru: 'RU — Русский', kk: 'KK — Қазақша', en: 'EN — English' }
+            const has = !!form[`description_${lang}` as keyof FormState]
+            const isActive = descLang === lang
+            return (
+              <button key={lang} type="button" onClick={() => setDescLang(lang)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={{
+                  background: isActive ? '#1D4ED8' : 'rgba(255,255,255,0.06)',
+                  color: isActive ? 'white' : 'rgba(255,255,255,0.45)',
+                  border: `1px solid ${isActive ? '#1D4ED8' : 'rgba(255,255,255,0.1)'}`,
+                }}>
+                {labels[lang]}
+                {has && <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#34d399', display: 'inline-block' }} />}
+              </button>
+            )
+          })}
         </div>
+        <p className="text-[10px] mb-2" style={{ color: 'rgba(255,255,255,0.3)' }}>
+          Строки заканчивающиеся на «:» будут жирными заголовками на странице товара и в КП. Пример: «Характеристики:»
+        </p>
+        <textarea
+          className="steel-input w-full resize-y font-mono text-xs"
+          rows={9}
+          value={form[`description_${descLang}` as keyof FormState] as string}
+          onChange={e => set(`description_${descLang}` as keyof FormState, e.target.value)}
+          placeholder={
+            descLang === 'ru'
+              ? 'Описание товара...\n\nНапример:\nХарактеристики:\nМощность — 5 кВт\nОбъём камеры — 200 л\n\nПрименение:\nДля хранения продуктов питания'
+              : descLang === 'kk'
+              ? 'Тауар сипаттамасы...'
+              : 'Product description...'
+          }
+        />
       </Section>
 
       {/* Фото */}
@@ -372,6 +487,94 @@ export default function ProductForm({ product }: { product?: Product }) {
             style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)' }}>
             <Plus size={13} /> Добавить свой параметр
           </button>
+        </div>
+      </Section>
+
+      {/* Аксессуары — ручная привязка */}
+      <Section title="Аксессуары (ручная привязка)">
+        <p className="text-[11px] mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          Выберите конкретные товары, которые всегда будут показываться как аксессуары к этому товару — независимо от кодов.
+        </p>
+
+        {accObjects.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
+            {accObjects.map(acc => (
+              <div key={acc.id} className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg"
+                style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)' }}>
+                {acc.images?.[0] ? (
+                  <img src={acc.images[0]} alt="" className="w-6 h-6 rounded object-contain"
+                    style={{ background: 'rgba(255,255,255,0.05)' }} />
+                ) : (
+                  <Package size={14} style={{ color: 'rgba(255,255,255,0.3)' }} />
+                )}
+                <span className="text-xs text-white font-medium">{acc.name_ru}</span>
+                {acc.model && (
+                  <span className="text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                    {acc.model}
+                  </span>
+                )}
+                <button type="button"
+                  onClick={() => setAccObjects(prev => prev.filter(a => a.id !== acc.id))}
+                  className="ml-0.5 rounded flex items-center justify-center"
+                  style={{ color: '#F87171' }}>
+                  <X size={12} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="relative" ref={accDropRef}>
+          <div className="relative">
+            <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.3)' }} />
+            <input
+              className="steel-input w-full pl-8"
+              placeholder="Найти товар (название или артикул)..."
+              value={accSearch}
+              onChange={e => setAccSearch(e.target.value)}
+              onFocus={() => accResults.length > 0 && setAccDropOpen(true)}
+            />
+          </div>
+          {accDropOpen && accResults.length > 0 && (
+            <div className="absolute z-30 left-0 right-0 mt-1 rounded-lg overflow-hidden"
+              style={{ background: '#1A2332', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
+              {accResults.map(p => {
+                const already = accObjects.some(a => a.id === p.id)
+                return (
+                  <button key={p.id} type="button"
+                    onClick={() => {
+                      if (!already) setAccObjects(prev => [...prev, p])
+                      setAccSearch('')
+                      setAccDropOpen(false)
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors"
+                    style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
+                    {p.images?.[0] ? (
+                      <img src={p.images[0]} alt="" className="w-8 h-8 rounded object-contain flex-shrink-0"
+                        style={{ background: 'rgba(255,255,255,0.05)' }} />
+                    ) : (
+                      <div className="w-8 h-8 rounded flex-shrink-0 flex items-center justify-center"
+                        style={{ background: 'rgba(255,255,255,0.05)' }}>
+                        <Package size={14} style={{ color: 'rgba(255,255,255,0.3)' }} />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-white font-medium truncate">{p.name_ru}</p>
+                      {p.model && <p className="text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.4)' }}>{p.model}</p>}
+                    </div>
+                    {already ? (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full"
+                        style={{ background: 'rgba(52,211,153,0.15)', color: '#34d399' }}>✓ Добавлен</span>
+                    ) : (
+                      <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.3)' }}>+ добавить</span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
         </div>
       </Section>
 

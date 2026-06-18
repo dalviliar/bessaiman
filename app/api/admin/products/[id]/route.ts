@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { queryOne } from '@/lib/db'
+import { query, queryOne } from '@/lib/db'
 import { getCurrentAdminUser } from '@/lib/auth'
 import { can } from '@/lib/admin'
 import { logAction } from '@/lib/audit'
@@ -21,7 +21,16 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     [id],
   )
   if (!product) return NextResponse.json({ error: 'Не найден' }, { status: 404 })
-  return NextResponse.json(product)
+
+  const accessories = await query(
+    `SELECT acc.id, acc.name_ru, acc.model, acc.images
+     FROM product_accessories pa
+     JOIN products acc ON acc.id = pa.accessory_id
+     WHERE pa.product_id = $1
+     ORDER BY acc.name_ru`,
+    [id],
+  )
+  return NextResponse.json({ ...product, accessories })
 }
 
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -38,6 +47,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       price, price_with_discount, bulk_threshold, bulk_discount_percent,
       availability, barcode, images, specs, product_type, classification_code,
       compatible_with, weight_kg, unit, length_cm, width_cm, height_cm,
+      accessory_ids,
     } = body
 
     if (!name_ru || !category_id) {
@@ -64,6 +74,17 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       ],
     )
     if (!product) return NextResponse.json({ error: 'Не найден' }, { status: 404 })
+
+    // Sync product_accessories join table
+    await query('DELETE FROM product_accessories WHERE product_id = $1', [id])
+    if (Array.isArray(accessory_ids) && accessory_ids.length > 0) {
+      for (const aid of accessory_ids) {
+        await query(
+          'INSERT INTO product_accessories (product_id, accessory_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [id, aid],
+        )
+      }
+    }
 
     await logAction({
       adminId: me.id, adminEmail: me.email, action: 'update',

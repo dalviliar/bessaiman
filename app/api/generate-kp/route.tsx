@@ -108,6 +108,13 @@ const s = StyleSheet.create({
   tdTotalLabel: { flex: 1, fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark },
   tdTotalValue: { width: 78, fontSize: 8.5, fontWeight: 'bold', textAlign: 'right', color: C.primary },
 
+  // ── Description ──
+  descSection: { flexDirection: 'row', gap: 10, marginBottom: 8 },
+  descText:    { flex: 1 },
+  descLine:    { fontSize: 8, color: C.text, marginBottom: 2, lineHeight: 1.4 },
+  descHeading: { fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark, marginBottom: 2, marginTop: 4 },
+  descProductImg: { width: 110, height: 110, objectFit: 'contain', borderWidth: 0.5, borderColor: C.border, borderRadius: 2 },
+
   // ── Specs ──
   specsBox:    { borderWidth: 0.5, borderColor: C.border, marginBottom: 8 },
   specRow:     { flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, borderBottomWidth: 0.5, borderBottomColor: C.border },
@@ -169,11 +176,15 @@ interface ProductData {
   name_ru: string
   name_kk?: string
   name_en?: string
+  description_ru?: string
+  description_kk?: string
+  description_en?: string
   model?: string
   specs?: Record<string, string>
   price?: number
   slug: string
   availability?: string
+  images?: string[]
 }
 
 function getConditions(availability?: string): [string, string][] {
@@ -196,8 +207,18 @@ const BANK_ROWS = [
   ['ИИК (USD):',   'KZ318562203231984520'],
 ]
 
+function parseDescriptionLines(text: string): { type: 'heading' | 'bullet' | 'text'; content: string }[] {
+  return text.split('\n').map(line => {
+    const t = line.trim()
+    if (!t) return { type: 'text', content: '' }
+    if (t.endsWith(':')) return { type: 'heading', content: t }
+    if (/^[•*\-]\s/.test(t)) return { type: 'bullet', content: t.replace(/^[•*\-]\s/, '') }
+    return { type: 'text', content: t }
+  })
+}
+
 function KPDocument({
-  product, clientInfo, lang, kpNumber, dateStr, stampDataUri, signatureDataUri,
+  product, clientInfo, lang, kpNumber, dateStr, stampDataUri, signatureDataUri, productImageDataUri,
 }: {
   product: ProductData
   clientInfo: ClientInfo
@@ -206,10 +227,15 @@ function KPDocument({
   dateStr: string
   stampDataUri: string | null
   signatureDataUri: string | null
+  productImageDataUri: string | null
 }) {
   const productName =
     (lang === 'kk' ? product.name_kk : lang === 'en' ? product.name_en : null) || product.name_ru
   const specs = product.specs ? Object.entries(product.specs).slice(0, 16) : []
+  const description =
+    (lang === 'kk' ? product.description_kk : lang === 'en' ? product.description_en : null) ||
+    product.description_ru
+  const descLines = description ? parseDescriptionLines(description) : []
 
   return (
     <Document>
@@ -300,6 +326,33 @@ function KPDocument({
             </Text>
           </View>
         </View>
+
+        {/* DESCRIPTION + PRODUCT IMAGE */}
+        {(descLines.length > 0 || productImageDataUri) && (
+          <>
+            <Text style={s.sectionTitle}>Описание товара</Text>
+            <View style={s.descSection}>
+              {descLines.length > 0 && (
+                <View style={s.descText}>
+                  {descLines.map((line, i) => {
+                    if (!line.content) return <View key={i} style={{ height: 3 }} />
+                    if (line.type === 'heading') return <Text key={i} style={s.descHeading}>{line.content}</Text>
+                    if (line.type === 'bullet') return (
+                      <View key={i} style={{ flexDirection: 'row', marginBottom: 1.5 }}>
+                        <Text style={{ width: 10, fontSize: 8, color: C.primary }}>•</Text>
+                        <Text style={s.descLine}>{line.content}</Text>
+                      </View>
+                    )
+                    return <Text key={i} style={s.descLine}>{line.content}</Text>
+                  })}
+                </View>
+              )}
+              {productImageDataUri && (
+                <Image src={productImageDataUri} style={s.descProductImg} />
+              )}
+            </View>
+          </>
+        )}
 
         {/* SPECS */}
         {specs.length > 0 && (
@@ -441,6 +494,25 @@ function loadSignatureDataUri(): string | null {
   }
 }
 
+async function loadProductImageDataUri(imageUrl: string | undefined): Promise<string | null> {
+  if (!imageUrl) return null
+  try {
+    if (imageUrl.startsWith('/')) {
+      const filePath = path.join(process.cwd(), 'public', imageUrl)
+      const ext = path.extname(imageUrl).toLowerCase()
+      const mime = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg'
+      return `data:${mime};base64,${readFileSync(filePath).toString('base64')}`
+    }
+    const res = await fetch(imageUrl, { signal: AbortSignal.timeout(5000) })
+    if (!res.ok) return null
+    const buf = await res.arrayBuffer()
+    const mime = res.headers.get('content-type')?.split(';')[0] || 'image/jpeg'
+    return `data:${mime};base64,${Buffer.from(buf).toString('base64')}`
+  } catch {
+    return null
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json()
@@ -453,6 +525,7 @@ export async function POST(request: Request) {
     ensureFontsRegistered()
     const stampDataUri = loadStampDataUri()
     const signatureDataUri = loadSignatureDataUri()
+    const productImageDataUri = await loadProductImageDataUri(product.images?.[0])
 
     const kpNumber = generateKPNumber()
     const dateStr = formatDate(new Date())
@@ -474,6 +547,7 @@ export async function POST(request: Request) {
         dateStr={dateStr}
         stampDataUri={stampDataUri}
         signatureDataUri={signatureDataUri}
+        productImageDataUri={productImageDataUri}
       />
     )
 
