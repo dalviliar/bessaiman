@@ -324,10 +324,8 @@ function ensureFontsRegistered() {
   Font.register({
     family: 'Roboto',
     fonts: [
-      { src: path.join(fontsDir, 'Roboto-Regular-Latin.woff') },
-      { src: path.join(fontsDir, 'Roboto-Regular-Cyrillic.woff') },
-      { src: path.join(fontsDir, 'Roboto-Bold-Latin.woff'), fontWeight: 'bold' },
-      { src: path.join(fontsDir, 'Roboto-Bold-Cyrillic.woff'), fontWeight: 'bold' },
+      { src: path.join(fontsDir, 'Roboto-Regular.ttf') },
+      { src: path.join(fontsDir, 'Roboto-Bold.ttf'), fontWeight: 'bold' },
     ],
   })
   fontsRegistered = true
