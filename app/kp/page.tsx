@@ -84,7 +84,6 @@ export default function KPCartPage() {
             id: product.id,
             name_ru: product.name_ru,
             model: product.model,
-            specs: product.specs,
             price: product.price,
             slug: product.slug,
             quantity,

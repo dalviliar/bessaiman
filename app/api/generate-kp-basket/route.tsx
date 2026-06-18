@@ -99,7 +99,6 @@ interface CartItem {
   id?: string
   name_ru: string
   model?: string
-  specs?: Record<string, string>
   price?: number
   slug: string
   quantity: number
