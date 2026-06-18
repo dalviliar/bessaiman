@@ -96,6 +96,20 @@ const s = StyleSheet.create({
 
   watermarkWrap: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' },
   watermarkText: { fontSize: 52, fontWeight: 'bold', color: 'rgba(26,74,138,0.05)', transform: 'rotate(-45deg)', letterSpacing: 3 },
+
+  descProductHeader: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 5, marginTop: 10 },
+  descProductNum: { width: 18, height: 18, borderRadius: 9, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center' },
+  descProductNumText: { fontSize: 7.5, fontWeight: 'bold', color: C.white },
+  descProductTitle: { flex: 1, fontSize: 9, fontWeight: 'bold', color: C.primaryDark },
+  descProductModel: { fontSize: 7.5, color: C.gray },
+  descLine: { fontSize: 8, color: C.text, marginBottom: 2, lineHeight: 1.4 },
+  descHeading: { fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark, marginBottom: 2, marginTop: 4 },
+  specsBox: { borderWidth: 0.5, borderColor: C.border, marginTop: 5, marginBottom: 4 },
+  specRow: { flexDirection: 'row', paddingVertical: 3.5, paddingHorizontal: 7, borderBottomWidth: 0.5, borderBottomColor: C.border },
+  specRowLast: { borderBottomWidth: 0 },
+  specRowAlt: { backgroundColor: C.lightGray },
+  specKey: { width: '44%', fontSize: 7.5, color: C.gray },
+  specVal: { flex: 1, fontSize: 7.5, fontWeight: 'bold', color: C.primaryDark },
 })
 
 interface CartItem {
@@ -105,6 +119,9 @@ interface CartItem {
   price?: number
   slug: string
   quantity: number
+  description_ru?: string
+  specs?: Record<string, string>
+  imageDataUri?: string | null
 }
 
 interface ClientInfo {
@@ -113,6 +130,16 @@ interface ClientInfo {
   phone?: string
   email?: string
   note?: string
+}
+
+function parseDescriptionLines(text: string): { type: 'heading' | 'bullet' | 'text'; content: string }[] {
+  return text.split('\n').map(line => {
+    const t = line.trim()
+    if (!t) return { type: 'text', content: '' }
+    if (t.endsWith(':')) return { type: 'heading', content: t }
+    if (/^[•*\-]\s/.test(t)) return { type: 'bullet', content: t.replace(/^[•*\-]\s/, '') }
+    return { type: 'text', content: t }
+  })
 }
 
 const CONDITIONS = [
@@ -259,6 +286,73 @@ function KPBasketDocument({
           )}
         </View>
 
+        {/* PER-PRODUCT DETAILS: photo + description + specs */}
+        {items.some(item => item.description_ru || (item.specs && Object.keys(item.specs).length > 0) || item.imageDataUri) && (
+          <>
+            <Text style={s.sectionTitle}>Описание товаров</Text>
+            {items.map((item, idx) => {
+              const specs = item.specs ? Object.entries(item.specs).slice(0, 16) : []
+              const descLines = item.description_ru ? parseDescriptionLines(item.description_ru) : []
+              if (!item.imageDataUri && descLines.length === 0 && specs.length === 0) return null
+              return (
+                <View key={idx} style={{ marginBottom: 14 }} wrap={false}>
+                  {/* Product header */}
+                  <View style={s.descProductHeader}>
+                    <View style={s.descProductNum}>
+                      <Text style={s.descProductNumText}>{idx + 1}</Text>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={s.descProductTitle}>{item.name_ru}</Text>
+                      {item.model && <Text style={s.descProductModel}>{item.model}</Text>}
+                    </View>
+                  </View>
+
+                  {/* Image + description side by side */}
+                  {(item.imageDataUri || descLines.length > 0) && (
+                    <View style={{ flexDirection: 'row', gap: 10, marginBottom: 4 }}>
+                      {descLines.length > 0 && (
+                        <View style={{ flex: 1 }}>
+                          {descLines.map((line, i) => {
+                            if (!line.content) return <View key={i} style={{ height: 3 }} />
+                            if (line.type === 'heading') return <Text key={i} style={s.descHeading}>{line.content}</Text>
+                            if (line.type === 'bullet') return (
+                              <View key={i} style={{ flexDirection: 'row', marginBottom: 1.5 }}>
+                                <Text style={{ width: 10, fontSize: 8, color: C.primary }}>•</Text>
+                                <Text style={s.descLine}>{line.content}</Text>
+                              </View>
+                            )
+                            return <Text key={i} style={s.descLine}>{line.content}</Text>
+                          })}
+                        </View>
+                      )}
+                      {item.imageDataUri && (
+                        <Image src={item.imageDataUri} style={{ width: 110, height: 110, objectFit: 'contain', borderWidth: 0.5, borderColor: C.border, borderRadius: 2 }} />
+                      )}
+                    </View>
+                  )}
+
+                  {/* Specs table */}
+                  {specs.length > 0 && (
+                    <View style={s.specsBox}>
+                      {specs.map(([key, val], i) => (
+                        <View key={key} style={[
+                          s.specRow,
+                          i % 2 === 1 ? s.specRowAlt : {},
+                          i === specs.length - 1 ? s.specRowLast : {},
+                        ]}>
+                          <Text style={s.specKey}>{key}</Text>
+                          <Text style={s.specVal}>{String(val)}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                  <View style={{ height: 0.5, backgroundColor: C.border, marginTop: 6 }} />
+                </View>
+              )
+            })}
+          </>
+        )}
+
         {/* NOTE */}
         {clientInfo.note ? (
           <>
@@ -399,7 +493,35 @@ export async function POST(request: Request) {
     const kpNumber = generateKPNumber()
     const dateStr = formatDate(new Date())
 
-    for (const item of items) {
+    // Enrich items with description, specs, image from DB
+    const enrichedItems: CartItem[] = await Promise.all(
+      items.map(async (item) => {
+        try {
+          const rows = await query<{
+            description_ru: string | null
+            specs: Record<string, string> | null
+            images: string[] | null
+          }>(
+            `SELECT description_ru, specs, images FROM products WHERE id = $1 OR slug = $2 LIMIT 1`,
+            [item.id ?? null, item.slug],
+          )
+          const row = rows[0]
+          const imageDataUri = row?.images?.[0]
+            ? await loadProductImageDataUri(row.images[0])
+            : null
+          return {
+            ...item,
+            description_ru: row?.description_ru ?? undefined,
+            specs: row?.specs ?? undefined,
+            imageDataUri,
+          }
+        } catch {
+          return item
+        }
+      })
+    )
+
+    for (const item of enrichedItems) {
       query(
         `INSERT INTO kp_requests (product_id, product_model, product_name, kp_number, client_name, client_company, client_email, client_phone, quantity, note, lang)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
@@ -409,7 +531,7 @@ export async function POST(request: Request) {
 
     const buffer = await renderToBuffer(
       <KPBasketDocument
-        items={items}
+        items={enrichedItems}
         clientInfo={clientInfo}
         kpNumber={kpNumber}
         dateStr={dateStr}
