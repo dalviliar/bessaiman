@@ -413,41 +413,39 @@ function KPBasketDocument({
           ))}
         </View>
 
-        {/* BANK + SIGNATURE: wrap={false} keeps them always together on same page */}
-        <View wrap={false}>
-          <View style={s.dividerThin} />
+        <View style={s.dividerThin} />
 
-          <View style={s.bankBox}>
-            <Text style={s.bankTitle}>Банковские реквизиты</Text>
-            <View style={s.bankGrid}>
-              {BANK_ROWS.map(([label, value]) => (
-                <View key={label} style={s.bankRow}>
-                  <Text style={s.bankLabel}>{label}</Text>
-                  <Text style={s.bankValue}>{value}</Text>
-                </View>
-              ))}
-            </View>
-          </View>
-
-          {/* SIGNATURE + STAMP */}
-          <View style={s.sigSection}>
-            <View style={s.sigBox}>
-              <Text style={s.sigRole}>Генеральный директор</Text>
-              <Text style={s.sigOrg}>ТОО «Bes Saiman Group»</Text>
-              {signatureDataUri ? (
-                <Image src={signatureDataUri} style={{ width: 90, height: 36, marginBottom: 4 }} />
-              ) : (
-                <View style={s.sigLine} />
-              )}
-              <Text style={s.sigName}>Елеуов М.А.</Text>
-              <Text style={s.sigDate}>{dateStr}</Text>
-            </View>
-            {stampDataUri && (
-              <View style={s.stampBox}>
-                <Image src={stampDataUri} style={{ width: 105, height: 105 }} />
+        {/* BANK */}
+        <View style={s.bankBox}>
+          <Text style={s.bankTitle}>Банковские реквизиты</Text>
+          <View style={s.bankGrid}>
+            {BANK_ROWS.map(([label, value]) => (
+              <View key={label} style={s.bankRow}>
+                <Text style={s.bankLabel}>{label}</Text>
+                <Text style={s.bankValue}>{value}</Text>
               </View>
-            )}
+            ))}
           </View>
+        </View>
+
+        {/* SIGNATURE + STAMP */}
+        <View style={s.sigSection}>
+          <View style={s.sigBox}>
+            <Text style={s.sigRole}>Генеральный директор</Text>
+            <Text style={s.sigOrg}>ТОО «Bes Saiman Group»</Text>
+            {signatureDataUri ? (
+              <Image src={signatureDataUri} style={{ width: 90, height: 36, marginBottom: 4 }} />
+            ) : (
+              <View style={s.sigLine} />
+            )}
+            <Text style={s.sigName}>Елеуов М.А.</Text>
+            <Text style={s.sigDate}>{dateStr}</Text>
+          </View>
+          {stampDataUri && (
+            <View style={s.stampBox}>
+              <Image src={stampDataUri} style={{ width: 105, height: 105 }} />
+            </View>
+          )}
         </View>
 
         {/* FOOTER */}
