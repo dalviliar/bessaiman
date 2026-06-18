@@ -322,74 +322,84 @@ function KPBasketDocument({
         {/* PER-PRODUCT DETAILS — same layout as single KP, no new page */}
         {hasDetails && (
           <>
-            <Text style={s.sectionTitle}>Описание товаров</Text>
-            {items.map((item, idx) => {
-              const specs = item.specs ? Object.entries(item.specs).slice(0, 16) : []
-              const descLines = item.description_ru ? parseDescriptionLines(item.description_ru) : []
-              const hasContent = item.imageDataUri || descLines.length > 0 || specs.length > 0
-              if (!hasContent) return null
+            <Text style={s.sectionTitle}>
+              {items.length === 1 ? 'Описание товара' : 'Описание товаров'}
+            </Text>
+            {(() => {
+              // Filter items with content first, then render with correct dividers
+              const detailItems = items
+                .map((item, originalIdx) => ({ item, originalIdx }))
+                .filter(({ item }) => {
+                  const specs = item.specs ? Object.entries(item.specs) : []
+                  const descLines = item.description_ru ? parseDescriptionLines(item.description_ru) : []
+                  return item.imageDataUri || descLines.length > 0 || specs.length > 0
+                })
 
-              return (
-                <View key={idx}>
-                  {/* Product name row — only if more than one product */}
-                  {items.length > 1 && (
-                    <View style={s.productNameRow}>
-                      <Text style={s.productNameLabel}>{idx + 1}.</Text>
-                      <Text style={s.productNameText}>{item.name_ru}</Text>
-                      {item.model ? <Text style={s.productModelText}>/ {item.model}</Text> : null}
-                    </View>
-                  )}
+              return detailItems.map(({ item, originalIdx }, i) => {
+                const specs = item.specs ? Object.entries(item.specs).slice(0, 16) : []
+                const descLines = item.description_ru ? parseDescriptionLines(item.description_ru) : []
+                const isLast = i === detailItems.length - 1
 
-                  {/* Description + image (identical to single KP) */}
-                  {(descLines.length > 0 || item.imageDataUri) && (
-                    <View style={s.descSection}>
-                      {descLines.length > 0 && (
-                        <View style={s.descText}>
-                          {descLines.map((line, i) => {
-                            if (!line.content) return <View key={i} style={{ height: 3 }} />
-                            if (line.type === 'heading') return <Text key={i} style={s.descHeading}>{line.content}</Text>
-                            if (line.type === 'bullet') return (
-                              <View key={i} style={{ flexDirection: 'row', marginBottom: 1.5 }}>
-                                <Text style={{ width: 10, fontSize: 8, color: C.primary }}>•</Text>
-                                <Text style={s.descLine}>{line.content}</Text>
-                              </View>
-                            )
-                            return <Text key={i} style={s.descLine}>{line.content}</Text>
-                          })}
-                        </View>
-                      )}
-                      {item.imageDataUri && (
-                        <Image src={item.imageDataUri} style={s.descProductImg} />
-                      )}
-                    </View>
-                  )}
-
-                  {/* Specs (identical to single KP) */}
-                  {specs.length > 0 && (
-                    <>
-                      <Text style={s.sectionTitle}>Технические характеристики</Text>
-                      <View style={s.specsBox}>
-                        {specs.map(([key, val], i) => (
-                          <View key={key} style={[
-                            s.specRow,
-                            i % 2 === 1 ? s.specRowAlt : {},
-                            i === specs.length - 1 ? s.specRowLast : {},
-                          ]}>
-                            <Text style={s.specKey}>{key}</Text>
-                            <Text style={s.specVal}>{String(val)}</Text>
-                          </View>
-                        ))}
+                return (
+                  <View key={originalIdx}>
+                    {/* Product name row — only if more than one product with content */}
+                    {detailItems.length > 1 && (
+                      <View style={s.productNameRow}>
+                        <Text style={s.productNameLabel}>{i + 1}.</Text>
+                        <Text style={s.productNameText}>{item.name_ru}</Text>
+                        {item.model ? <Text style={s.productModelText}>/ {item.model}</Text> : null}
                       </View>
-                    </>
-                  )}
+                    )}
 
-                  {/* Thin divider between products (not after last) */}
-                  {items.length > 1 && idx < items.length - 1 && (
-                    <View style={s.dividerThin} />
-                  )}
-                </View>
-              )
-            })}
+                    {/* Description + image (identical to single KP) */}
+                    {(descLines.length > 0 || item.imageDataUri) && (
+                      <View style={s.descSection}>
+                        {descLines.length > 0 && (
+                          <View style={s.descText}>
+                            {descLines.map((line, li) => {
+                              if (!line.content) return <View key={li} style={{ height: 3 }} />
+                              if (line.type === 'heading') return <Text key={li} style={s.descHeading}>{line.content}</Text>
+                              if (line.type === 'bullet') return (
+                                <View key={li} style={{ flexDirection: 'row', marginBottom: 1.5 }}>
+                                  <Text style={{ width: 10, fontSize: 8, color: C.primary }}>•</Text>
+                                  <Text style={s.descLine}>{line.content}</Text>
+                                </View>
+                              )
+                              return <Text key={li} style={s.descLine}>{line.content}</Text>
+                            })}
+                          </View>
+                        )}
+                        {item.imageDataUri && (
+                          <Image src={item.imageDataUri} style={s.descProductImg} />
+                        )}
+                      </View>
+                    )}
+
+                    {/* Specs (identical to single KP) */}
+                    {specs.length > 0 && (
+                      <>
+                        <Text style={s.sectionTitle}>Технические характеристики</Text>
+                        <View style={s.specsBox}>
+                          {specs.map(([key, val], si) => (
+                            <View key={key} style={[
+                              s.specRow,
+                              si % 2 === 1 ? s.specRowAlt : {},
+                              si === specs.length - 1 ? s.specRowLast : {},
+                            ]}>
+                              <Text style={s.specKey}>{key}</Text>
+                              <Text style={s.specVal}>{String(val)}</Text>
+                            </View>
+                          ))}
+                        </View>
+                      </>
+                    )}
+
+                    {/* Thin divider between products */}
+                    {!isLast && <View style={s.dividerThin} />}
+                  </View>
+                )
+              })
+            })()}
           </>
         )}
 
