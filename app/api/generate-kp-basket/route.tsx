@@ -600,14 +600,17 @@ export async function POST(request: Request) {
       />
     )
 
-    return new Response(new Uint8Array(buffer), {
+    const filename = encodeURIComponent(`КП_BesS_${kpNumber}.pdf`)
+    return new NextResponse(new Uint8Array(buffer), {
+      status: 200,
       headers: {
         'Content-Type': 'application/pdf',
-        'Content-Disposition': `attachment; filename="KP_BesS_${kpNumber}.pdf"`,
+        'Content-Disposition': `attachment; filename="${filename}"`,
       },
     })
   } catch (err) {
     console.error('generate-kp-basket error:', err)
-    return NextResponse.json({ error: 'Ошибка генерации PDF' }, { status: 500 })
+    const message = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: 'Ошибка генерации PDF', detail: message }, { status: 500 })
   }
 }
