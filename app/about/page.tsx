@@ -49,7 +49,7 @@ export default function AboutPage() {
         {[
           { value: '200+', label: 'Единиц оборудования' },
           { value: '50+', label: 'Клиентов' },
-          { value: '10+', label: 'Лет опыта' },
+          { value: '5+', label: 'Лет опыта' },
           { value: '5', label: 'Категорий оборудования' },
         ].map((s) => (
           <div key={s.value} className="steel-card p-6 text-center">

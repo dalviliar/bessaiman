@@ -84,7 +84,7 @@ const categories = [
 
 const STATS = [
   { num: 200, suf: '+', label: 'позиций' },
-  { num: 12,  suf: '+', label: 'лет на рынке' },
+  { num: 5,   suf: '+', label: 'лет на рынке' },
   { num: 50,  suf: '+', label: 'партнёров' },
 ]
 

@@ -269,7 +269,7 @@ function KPDocument({
           </View>
           <View style={s.headerInfo}>
             <Text style={s.companyName}>ТОО «Bes Saiman Group»</Text>
-            <Text style={s.companyTagline}>Научно-производственная компания · ISO 9001</Text>
+            <Text style={s.companyTagline}>Научно-производственная компания</Text>
             <Text style={s.companyContact}>
               +7 (701) 101-34-33  ·  bessaimangroup1@gmail.com  ·  г. Алматы, ул. Тулебаева 38/61
             </Text>
@@ -294,7 +294,6 @@ function KPDocument({
             <Text style={s.partyName}>ТОО «Bes Saiman Group»</Text>
             <Text style={s.partyDetail}>БИН: 210440034775</Text>
             <Text style={s.partyDetail}>РК, г. Алматы, ул. Тулебаева 38/61</Text>
-            <Text style={s.partyDetail}>Директор: Елеуов Мухтар Ауезович</Text>
             <Text style={s.partyDetail}>Тел: +7 (701) 101-34-33</Text>
           </View>
           <View style={s.partyBox}>
@@ -338,13 +337,21 @@ function KPDocument({
             </Text>
           </View>
           <View style={s.tableTotalRow}>
-            <Text style={s.tdTotalLabel}>ИТОГО:</Text>
+            <Text style={s.tdTotalLabel}>ИТОГО (с НДС 12%):</Text>
             <Text style={s.tdTotalValue}>
               {product.price
                 ? `${(product.price * clientInfo.quantity).toLocaleString('ru-RU')} T`
                 : 'По запросу'}
             </Text>
           </View>
+          {product.price && (
+            <View style={{ flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 6, backgroundColor: C.lightGray }}>
+              <Text style={{ flex: 1, fontSize: 7, color: C.gray }}>в т.ч. НДС (12%):</Text>
+              <Text style={{ width: 78, fontSize: 7, color: C.gray, textAlign: 'right' }}>
+                {`${Math.round(product.price * clientInfo.quantity * 12 / 112).toLocaleString('ru-RU')} T`}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* DESCRIPTION + PRODUCT IMAGE */}

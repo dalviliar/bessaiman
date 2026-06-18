@@ -187,7 +187,6 @@ function KPBasketDocument({
             <Text style={s.partyName}>ТОО «Bes Saiman Group»</Text>
             <Text style={s.partyDetail}>БИН: 210440034775</Text>
             <Text style={s.partyDetail}>РК, г. Алматы, ул. Тулебаева 38/61</Text>
-            <Text style={s.partyDetail}>Директор: Елеуов Мухтар Ауезович</Text>
           </View>
           <View style={s.partyBox}>
             <Text style={s.partyLabel}>Покупатель</Text>
@@ -239,7 +238,7 @@ function KPBasketDocument({
 
           <View style={s.totalRow}>
             <Text style={s.totalLabel}>
-              ИТОГО{hasUnknown ? ' (без позиций «По запросу»)' : ''}:
+              ИТОГО с НДС 12%{hasUnknown ? ' (без позиций «По запросу»)' : ''}:
             </Text>
             <Text style={s.totalValue}>
               {totalKnown > 0
@@ -247,6 +246,14 @@ function KPBasketDocument({
                 : 'По запросу'}
             </Text>
           </View>
+          {totalKnown > 0 && (
+            <View style={{ flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 6, backgroundColor: C.primaryLight }}>
+              <Text style={{ flex: 1, fontSize: 7, color: C.gray }}>в т.ч. НДС (12%):</Text>
+              <Text style={{ width: 80, fontSize: 7, color: C.gray, textAlign: 'right' }}>
+                {`${Math.round(totalKnown * 12 / 112).toLocaleString('ru-RU')} T`}
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* NOTE */}
