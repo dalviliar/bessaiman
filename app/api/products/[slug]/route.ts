@@ -19,7 +19,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  const [documents, accessories] = await Promise.all([
+  const [documents, accForward, accReverse] = await Promise.all([
     query('SELECT * FROM product_documents WHERE product_id = $1', [product.id]),
     query(
       `SELECT acc.*,
@@ -27,9 +27,11 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
        FROM product_accessories pa
        JOIN products acc ON acc.id = pa.accessory_id
        LEFT JOIN categories c ON c.id = acc.category_id
-       WHERE pa.product_id = $1
-       UNION
-       SELECT acc.*,
+       WHERE pa.product_id = $1`,
+      [product.id],
+    ),
+    query(
+      `SELECT acc.*,
          CASE WHEN c.id IS NOT NULL THEN row_to_json(c) END AS category
        FROM product_accessories pa
        JOIN products acc ON acc.id = pa.product_id
@@ -38,6 +40,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
       [product.id],
     ),
   ])
+
+  const seen = new Set<string>()
+  const accessories = [...accForward, ...accReverse].filter(a => {
+    if (seen.has(a.id)) return false
+    seen.add(a.id)
+    return true
+  })
 
   return NextResponse.json({ ...product, documents, accessories })
 }
