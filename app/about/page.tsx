@@ -85,7 +85,7 @@ export default function AboutPage() {
         <div className="absolute inset-0 bg-steel-sheen" />
         <div className="relative">
           <div className="text-5xl font-black text-[#0F172A] mb-3 tracking-tight">
-            БЕС <span className="text-steel-accent">САЙМАН</span>
+            BES <span className="text-steel-accent">SAIMAN</span>
           </div>
           <p className="text-steel-silver max-w-lg mx-auto">
             Научно-производственная компания. Оборудование для науки и промышленности. Индивидуальные разработки под заказ. Работаем по РК и СНГ.

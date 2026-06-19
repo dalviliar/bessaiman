@@ -130,6 +130,7 @@ export default function AdminCategoriesPage() {
   const [loading, setLoading]       = useState(true)
   const [editingId, setEditingId]   = useState<string | null>(null)
   const [editCode, setEditCode]     = useState('')
+  const [editDesc, setEditDesc]     = useState('')
   const [saving, setSaving]         = useState(false)
   const [showCreate, setShowCreate] = useState(false)
 
@@ -142,6 +143,7 @@ export default function AdminCategoriesPage() {
   const startEdit = (cat: Category) => {
     setEditingId(cat.id)
     setEditCode(cat.classification_code ?? '')
+    setEditDesc(cat.description_ru ?? CLASS_HINT[cat.classification_code ?? ''] ?? '')
   }
 
   const saveEdit = async (cat: Category) => {
@@ -149,7 +151,11 @@ export default function AdminCategoriesPage() {
     const res = await fetch(`/api/admin/categories/${cat.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...cat, classification_code: editCode.toUpperCase().trim() || null }),
+      body: JSON.stringify({
+        ...cat,
+        classification_code: editCode.toUpperCase().trim() || null,
+        description_ru: editDesc.trim() || null,
+      }),
     })
     if (res.ok) {
       const updated = await res.json()
@@ -227,7 +233,17 @@ export default function AdminCategoriesPage() {
                     )}
                   </td>
                   <td className="px-5 py-3 text-xs hidden sm:table-cell" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                    {CLASS_HINT[editingId === cat.id ? editCode : (cat.classification_code ?? '')] ?? '—'}
+                    {editingId === cat.id ? (
+                      <input
+                        className="steel-input w-full text-xs"
+                        value={editDesc}
+                        onChange={e => setEditDesc(e.target.value)}
+                        placeholder="Расшифровка кода..."
+                        onKeyDown={e => { if (e.key === 'Enter') saveEdit(cat); if (e.key === 'Escape') setEditingId(null) }}
+                      />
+                    ) : (
+                      cat.description_ru ?? CLASS_HINT[cat.classification_code ?? ''] ?? <span style={{ color: 'rgba(255,255,255,0.2)' }}>—</span>
+                    )}
                   </td>
                   <td className="px-5 py-3 text-center">
                     {editingId === cat.id ? (
