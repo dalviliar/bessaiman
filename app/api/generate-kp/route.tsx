@@ -1,6 +1,6 @@
 import React from 'react'
 import path from 'path'
-import { readFileSync } from 'fs'
+import { readFileSync, statSync } from 'fs'
 import { NextResponse } from 'next/server'
 import { renderToBuffer, Font, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 import { query } from '@/lib/db'
@@ -526,6 +526,7 @@ async function loadProductImageDataUri(imageUrl: string | undefined): Promise<st
   try {
     if (imageUrl.startsWith('/')) {
       const filePath = path.join(process.cwd(), 'public', imageUrl)
+      if (statSync(filePath).size > 2 * 1024 * 1024) return null
       const ext = path.extname(imageUrl).toLowerCase()
       const mime = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg'
       return `data:${mime};base64,${readFileSync(filePath).toString('base64')}`
@@ -533,6 +534,7 @@ async function loadProductImageDataUri(imageUrl: string | undefined): Promise<st
     const res = await fetch(imageUrl, { signal: AbortSignal.timeout(5000) })
     if (!res.ok) return null
     const buf = await res.arrayBuffer()
+    if (buf.byteLength > 2 * 1024 * 1024) return null
     const mime = res.headers.get('content-type')?.split(';')[0] || 'image/jpeg'
     return `data:${mime};base64,${Buffer.from(buf).toString('base64')}`
   } catch {

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, FileText, ChevronLeft, ChevronRight, Package } from 'lucide-react'
+import { ArrowLeft, FileText, Package } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 import PriceCalculator from '@/components/PriceCalculator'
 import ProductCard from '@/components/ProductCard'
@@ -57,40 +57,65 @@ function AvailabilityBadge({ status }: { status: Product['availability'] }) {
 
 function ImageGallery({ images, name }: { images: string[]; name: string }) {
   const [current, setCurrent] = useState(0)
+  const [hovered, setHovered] = useState(false)
 
   if (!images.length) {
     return (
-      <div className="steel-card aspect-square flex items-center justify-center">
+      <div className="steel-card aspect-square flex items-center justify-center rounded-2xl">
         <Package size={80} className="text-steel-border" />
       </div>
     )
   }
 
   return (
-    <div className="space-y-3">
-      <div className="steel-card aspect-square relative overflow-hidden">
-        <Image src={images[current]} alt={name} fill className="object-contain p-6" />
+    <div>
+      <div
+        className="steel-card relative overflow-hidden rounded-2xl cursor-zoom-in"
+        style={{ aspectRatio: '1/1' }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+      >
+        <Image
+          src={images[current]}
+          alt={name}
+          fill
+          className="object-contain p-6"
+          style={{
+            transform: hovered ? 'scale(1.09)' : 'scale(1)',
+            transition: 'transform 0.35s ease',
+          }}
+        />
         {images.length > 1 && (
-          <>
-            <button onClick={() => setCurrent((c) => (c - 1 + images.length) % images.length)}
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-steel-border flex items-center justify-center hover:border-steel-accent text-slate-600 transition-all shadow-sm">
-              <ChevronLeft size={16} />
-            </button>
-            <button onClick={() => setCurrent((c) => (c + 1) % images.length)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white border border-steel-border flex items-center justify-center hover:border-steel-accent text-slate-600 transition-all shadow-sm">
-              <ChevronRight size={16} />
-            </button>
-          </>
+          <div
+            className="absolute bottom-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full"
+            style={{
+              background: 'rgba(15,23,42,0.5)',
+              color: 'rgba(255,255,255,0.92)',
+              backdropFilter: 'blur(6px)',
+            }}
+          >
+            {current + 1} / {images.length}
+          </div>
         )}
       </div>
+
       {images.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex gap-2.5 mt-3 overflow-x-auto pb-0.5 pt-0.5">
           {images.map((img, i) => (
-            <button key={i} onClick={() => setCurrent(i)}
-              className={`shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                i === current ? 'border-steel-accent' : 'border-steel-border hover:border-steel-silver'
-              }`}>
-              <Image src={img} alt="" width={64} height={64} className="object-contain p-1 w-full h-full" />
+            <button
+              key={i}
+              onClick={() => setCurrent(i)}
+              className="relative shrink-0 rounded-xl overflow-hidden transition-all duration-200"
+              style={{
+                width: 80,
+                height: 80,
+                border: i === current ? '2px solid #1565C0' : '2px solid #E2E8F0',
+                boxShadow: i === current ? '0 0 0 3px rgba(21,101,192,0.15), 0 4px 12px rgba(21,101,192,0.12)' : 'none',
+                background: '#F8FAFC',
+                transform: i === current ? 'scale(1.06)' : 'scale(1)',
+              }}
+            >
+              <Image src={img} alt="" fill className="object-contain p-1.5" />
             </button>
           ))}
         </div>
