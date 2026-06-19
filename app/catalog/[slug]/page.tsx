@@ -86,7 +86,7 @@ function ImageGallery({ images, name, videoUrl }: { images: string[]; name: stri
       {/* Main area */}
       <div
         className="steel-card relative overflow-hidden rounded-2xl"
-        style={{ aspectRatio: '1/1', cursor: showVideo ? 'default' : 'zoom-in' }}
+        style={{ aspectRatio: showVideo ? '16/9' : '1/1', cursor: showVideo ? 'default' : 'zoom-in', transition: 'aspect-ratio 0.3s ease' }}
         onMouseEnter={() => setMainHovered(true)}
         onMouseLeave={() => setMainHovered(false)}
       >
