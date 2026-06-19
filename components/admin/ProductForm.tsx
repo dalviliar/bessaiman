@@ -434,11 +434,28 @@ export default function ProductForm({ product }: { product?: Product }) {
 
       {/* Фото */}
       <Section title="Фотографии">
+        <p className="text-[11px] mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          Можно выбрать сразу 3–4 фото. <span style={{ color: '#34d399', fontWeight: 600 }}>Первое фото = главное</span> — оно показывается в карточке каталога.
+          Нажмите на любое фото чтобы сделать его главным.
+        </p>
         <div className="flex flex-wrap gap-3 mb-3">
-          {form.images.map(url => (
-            <div key={url} className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0" style={{ border: '1px solid rgba(255,255,255,0.1)' }}>
+          {form.images.map((url, idx) => (
+            <div key={url} className="relative w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 cursor-pointer"
+              style={{ border: idx === 0 ? '2px solid #34d399' : '1px solid rgba(255,255,255,0.1)' }}
+              onClick={() => {
+                const reordered = [url, ...form.images.filter(u => u !== url)]
+                set('images', reordered)
+              }}
+              title={idx === 0 ? 'Главное фото' : 'Нажмите — сделать главным'}>
               <img src={url} alt="" className="w-full h-full object-cover" />
-              <button type="button" onClick={() => removeImage(url)}
+              {idx === 0 && (
+                <div className="absolute bottom-0 left-0 right-0 text-center"
+                  style={{ background: 'rgba(52,211,153,0.85)', fontSize: 8, fontWeight: 700, color: 'white', padding: '2px 0' }}>
+                  ГЛАВНОЕ
+                </div>
+              )}
+              <button type="button"
+                onClick={e => { e.stopPropagation(); removeImage(url) }}
                 className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full flex items-center justify-center"
                 style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }}>
                 <X size={11} />
@@ -448,7 +465,7 @@ export default function ProductForm({ product }: { product?: Product }) {
           <label className="w-20 h-20 rounded-lg flex flex-col items-center justify-center gap-1 cursor-pointer flex-shrink-0"
             style={{ border: '1px dashed rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.4)' }}>
             {uploading ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
-            <span className="text-[9px]">Загрузить</span>
+            <span className="text-[9px] text-center leading-tight px-1">Загрузить<br/>3–4 фото</span>
             <input type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple
               className="hidden" onChange={e => handleUpload(e.target.files)} disabled={uploading} />
           </label>

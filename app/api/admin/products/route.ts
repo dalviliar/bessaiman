@@ -68,6 +68,7 @@ export async function POST(request: Request) {
         length_cm ?? null, width_cm ?? null, height_cm ?? null,
       ]
 
+      await client.query('SAVEPOINT before_video_url')
       let result
       try {
         result = await client.query(
@@ -82,7 +83,9 @@ export async function POST(request: Request) {
            ) RETURNING *`,
           [...baseVals.slice(0, 16), video_url ?? null, ...baseVals.slice(16)],
         )
+        await client.query('RELEASE SAVEPOINT before_video_url')
       } catch (insertErr: unknown) {
+        await client.query('ROLLBACK TO SAVEPOINT before_video_url')
         if (insertErr instanceof Error && insertErr.message.includes('video_url')) {
           result = await client.query(
             `INSERT INTO products (
