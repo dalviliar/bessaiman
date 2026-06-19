@@ -38,13 +38,21 @@ export async function GET() {
       return rows
     }),
 
-    // Daily KP requests last 30 days
+    // Daily KP requests last 30 days (fill missing days with 0)
     query<{ day: string; count: string }>(`
-      SELECT TO_CHAR(DATE(created_at), 'DD.MM') AS day, COUNT(*)::text AS count
-      FROM kp_requests
-      WHERE created_at >= NOW() - INTERVAL '30 days'
-      GROUP BY DATE(created_at)
-      ORDER BY DATE(created_at)
+      WITH days AS (
+        SELECT generate_series(
+          CURRENT_DATE - INTERVAL '29 days',
+          CURRENT_DATE,
+          '1 day'::interval
+        )::date AS d
+      )
+      SELECT TO_CHAR(d, 'DD.MM') AS day,
+             COALESCE(COUNT(r.id), 0)::text AS count
+      FROM days
+      LEFT JOIN kp_requests r ON DATE(r.created_at) = d
+      GROUP BY d
+      ORDER BY d
     `),
 
     // Top products by KP count
