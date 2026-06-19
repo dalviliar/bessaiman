@@ -95,15 +95,18 @@ export default function NaukaPage() {
           {partners.length === 0 ? (
             <span className="text-sm" style={{ color: '#94A3B8' }}>Партнёры не добавлены</span>
           ) : partners.map((p) => {
-            const chip = (
-              <span key={p.id} className="px-4 py-2 rounded-full text-sm font-medium transition-all"
-                style={{ background: '#FFFFFF', color: '#1565C0', border: '1px solid rgba(21,101,192,0.2)' }}>
-                {p.name}
-              </span>
+            const card = (
+              <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl transition-all duration-200"
+                style={{ background: '#FFFFFF', border: '1px solid rgba(21,101,192,0.18)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                {p.logo_url && (
+                  <img src={p.logo_url} alt={p.name} style={{ height: 28, maxWidth: 70, objectFit: 'contain', flexShrink: 0 }} />
+                )}
+                <span className="text-sm font-medium" style={{ color: '#1565C0' }}>{p.name}</span>
+              </div>
             )
             return p.website_url
-              ? <a key={p.id} href={p.website_url} target="_blank" rel="noopener noreferrer">{chip}</a>
-              : chip
+              ? <a key={p.id} href={p.website_url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>{card}</a>
+              : <div key={p.id}>{card}</div>
           })}
         </div>
       </div>

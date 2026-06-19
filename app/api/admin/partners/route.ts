@@ -15,6 +15,12 @@ export async function GET() {
   return NextResponse.json(partners)
 }
 
+function normalizeUrl(url: string | null | undefined): string | null {
+  if (!url?.trim()) return null
+  const u = url.trim()
+  return /^https?:\/\//i.test(u) ? u : `https://${u}`
+}
+
 export async function POST(request: Request) {
   const me = await getCurrentAdminUser()
   if (!me || !can(me.role, 'content', 'create')) {
@@ -26,7 +32,7 @@ export async function POST(request: Request) {
   }
   const partner = await queryOne(
     `INSERT INTO partners (name, logo_url, website_url, sort_order) VALUES ($1, $2, $3, $4) RETURNING *`,
-    [name.trim(), logo_url ?? null, website_url ?? null, sort_order ?? 0],
+    [name.trim(), logo_url ?? null, normalizeUrl(website_url), sort_order ?? 0],
   )
   return NextResponse.json(partner)
 }
@@ -42,7 +48,7 @@ export async function PUT(request: Request) {
   }
   const partner = await queryOne(
     `UPDATE partners SET name=$1, logo_url=$2, website_url=$3, sort_order=$4 WHERE id=$5 RETURNING *`,
-    [name.trim(), logo_url ?? null, website_url ?? null, sort_order ?? 0, id],
+    [name.trim(), logo_url ?? null, normalizeUrl(website_url), sort_order ?? 0, id],
   )
   if (!partner) return NextResponse.json({ error: 'Не найден' }, { status: 404 })
   return NextResponse.json(partner)

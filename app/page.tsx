@@ -174,22 +174,41 @@ function PartnersSection() {
           </p>
           <h2 className="text-2xl font-black" style={{ color: '#0F172A' }}>Работаем с ведущими организациями</h2>
         </div>
-        <div className="flex flex-wrap justify-center gap-4">
+        <div className="flex flex-wrap justify-center gap-5">
           {partners.map(p => {
             const inner = (
-              <div className="flex flex-col items-center justify-center gap-2 px-6 py-4 rounded-xl transition-all duration-200 min-w-[120px]"
-                style={{ background: 'white', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+              <div
+                className="flex flex-col items-center justify-center gap-3 rounded-2xl transition-all duration-200"
+                style={{
+                  background: 'white',
+                  border: '1px solid #E2E8F0',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                  padding: '20px 28px',
+                  minWidth: 160,
+                  minHeight: 100,
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = '0 8px 24px rgba(21,101,192,0.12)'
+                  ;(e.currentTarget as HTMLDivElement).style.borderColor = '#BFDBFE'
+                  ;(e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLDivElement).style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)'
+                  ;(e.currentTarget as HTMLDivElement).style.borderColor = '#E2E8F0'
+                  ;(e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'
+                }}
+              >
                 {p.logo_url
-                  ? <img src={p.logo_url} alt={p.name} style={{ maxHeight: 40, maxWidth: 120, objectFit: 'contain' }} />
-                  : <span className="text-xs font-bold text-center leading-tight" style={{ color: '#475569' }}>{p.name}</span>
+                  ? <img src={p.logo_url} alt={p.name} style={{ maxHeight: 56, maxWidth: 140, objectFit: 'contain' }} />
+                  : <span className="text-sm font-bold text-center leading-tight" style={{ color: '#1565C0' }}>{p.name}</span>
                 }
                 {p.logo_url && (
-                  <span className="text-[10px] text-center" style={{ color: '#94A3B8' }}>{p.name}</span>
+                  <span className="text-xs font-medium text-center" style={{ color: '#64748B' }}>{p.name}</span>
                 )}
               </div>
             )
             return p.website_url
-              ? <a key={p.id} href={p.website_url} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">{inner}</a>
+              ? <a key={p.id} href={p.website_url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>{inner}</a>
               : <div key={p.id}>{inner}</div>
           })}
         </div>
