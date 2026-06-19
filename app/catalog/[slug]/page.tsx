@@ -136,6 +136,7 @@ function ImageGallery({ images, name, videoUrl }: { images: string[]; name: stri
             <button
               key={i}
               onMouseEnter={() => { setShowVideo(false); setCurrent(i) }}
+              onClick={() => { setShowVideo(false); setCurrent(i) }}
               className="relative shrink-0 rounded-xl overflow-hidden transition-all duration-200"
               style={{
                 width: 80, height: 80,
