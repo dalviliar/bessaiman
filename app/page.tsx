@@ -149,6 +149,55 @@ function NewsModal({ post, onClose, postTitle, postContent }: {
   )
 }
 
+interface Partner {
+  id: string
+  name: string
+  logo_url: string | null
+  website_url: string | null
+}
+
+function PartnersSection() {
+  const [partners, setPartners] = useState<Partner[]>([])
+
+  useEffect(() => {
+    fetch('/api/partners').then(r => r.json()).then(d => setPartners(Array.isArray(d) ? d : [])).catch(() => {})
+  }, [])
+
+  if (!partners.length) return null
+
+  return (
+    <section style={{ borderTop: '1px solid #E2E8F0', background: '#F8FAFC' }}>
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-14">
+        <div className="text-center mb-10">
+          <p className="text-[10px] font-mono tracking-[0.25em] mb-3 font-bold" style={{ color: '#94A3B8' }}>
+            НАШИ ПАРТНЁРЫ
+          </p>
+          <h2 className="text-2xl font-black" style={{ color: '#0F172A' }}>Работаем с ведущими организациями</h2>
+        </div>
+        <div className="flex flex-wrap justify-center gap-4">
+          {partners.map(p => {
+            const inner = (
+              <div className="flex flex-col items-center justify-center gap-2 px-6 py-4 rounded-xl transition-all duration-200 min-w-[120px]"
+                style={{ background: 'white', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
+                {p.logo_url
+                  ? <img src={p.logo_url} alt={p.name} style={{ maxHeight: 40, maxWidth: 120, objectFit: 'contain' }} />
+                  : <span className="text-xs font-bold text-center leading-tight" style={{ color: '#475569' }}>{p.name}</span>
+                }
+                {p.logo_url && (
+                  <span className="text-[10px] text-center" style={{ color: '#94A3B8' }}>{p.name}</span>
+                )}
+              </div>
+            )
+            return p.website_url
+              ? <a key={p.id} href={p.website_url} target="_blank" rel="noopener noreferrer" className="hover:opacity-80 transition-opacity">{inner}</a>
+              : <div key={p.id}>{inner}</div>
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export default function HomePage() {
   const { lang } = useLang()
   const [hovCard, setHovCard] = useState<string | null>(null)
@@ -490,6 +539,9 @@ export default function HomePage() {
         </div>
       </section>
 
+
+      {/* ══ PARTNERS ══ */}
+      <PartnersSection />
 
       {/* ══ FOOTER ══ */}
       <footer style={{ borderTop: '1px solid #E2E8F0', background: 'white' }}>

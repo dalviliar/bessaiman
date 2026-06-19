@@ -240,6 +240,28 @@ export default function ProductDetailPage() {
         </section>
       )}
 
+      {/* YouTube Video */}
+      {product.video_url && (() => {
+        const match = product.video_url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
+        const videoId = match?.[1]
+        if (!videoId) return null
+        return (
+          <section className="mb-10">
+            <h2 className="section-title text-lg mb-4">Видео</h2>
+            <div className="steel-card overflow-hidden" style={{ aspectRatio: '16/9' }}>
+              <iframe
+                src={`https://www.youtube.com/embed/${videoId}`}
+                title="YouTube video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+                style={{ border: 'none' }}
+              />
+            </div>
+          </section>
+        )
+      })()}
+
       {/* Аксессуары */}
       {product.accessories && product.accessories.length > 0 && (
         <section className="mb-16">

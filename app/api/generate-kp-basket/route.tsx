@@ -303,7 +303,7 @@ function KPBasketDocument({
           ))}
           <View style={s.tableTotalRow}>
             <Text style={s.tdTotalLabel}>
-              ИТОГО (с НДС 12%){hasUnknown ? ' (без позиций «По запросу»)' : ''}:
+              ИТОГО (с НДС 16%){hasUnknown ? ' (без позиций «По запросу»)' : ''}:
             </Text>
             <Text style={s.tdTotalValue}>
               {totalKnown > 0 ? `${totalKnown.toLocaleString('ru-RU')} T` : 'По запросу'}
@@ -311,9 +311,9 @@ function KPBasketDocument({
           </View>
           {totalKnown > 0 && (
             <View style={{ flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 6, backgroundColor: C.lightGray }}>
-              <Text style={{ flex: 1, fontSize: 7, color: C.gray }}>в т.ч. НДС (12%):</Text>
+              <Text style={{ flex: 1, fontSize: 7, color: C.gray }}>в т.ч. НДС (16%):</Text>
               <Text style={{ width: 78, fontSize: 7, color: C.gray, textAlign: 'right' }}>
-                {`${Math.round(totalKnown * 12 / 112).toLocaleString('ru-RU')} T`}
+                {`${Math.round(totalKnown * 16 / 116).toLocaleString('ru-RU')} T`}
               </Text>
             </View>
           )}

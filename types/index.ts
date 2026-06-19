@@ -50,6 +50,7 @@ export interface Product {
   availability: 'in_stock' | 'on_order' | 'out_of_stock'
   barcode: string | null
   images: string[]
+  video_url: string | null
   specs: Record<string, string> | null
   product_type: ProductType
   classification_code: string | null

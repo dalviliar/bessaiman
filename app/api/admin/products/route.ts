@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       name_ru, name_kk, name_en, model, category_id,
       description_ru, description_kk, description_en,
       price, price_with_discount, bulk_threshold, bulk_discount_percent,
-      availability, barcode, images, specs, product_type, classification_code,
+      availability, barcode, images, video_url, specs, product_type, classification_code,
       compatible_with, weight_kg, unit, quantity, length_cm, width_cm, height_cm,
       accessory_ids,
     } = body
@@ -62,16 +62,17 @@ export async function POST(request: Request) {
            slug, category_id, name_ru, name_kk, name_en, model,
            description_ru, description_kk, description_en,
            price, price_with_discount, bulk_threshold, bulk_discount_percent,
-           availability, barcode, images, specs, product_type, classification_code,
+           availability, barcode, images, video_url, specs, product_type, classification_code,
            compatible_with, weight_kg, unit, length_cm, width_cm, height_cm
          ) VALUES (
-           $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25
+           $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26
          ) RETURNING *`,
         [
           slug, category_id, name_ru, name_kk || name_ru, name_en || name_ru, model ?? null,
           description_ru ?? null, description_kk ?? null, description_en ?? null,
           price ?? null, price_with_discount ?? null, bulk_threshold ?? 3, bulk_discount_percent ?? 5,
-          availability ?? 'in_stock', barcode ?? null, images ?? [], specs ? JSON.stringify(specs) : null,
+          availability ?? 'in_stock', barcode ?? null, images ?? [], video_url ?? null,
+          specs ? JSON.stringify(specs) : null,
           product_type ?? 'S', classification_code ?? null,
           compatible_with ?? [], weight_kg ?? null, unit ?? 'шт',
           length_cm ?? null, width_cm ?? null, height_cm ?? null,

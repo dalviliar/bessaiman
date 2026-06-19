@@ -4,7 +4,8 @@ const translations = {
   ru: {
     nav: {
       home: 'Главная',
-      catalog: 'Каталог',
+      catalog: 'Продукция',
+      nauka: 'Наука',
       about: 'О нас',
       contacts: 'Контакты',
       warehouse: 'Склад',
@@ -99,7 +100,8 @@ const translations = {
   kk: {
     nav: {
       home: 'Басты бет',
-      catalog: 'Каталог',
+      catalog: 'Өнімдер',
+      nauka: 'Ғылым',
       about: 'Біз туралы',
       contacts: 'Байланыс',
       warehouse: 'Қойма',
@@ -194,7 +196,8 @@ const translations = {
   en: {
     nav: {
       home: 'Home',
-      catalog: 'Catalog',
+      catalog: 'Products',
+      nauka: 'Science',
       about: 'About',
       contacts: 'Contacts',
       warehouse: 'Warehouse',

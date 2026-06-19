@@ -45,7 +45,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       name_ru, name_kk, name_en, model, category_id,
       description_ru, description_kk, description_en,
       price, price_with_discount, bulk_threshold, bulk_discount_percent,
-      availability, barcode, images, specs, product_type, classification_code,
+      availability, barcode, images, video_url, specs, product_type, classification_code,
       compatible_with, weight_kg, unit, length_cm, width_cm, height_cm,
       accessory_ids,
     } = body
@@ -59,15 +59,16 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
          category_id = $1, name_ru = $2, name_kk = $3, name_en = $4, model = $5,
          description_ru = $6, description_kk = $7, description_en = $8,
          price = $9, price_with_discount = $10, bulk_threshold = $11, bulk_discount_percent = $12,
-         availability = $13, barcode = $14, images = $15, specs = $16, product_type = $17,
-         classification_code = $18, compatible_with = $19, weight_kg = $20, unit = $21,
-         length_cm = $22, width_cm = $23, height_cm = $24
-       WHERE id = $25 RETURNING *`,
+         availability = $13, barcode = $14, images = $15, video_url = $16, specs = $17, product_type = $18,
+         classification_code = $19, compatible_with = $20, weight_kg = $21, unit = $22,
+         length_cm = $23, width_cm = $24, height_cm = $25
+       WHERE id = $26 RETURNING *`,
       [
         category_id, name_ru, name_kk || name_ru, name_en || name_ru, model ?? null,
         description_ru ?? null, description_kk ?? null, description_en ?? null,
         price ?? null, price_with_discount ?? null, bulk_threshold ?? 3, bulk_discount_percent ?? 5,
-        availability ?? 'in_stock', barcode ?? null, images ?? [], specs ? JSON.stringify(specs) : null,
+        availability ?? 'in_stock', barcode ?? null, images ?? [], video_url ?? null,
+        specs ? JSON.stringify(specs) : null,
         product_type ?? 'S', classification_code ?? null, compatible_with ?? [],
         weight_kg ?? null, unit ?? 'шт',
         length_cm ?? null, width_cm ?? null, height_cm ?? null, id,

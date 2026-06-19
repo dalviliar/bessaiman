@@ -40,6 +40,7 @@ interface FormState {
   bulk_threshold: string; bulk_discount_percent: string
   availability: string; barcode: string
   images: string[]
+  video_url: string
   specs: { key: string; value: string }[]
   product_type: ProductType
   classification_code: string
@@ -60,6 +61,7 @@ const EMPTY: FormState = {
   bulk_threshold: '3', bulk_discount_percent: '5',
   availability: 'in_stock', barcode: '',
   images: [],
+  video_url: '',
   specs: [],
   product_type: 'S',
   classification_code: '',
@@ -102,6 +104,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       bulk_threshold: product.bulk_threshold?.toString() ?? '3', bulk_discount_percent: product.bulk_discount_percent?.toString() ?? '5',
       availability: product.availability, barcode: product.barcode ?? '',
       images: product.images ?? [],
+      video_url: product.video_url ?? '',
       specs: product.specs ? Object.entries(product.specs).map(([key, value]) => ({ key, value: String(value) })) : [],
       product_type: product.product_type,
       classification_code: product.classification_code ?? '',
@@ -213,6 +216,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       bulk_discount_percent: Number(form.bulk_discount_percent) || 5,
       availability: form.availability, barcode: form.barcode || null,
       images: form.images,
+      video_url: form.video_url || null,
       specs: Object.keys(specsObj).length ? specsObj : null,
       product_type: form.product_type,
       classification_code: form.classification_code || null,
@@ -454,6 +458,19 @@ export default function ProductForm({ product }: { product?: Product }) {
             <ImageIcon size={12} /> Без фото товар тоже сохранится — можно добавить позже
           </p>
         )}
+        <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+          <Field label="Ссылка на YouTube видео">
+            <input
+              className="steel-input w-full"
+              value={form.video_url}
+              onChange={e => set('video_url', e.target.value)}
+              placeholder="https://www.youtube.com/watch?v=..."
+            />
+          </Field>
+          <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
+            Видео будет встроено на странице товара под галереей фотографий
+          </p>
+        </div>
       </Section>
 
       {/* Характеристики */}
