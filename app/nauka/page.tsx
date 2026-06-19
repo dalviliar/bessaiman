@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { FlaskConical, Microscope, Atom, Zap, BookOpen, Award } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 
@@ -36,16 +37,13 @@ const directions = [
   },
 ]
 
-const partners = [
-  'Satbayev University',
-  'АО «НЦГНТЭ»',
-  'Kazakh-British Technical University',
-  'Институт топлива, катализа и электрохимии',
-  'КазНУ им. аль-Фараби',
-]
-
 export default function NaukaPage() {
   const { tr: _tr } = useLang()
+  const [partners, setPartners] = useState<{ id: string; name: string; logo_url: string | null; website_url: string | null }[]>([])
+
+  useEffect(() => {
+    fetch('/api/partners').then(r => r.json()).then(d => setPartners(Array.isArray(d) ? d : [])).catch(() => {})
+  }, [])
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -94,12 +92,19 @@ export default function NaukaPage() {
           Мы активно сотрудничаем с ведущими учебными и научными организациями Казахстана.
         </p>
         <div className="flex flex-wrap gap-3">
-          {partners.map((p) => (
-            <span key={p} className="px-4 py-2 rounded-full text-sm font-medium"
-              style={{ background: '#FFFFFF', color: '#1565C0', border: '1px solid rgba(21,101,192,0.2)' }}>
-              {p}
-            </span>
-          ))}
+          {partners.length === 0 ? (
+            <span className="text-sm" style={{ color: '#94A3B8' }}>Партнёры не добавлены</span>
+          ) : partners.map((p) => {
+            const chip = (
+              <span key={p.id} className="px-4 py-2 rounded-full text-sm font-medium transition-all"
+                style={{ background: '#FFFFFF', color: '#1565C0', border: '1px solid rgba(21,101,192,0.2)' }}>
+                {p.name}
+              </span>
+            )
+            return p.website_url
+              ? <a key={p.id} href={p.website_url} target="_blank" rel="noopener noreferrer">{chip}</a>
+              : chip
+          })}
         </div>
       </div>
 
