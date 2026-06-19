@@ -34,6 +34,16 @@ function DescriptionRenderer({ text }: { text: string }) {
             </div>
           )
         }
+        const colonIdx = trimmed.indexOf(':')
+        if (colonIdx > 0 && colonIdx < trimmed.length - 1) {
+          const key = trimmed.slice(0, colonIdx + 1)
+          const val = trimmed.slice(colonIdx + 1)
+          return (
+            <p key={i} className="text-sm leading-relaxed" style={{ color: '#475569' }}>
+              <span className="font-semibold" style={{ color: '#0F172A' }}>{key}</span>{val}
+            </p>
+          )
+        }
         return (
           <p key={i} className="text-sm leading-relaxed" style={{ color: '#475569' }}>
             {trimmed}
