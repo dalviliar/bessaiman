@@ -65,11 +65,15 @@ function AvailabilityBadge({ status }: { status: Product['availability'] }) {
   return <span className={cls}>{label}</span>
 }
 
-function ImageGallery({ images, name }: { images: string[]; name: string }) {
+function ImageGallery({ images, name, videoUrl }: { images: string[]; name: string; videoUrl?: string | null }) {
   const [current, setCurrent] = useState(0)
-  const [hovered, setHovered] = useState(false)
+  const [showVideo, setShowVideo] = useState(false)
+  const [mainHovered, setMainHovered] = useState(false)
 
-  if (!images.length) {
+  const videoId = videoUrl?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1] ?? null
+  const totalCount = images.length + (videoId ? 1 : 0)
+
+  if (!images.length && !videoId) {
     return (
       <div className="steel-card aspect-square flex items-center justify-center rounded-2xl">
         <Package size={80} className="text-steel-border" />
@@ -79,55 +83,104 @@ function ImageGallery({ images, name }: { images: string[]; name: string }) {
 
   return (
     <div>
+      {/* Main area */}
       <div
-        className="steel-card relative overflow-hidden rounded-2xl cursor-zoom-in"
-        style={{ aspectRatio: '1/1' }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
+        className="steel-card relative overflow-hidden rounded-2xl"
+        style={{ aspectRatio: '1/1', cursor: showVideo ? 'default' : 'zoom-in' }}
+        onMouseEnter={() => setMainHovered(true)}
+        onMouseLeave={() => setMainHovered(false)}
       >
-        <Image
-          src={images[current]}
-          alt={name}
-          fill
-          className="object-contain p-6"
-          style={{
-            transform: hovered ? 'scale(1.09)' : 'scale(1)',
-            transition: 'transform 0.35s ease',
-          }}
-        />
-        {images.length > 1 && (
-          <div
-            className="absolute bottom-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full"
-            style={{
-              background: 'rgba(15,23,42,0.5)',
-              color: 'rgba(255,255,255,0.92)',
-              backdropFilter: 'blur(6px)',
-            }}
-          >
-            {current + 1} / {images.length}
-          </div>
+        {showVideo && videoId ? (
+          <iframe
+            src={`https://www.youtube.com/embed/${videoId}?autoplay=1`}
+            title="YouTube video"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="w-full h-full"
+            style={{ border: 'none' }}
+          />
+        ) : (
+          <>
+            {images.length > 0 && (
+              <Image
+                src={images[current]}
+                alt={name}
+                fill
+                className="object-contain p-6"
+                style={{
+                  transform: mainHovered ? 'scale(1.09)' : 'scale(1)',
+                  transition: 'transform 0.35s ease',
+                }}
+              />
+            )}
+            {totalCount > 1 && (
+              <div
+                className="absolute bottom-3 right-3 text-xs font-semibold px-2.5 py-1 rounded-full"
+                style={{
+                  background: 'rgba(15,23,42,0.5)',
+                  color: 'rgba(255,255,255,0.92)',
+                  backdropFilter: 'blur(6px)',
+                }}
+              >
+                {current + 1} / {totalCount}
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {images.length > 1 && (
+      {/* Thumbnail strip */}
+      {totalCount > 1 && (
         <div className="flex gap-2.5 mt-3 overflow-x-auto pb-0.5 pt-0.5">
           {images.map((img, i) => (
             <button
               key={i}
-              onClick={() => setCurrent(i)}
+              onMouseEnter={() => { setShowVideo(false); setCurrent(i) }}
               className="relative shrink-0 rounded-xl overflow-hidden transition-all duration-200"
               style={{
-                width: 80,
-                height: 80,
-                border: i === current ? '2px solid #1565C0' : '2px solid #E2E8F0',
-                boxShadow: i === current ? '0 0 0 3px rgba(21,101,192,0.15), 0 4px 12px rgba(21,101,192,0.12)' : 'none',
+                width: 80, height: 80,
+                border: !showVideo && i === current ? '2px solid #1565C0' : '2px solid #E2E8F0',
+                boxShadow: !showVideo && i === current ? '0 0 0 3px rgba(21,101,192,0.15), 0 4px 12px rgba(21,101,192,0.12)' : 'none',
                 background: '#F8FAFC',
-                transform: i === current ? 'scale(1.06)' : 'scale(1)',
+                transform: !showVideo && i === current ? 'scale(1.06)' : 'scale(1)',
               }}
             >
               <Image src={img} alt="" fill className="object-contain p-1.5" />
             </button>
           ))}
+
+          {videoId && (
+            <button
+              onClick={() => setShowVideo(true)}
+              title="Смотреть видео"
+              className="relative shrink-0 rounded-xl overflow-hidden transition-all duration-200"
+              style={{
+                width: 80, height: 80,
+                border: showVideo ? '2px solid #EF4444' : '2px solid #E2E8F0',
+                boxShadow: showVideo ? '0 0 0 3px rgba(239,68,68,0.15), 0 4px 12px rgba(239,68,68,0.12)' : 'none',
+                background: '#0F172A',
+                transform: showVideo ? 'scale(1.06)' : 'scale(1)',
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={`https://img.youtube.com/vi/${videoId}/mqdefault.jpg`}
+                alt="video"
+                className="w-full h-full object-cover"
+                style={{ opacity: 0.5 }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div
+                  className="w-9 h-9 rounded-full flex items-center justify-center shadow-lg"
+                  style={{ background: '#FF0000' }}
+                >
+                  <svg viewBox="0 0 24 24" fill="white" style={{ width: 15, height: 15, marginLeft: 2 }}>
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                </div>
+              </div>
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -192,7 +245,7 @@ export default function ProductDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
         {/* Left: image + specs */}
         <div>
-          <ImageGallery images={product.images ?? []} name={name} />
+          <ImageGallery images={product.images ?? []} name={name} videoUrl={product.video_url} />
           {product.specs && Object.keys(product.specs).length > 0 && (
             <div className="mt-6">
               <h2 className="section-title text-lg mb-3">{tr.product.specifications}</h2>
@@ -275,27 +328,6 @@ export default function ProductDetailPage() {
         </section>
       )}
 
-      {/* YouTube Video */}
-      {product.video_url && (() => {
-        const match = product.video_url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)
-        const videoId = match?.[1]
-        if (!videoId) return null
-        return (
-          <section className="mb-10">
-            <h2 className="section-title text-lg mb-4">Видео</h2>
-            <div className="steel-card overflow-hidden" style={{ aspectRatio: '16/9' }}>
-              <iframe
-                src={`https://www.youtube.com/embed/${videoId}`}
-                title="YouTube video"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full"
-                style={{ border: 'none' }}
-              />
-            </div>
-          </section>
-        )
-      })()}
 
       {/* Аксессуары */}
       {product.accessories && product.accessories.length > 0 && (
