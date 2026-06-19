@@ -94,6 +94,95 @@ function RestockModal({ item, onClose, onDone }: {
   )
 }
 
+function DispatchModal({ item, onClose, onDone }: {
+  item: WarehouseItem; onClose: () => void; onDone: () => void
+}) {
+  const { user } = useAdminAuth()
+  const [qty, setQty] = useState(1)
+  const [note, setNote] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const name = (item.product as { name_ru?: string } | undefined)?.name_ru || '—'
+  const maxQty = item.quantity
+
+  const submit = async () => {
+    if (qty > maxQty) { setError(`Нельзя списать больше ${maxQty} шт.`); return }
+    setLoading(true)
+    await fetch('/api/warehouse/transactions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        product_id: item.product_id,
+        barcode: item.barcode,
+        type: 'out',
+        quantity: qty,
+        note: note || 'Продажа',
+        performed_by_name: user?.full_name || user?.email || null,
+      }),
+    })
+    setLoading(false)
+    onDone()
+    onClose()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
+      onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}>
+      <div className="w-full max-w-sm rounded-2xl p-6" style={{ background: '#111827', border: '1px solid rgba(239,68,68,0.2)' }}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="text-sm font-bold text-white flex items-center gap-2">
+              <ArrowUp size={14} style={{ color: '#f87171' }} /> Списать / Продажа
+            </h2>
+            <p className="text-[11px] mt-0.5 line-clamp-1" style={{ color: 'rgba(255,255,255,0.4)' }}>{name}</p>
+          </div>
+          <button onClick={onClose} style={{ color: 'rgba(255,255,255,0.4)' }}><X size={16} /></button>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              Списать количество (в наличии: <span style={{ color: '#34d399' }}>{maxQty}</span>)
+            </label>
+            <div className="flex items-center gap-0">
+              <button onClick={() => setQty(q => Math.max(1, q - 1))}
+                style={{ width: 40, height: 40, borderRadius: '8px 0 0 8px', background: '#1f2937', border: '1px solid rgba(255,255,255,0.1)', color: 'white', cursor: 'pointer' }}>
+                −
+              </button>
+              <div style={{ flex: 1, height: 40, border: '1px solid rgba(255,255,255,0.1)', borderLeft: 'none', borderRight: 'none', background: '#0d1421', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span className="text-white font-bold text-lg">{qty}</span>
+              </div>
+              <button onClick={() => setQty(q => Math.min(maxQty, q + 1))}
+                style={{ width: 40, height: 40, borderRadius: '0 8px 8px 0', background: '#DC2626', border: '1px solid #DC2626', color: 'white', cursor: 'pointer' }}>
+                +
+              </button>
+            </div>
+            {error && <p className="text-[11px] mt-1.5" style={{ color: '#f87171' }}>{error}</p>}
+          </div>
+          <div>
+            <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Примечание</label>
+            <input type="text" value={note} onChange={e => setNote(e.target.value)}
+              placeholder="Продажа, выдача, брак..."
+              className="steel-input w-full text-sm" />
+          </div>
+          <div className="flex gap-2 pt-1">
+            <button onClick={submit} disabled={loading || maxQty === 0}
+              style={{ flex: 1, padding: '10px', borderRadius: 8, background: 'linear-gradient(135deg,#DC2626,#B91C1C)', color: 'white', fontWeight: 700, fontSize: 13, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: maxQty === 0 ? 0.5 : 1 }}>
+              {loading ? <Loader2 size={14} className="animate-spin" /> : <ArrowUp size={14} />}
+              Списать −{qty} шт.
+            </button>
+            <button onClick={onClose} style={{ padding: '10px 16px', borderRadius: 8, background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', fontSize: 13 }}>
+              Отмена
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function AdminWarehousePage() {
   const [items, setItems] = useState<WarehouseItem[]>([])
   const [transactions, setTransactions] = useState<WarehouseTransaction[]>([])
@@ -101,6 +190,7 @@ export default function AdminWarehousePage() {
   const [view, setView] = useState<View>('all')
   const [loading, setLoading] = useState(true)
   const [restockItem, setRestockItem] = useState<WarehouseItem | null>(null)
+  const [dispatchItem, setDispatchItem] = useState<WarehouseItem | null>(null)
 
   const load = () => {
     Promise.all([
@@ -251,14 +341,21 @@ export default function AdminWarehousePage() {
                         {isLow && <p className="text-[9px] font-bold" style={{ color: '#fbbf24' }}>МАЛО</p>}
                       </td>
                       <td className="px-4 py-3 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>{item.location || '—'}</td>
-                      <td className="px-4 py-3 text-right">
-                        {(isOut || isLow) && (
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {item.quantity > 0 && (
+                            <button onClick={() => setDispatchItem(item)}
+                              className="flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-lg"
+                              style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.15)', cursor: 'pointer' }}>
+                              <ArrowUp size={10} /> Расход
+                            </button>
+                          )}
                           <button onClick={() => setRestockItem(item)}
-                            className="flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1.5 rounded-lg ml-auto"
-                            style={{ background: 'rgba(16,185,129,0.1)', color: '#34d399', border: '1px solid rgba(16,185,129,0.2)', cursor: 'pointer' }}>
-                            <PackagePlus size={11} /> Пополнить
+                            className="flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-lg"
+                            style={{ background: 'rgba(16,185,129,0.08)', color: '#34d399', border: '1px solid rgba(16,185,129,0.15)', cursor: 'pointer' }}>
+                            <PackagePlus size={10} /> Приход
                           </button>
-                        )}
+                        </div>
                       </td>
                     </tr>
                   )
@@ -322,6 +419,13 @@ export default function AdminWarehousePage() {
         <RestockModal
           item={restockItem}
           onClose={() => setRestockItem(null)}
+          onDone={() => { setLoading(true); load() }}
+        />
+      )}
+      {dispatchItem && (
+        <DispatchModal
+          item={dispatchItem}
+          onClose={() => setDispatchItem(null)}
           onDone={() => { setLoading(true); load() }}
         />
       )}
