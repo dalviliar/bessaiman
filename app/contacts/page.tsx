@@ -26,7 +26,7 @@ export default function ContactsPage() {
       setFormState({ name: '', email: '', message: '' })
       setTimeout(() => setSent(false), 6000)
     } catch {
-      setError('Не удалось отправить. Попробуйте позже или напишите напрямую на email.')
+      setError(tr.contacts.sendError)
     } finally {
       setSending(false)
     }
@@ -95,8 +95,8 @@ export default function ContactsPage() {
             <div className="flex flex-col items-center justify-center py-12 text-center gap-4">
               <CheckCircle size={48} className="text-emerald-400" />
               <div>
-                <div className="text-[#0F172A] font-semibold text-lg">Сообщение отправлено!</div>
-                <div className="text-steel-silver text-sm mt-1">Мы свяжемся с вами в ближайшее время</div>
+                <div className="text-[#0F172A] font-semibold text-lg">{tr.contacts.messageSent}</div>
+                <div className="text-steel-silver text-sm mt-1">{tr.contacts.messageDelay}</div>
               </div>
             </div>
           ) : (
@@ -138,7 +138,7 @@ export default function ContactsPage() {
               )}
               <button type="submit" disabled={sending} className="btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-60">
                 <Send size={16} />
-                {sending ? 'Отправка...' : tr.contacts.send}
+                {sending ? tr.contacts.sending : tr.contacts.send}
               </button>
             </form>
           )}
@@ -150,7 +150,7 @@ export default function ContactsPage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Navigation size={15} style={{ color: '#1565C0' }} />
-            <span className="font-semibold text-sm" style={{ color: '#0F172A' }}>Как нас найти</span>
+            <span className="font-semibold text-sm" style={{ color: '#0F172A' }}>{tr.contacts.howToFind}</span>
           </div>
           <div className="flex items-center gap-2">
             <a
@@ -196,7 +196,7 @@ export default function ContactsPage() {
             }}
           >
             <MapPin size={13} style={{ color: '#1565C0', flexShrink: 0 }} />
-            <span className="text-xs font-medium" style={{ color: '#0F172A' }}>ул. Тулебаева 38, Алматы</span>
+            <span className="text-xs font-medium" style={{ color: '#0F172A' }}>{tr.contacts.mapAddress}</span>
           </div>
         </div>
       </div>

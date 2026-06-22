@@ -31,69 +31,13 @@ function Counter({ to, suffix = '' }: { to: number; suffix?: string }) {
   return <>{val}{suffix}</>
 }
 
-const categories = [
-  {
-    code: 'SFM',
-    title: 'Муфельные печи',
-    spec: 'до 1200°C · 1–12 л',
-    desc: 'Серийные муфельные печи с PID-контроллером. 6 объёмов камеры, 3 класса температур.',
-    stat: '6 моделей',
-    href: '/catalog?category=sfm',
-  },
-  {
-    code: 'SFTH',
-    title: 'Трубчатые печи',
-    spec: '1100–1200°C · 1–3 зоны',
-    desc: 'Горизонтальные, вертикальные и мультипозиционные трубчатые печи. Диаметр 25–100 мм.',
-    stat: '6 моделей',
-    href: '/catalog?category=sfth',
-  },
-  {
-    code: 'SM',
-    title: 'Измельчение',
-    spec: 'до 650 об/мин',
-    desc: 'Горизонтальные и планетарные шаровые мельницы, вибрационные ситовые анализаторы.',
-    stat: '4 модели',
-    href: '/catalog?category=sm',
-  },
-  {
-    code: 'SS',
-    title: 'Установки синтеза',
-    spec: '< 0.1 ppm · до 50 кВ',
-    desc: 'Вакуумные перчаточные боксы, электроспиннинг, термопласты для синтеза материалов.',
-    stat: '4 модели',
-    href: '/catalog?category=ss',
-  },
-  {
-    code: 'FUR',
-    title: 'Лабораторная мебель',
-    spec: 'шкафы · столы',
-    desc: 'Вытяжные и газовые шкафы, сушильные шкафы, лабораторные и антивибрационные столы.',
-    stat: '12 моделей',
-    href: '/catalog?category=furniture',
-  },
-  {
-    code: 'PA',
-    title: 'Комплектующие',
-    spec: 'нагреватели · контроллеры',
-    desc: 'Нагревательные плиты, блоки управления температурой, системы подачи газа.',
-    stat: '4 позиции',
-    href: '/catalog?category=pa',
-  },
-]
-
-const STATS = [
-  { num: 200, suf: '+', label: 'позиций' },
-  { num: 5,   suf: '+', label: 'лет на рынке' },
-  { num: 50,  suf: '+', label: 'партнёров' },
-]
-
 function NewsModal({ post, onClose, postTitle, postContent }: {
   post: NewsPost
   onClose: () => void
   postTitle: (p: NewsPost) => string
   postContent: (p: NewsPost) => string | null
 }) {
+  const { tr } = useLang()
   return (
     <div
       className="fixed inset-0 z-[200] flex items-center justify-center p-4"
@@ -112,7 +56,7 @@ function NewsModal({ post, onClose, postTitle, postContent }: {
           <div className="flex items-center gap-2 mb-4">
             <span className="text-[10px] font-black tracking-wide px-3 py-1 rounded-full"
               style={{ background: post.type === 'announcement' ? '#FEF3C7' : '#EFF6FF', color: post.type === 'announcement' ? '#B45309' : '#1D4ED8' }}>
-              {post.type === 'announcement' ? '⚡ Уведомление' : '● Новость'}
+              {post.type === 'announcement' ? `⚡ ${tr.home.tagAnnouncement.replace('● ', '')}` : tr.home.tagNews}
             </span>
             {post.published_at && (
               <span className="text-[11px]" style={{ color: '#94A3B8' }}>
@@ -133,14 +77,14 @@ function NewsModal({ post, onClose, postTitle, postContent }: {
               className="mt-5 inline-flex items-center gap-2 text-sm font-semibold py-2.5 px-5 rounded-full"
               style={{ background: 'linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)', color: 'white' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-              Посмотреть в Instagram
+              {tr.home.instagramBtn}
             </a>
           )}
           <div className="mt-6 flex justify-end">
             <button onClick={onClose}
               className="px-5 py-2 rounded-lg text-sm font-semibold"
               style={{ border: '1.5px solid #E2E8F0', color: '#64748B' }}>
-              Закрыть
+              {tr.home.closeBtn}
             </button>
           </div>
         </div>
@@ -157,6 +101,7 @@ interface Partner {
 }
 
 function PartnersSection() {
+  const { tr } = useLang()
   const [partners, setPartners] = useState<Partner[]>([])
 
   useEffect(() => {
@@ -170,9 +115,9 @@ function PartnersSection() {
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-14">
         <div className="text-center mb-10">
           <p className="text-[10px] font-mono tracking-[0.25em] mb-3 font-bold" style={{ color: '#94A3B8' }}>
-            НАШИ ПАРТНЁРЫ
+            {tr.home.partnersLabel}
           </p>
-          <h2 className="text-2xl font-black" style={{ color: '#0F172A' }}>Работаем с ведущими организациями</h2>
+          <h2 className="text-2xl font-black" style={{ color: '#0F172A' }}>{tr.home.partnersTitle}</h2>
         </div>
         <div className="flex flex-wrap justify-center gap-5">
           {partners.map(p => {
@@ -218,7 +163,7 @@ function PartnersSection() {
 }
 
 export default function HomePage() {
-  const { lang } = useLang()
+  const { lang, tr } = useLang()
   const [hovCard, setHovCard] = useState<string | null>(null)
   const [news, setNews] = useState<NewsPost[]>([])
   const [selectedPost, setSelectedPost] = useState<NewsPost | null>(null)
@@ -236,6 +181,15 @@ export default function HomePage() {
   useEffect(() => {
     fetch('/api/news?limit=5').then(r => r.json()).then(d => setNews(Array.isArray(d) ? d : []))
   }, [])
+
+  const categories = [
+    { code: 'SFM',  title: tr.home.cat_sfm_title,  spec: tr.home.cat_sfm_spec,  desc: tr.home.cat_sfm_desc,  stat: tr.home.cat_sfm_stat,  href: '/catalog?category=sfm' },
+    { code: 'SFTH', title: tr.home.cat_sfth_title, spec: tr.home.cat_sfth_spec, desc: tr.home.cat_sfth_desc, stat: tr.home.cat_sfth_stat, href: '/catalog?category=sfth' },
+    { code: 'SM',   title: tr.home.cat_sm_title,   spec: tr.home.cat_sm_spec,   desc: tr.home.cat_sm_desc,   stat: tr.home.cat_sm_stat,   href: '/catalog?category=sm' },
+    { code: 'SS',   title: tr.home.cat_ss_title,   spec: tr.home.cat_ss_spec,   desc: tr.home.cat_ss_desc,   stat: tr.home.cat_ss_stat,   href: '/catalog?category=ss' },
+    { code: 'FUR',  title: tr.home.cat_fur_title,  spec: tr.home.cat_fur_spec,  desc: tr.home.cat_fur_desc,  stat: tr.home.cat_fur_stat,  href: '/catalog?category=furniture' },
+    { code: 'PA',   title: tr.home.cat_pa_title,   spec: tr.home.cat_pa_spec,   desc: tr.home.cat_pa_desc,   stat: tr.home.cat_pa_stat,   href: '/catalog?category=pa' },
+  ]
 
   return (
     <div style={{ background: '#F8FAFC', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
@@ -269,22 +223,22 @@ export default function HomePage() {
               style={{ background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
               <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#1565C0', boxShadow: '0 0 6px rgba(21,101,192,0.6)' }} />
               <span className="text-[10px] font-mono tracking-[0.2em]" style={{ color: '#1565C0', fontWeight: 700 }}>
-                НАУЧНО-ПРОИЗВОДСТВЕННОЕ ПРЕДПРИЯТИЕ
+                {tr.hero.badge}
               </span>
             </div>
 
             <h1 className="font-black select-none" style={{ fontSize: 'clamp(2.6rem,5.5vw,4.2rem)', letterSpacing: '-0.025em', lineHeight: 1.02 }}>
-              <span style={{ display: 'block', color: '#0F172A' }}>ОТ ИДЕИ</span>
+              <span style={{ display: 'block', color: '#0F172A' }}>{tr.hero.title1}</span>
               <span style={{
                 display: 'block',
                 background: 'linear-gradient(90deg,#1565C0 0%,#0284C7 60%,#0EA5E9 100%)',
                 WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text',
-              }}>ДО ПУСКА</span>
+              }}>{tr.hero.title2}</span>
             </h1>
 
             <p className="text-sm leading-[1.85] max-w-md"
               style={{ color: '#475569', borderLeft: '2px solid #BFDBFE', paddingLeft: 14 }}>
-              Проектируем и производим высокотемпературные печи, шаровые мельницы, вакуумные камеры и установки электроспиннинга — от технического задания до запуска в эксплуатацию.
+              {tr.hero.desc}
             </p>
 
             <div className="flex items-center gap-3 flex-wrap">
@@ -293,21 +247,21 @@ export default function HomePage() {
                 style={{ background: 'linear-gradient(135deg,#1260C0,#0284C7)', color: 'white', letterSpacing: '0.07em', borderRadius: 8, boxShadow: '0 4px 20px rgba(21,101,192,0.3)' }}>
                 <span className="absolute inset-y-0 w-12 pointer-events-none"
                   style={{ background: 'linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent)', animation: 'beam-slide 4s 1s ease-in-out infinite' }} />
-                СМОТРЕТЬ КАТАЛОГ
+                {tr.hero.cta}
               </Link>
               <Link href="/contacts"
                 className="px-7 py-3.5 font-bold text-sm transition-all hover:-translate-y-0.5"
                 style={{ border: '1.5px solid #CBD5E1', color: '#475569', letterSpacing: '0.07em', borderRadius: 8, background: 'white' }}>
-                СВЯЗАТЬСЯ
+                {tr.hero.ctaSecondary}
               </Link>
             </div>
 
             {/* Stats */}
             <div className="flex items-stretch gap-0 pt-1">
               {[
-                { num: siteStats.products, suf: '+', label: 'позиций' },
-                { num: siteStats.years,    suf: '+', label: 'лет на рынке' },
-                { num: siteStats.clients,  suf: '+', label: 'партнёров' },
+                { num: siteStats.products, suf: '+', label: tr.hero.statProducts },
+                { num: siteStats.years,    suf: '+', label: tr.hero.statYears },
+                { num: siteStats.clients,  suf: '+', label: tr.hero.statPartners },
               ].map(({ num, suf, label }, i) => (
                 <div key={label} className="flex flex-col px-5 py-3 text-center"
                   style={{ borderLeft: i === 0 ? 'none' : '1px solid #E2E8F0' }}>
@@ -335,10 +289,10 @@ export default function HomePage() {
       <div style={{ background: '#F1F5F9', borderBottom: '1px solid #E2E8F0' }}>
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-3 flex items-center justify-between flex-wrap gap-3">
           <span className="text-[9px] font-mono tracking-[0.2em] font-bold" style={{ color: '#94A3B8' }}>
-            КАТАЛОГ ПРОДУКЦИИ
+            {tr.home.specStrip}
           </span>
           <div style={{ flex: 1, height: 1, background: '#E2E8F0', margin: '0 12px' }} />
-          {['T: 25°C — 1800°C', '±0.001 MM', 'КАЗАХСТАН · АЛМАТЫ', 'ISO 9001'].map(t => (
+          {['T: 25°C — 1800°C', '±0.001 MM', 'KAZAKHSTAN · ALMATY', 'ISO 9001'].map(t => (
             <span key={t} className="text-[9px] font-mono tracking-widest" style={{ color: '#94A3B8' }}>{t}</span>
           ))}
         </div>
@@ -353,16 +307,16 @@ export default function HomePage() {
               <div>
                 <div className="flex items-center gap-2.5 mb-2">
                   <div style={{ width: 28, height: 2.5, background: 'linear-gradient(90deg,#1565C0,#0EA5E9)', borderRadius: 2 }} />
-                  <span className="text-[10px] font-mono tracking-[0.22em] font-bold" style={{ color: '#1565C0' }}>АКТУАЛЬНО</span>
+                  <span className="text-[10px] font-mono tracking-[0.22em] font-bold" style={{ color: '#1565C0' }}>{tr.home.newsLabel}</span>
                 </div>
                 <h2 className="font-black leading-tight" style={{ fontSize: 'clamp(1.4rem,3vw,1.9rem)', color: '#0F172A' }}>
-                  Новости и акции
+                  {tr.home.newsTitle}
                 </h2>
               </div>
               <Link href="/news"
                 className="flex items-center gap-2 text-xs font-semibold px-5 py-2.5 rounded-full transition-all hover:-translate-y-0.5"
                 style={{ background: 'white', color: '#1565C0', border: '1px solid #BFDBFE', boxShadow: '0 2px 8px rgba(21,101,192,0.08)' }}>
-                Все публикации →
+                {tr.home.allPosts}
               </Link>
             </div>
 
@@ -402,7 +356,7 @@ export default function HomePage() {
                         <div className="inline-flex items-center gap-1.5 mb-3 px-3 py-1.5 rounded-full"
                           style={{ background: isAnn ? 'rgba(79,70,229,0.9)' : 'rgba(21,101,192,0.95)', backdropFilter: 'blur(8px)' }}>
                           <span className="text-[10px] font-black tracking-widest text-white">
-                            {isAnn ? '● УВЕДОМЛЕНИЕ' : '● НОВОСТЬ'}
+                            {isAnn ? tr.home.tagAnnouncement : tr.home.tagNews}
                           </span>
                         </div>
                         <h3 className="font-black leading-tight mb-2 text-white"
@@ -423,7 +377,7 @@ export default function HomePage() {
                           </span>
                           <span className="text-[11px] font-semibold px-3 py-1 rounded-full"
                             style={{ background: 'rgba(255,255,255,0.15)', color: 'white', backdropFilter: 'blur(8px)' }}>
-                            Читать →
+                            {tr.home.readMore}
                           </span>
                         </div>
                       </div>
@@ -453,7 +407,7 @@ export default function HomePage() {
                         <div className="flex items-center gap-2 mb-1.5">
                           <span className="text-[9px] font-black tracking-wide px-2 py-0.5 rounded-full"
                             style={{ background: isAnn ? '#EEF2FF' : '#EFF6FF', color: isAnn ? '#3730A3' : '#1D4ED8' }}>
-                            {isAnn ? '● ВАЖНО' : '● НОВОСТЬ'}
+                            {isAnn ? tr.home.tagImportant : tr.home.tagNews}
                           </span>
                           <span className="text-[9px] font-mono" style={{ color: '#94A3B8' }}>
                             {post.published_at
@@ -477,8 +431,8 @@ export default function HomePage() {
                   className="flex items-center justify-between px-5 py-4 rounded-xl transition-all hover:-translate-y-0.5"
                   style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', boxShadow: '0 4px 16px rgba(21,101,192,0.25)' }}>
                   <div>
-                    <p className="text-xs font-black text-white mb-0.5">Все публикации</p>
-                    <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.6)' }}>Новости, акции, уведомления</p>
+                    <p className="text-xs font-black text-white mb-0.5">{tr.home.allPostsBtn}</p>
+                    <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.6)' }}>{tr.home.allPostsDesc}</p>
                   </div>
                   <span className="text-white text-lg font-black">→</span>
                 </Link>
@@ -495,12 +449,12 @@ export default function HomePage() {
           <div className="flex items-center gap-4 mb-8">
             <div style={{ width: 32, height: 2, background: 'linear-gradient(90deg,#1565C0,transparent)', borderRadius: 2 }} />
             <span className="text-[10px] font-mono tracking-[0.22em] font-bold" style={{ color: '#1565C0' }}>
-              ЛИНЕЙКА ПРОДУКТОВ
+              {tr.home.productsLine}
             </span>
             <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
             <Link href="/catalog" className="text-[11px] font-semibold transition-colors hover:text-[#1565C0]"
               style={{ color: '#94A3B8' }}>
-              Весь каталог →
+              {tr.home.viewAll}
             </Link>
           </div>
 
@@ -548,7 +502,7 @@ export default function HomePage() {
 
                   <div className="flex items-center gap-1.5 mt-auto pt-1 text-xs font-semibold"
                     style={{ color: hov ? '#1565C0' : '#94A3B8', transition: 'color 0.2s' }}>
-                    Смотреть каталог
+                    {tr.home.viewCatalog}
                     <span style={{ transform: hov ? 'translateX(3px)' : 'none', transition: 'transform 0.2s', display: 'inline-block' }}>→</span>
                   </div>
                 </Link>
@@ -558,7 +512,6 @@ export default function HomePage() {
         </div>
       </section>
 
-
       {/* ══ PARTNERS ══ */}
       <PartnersSection />
 
@@ -567,11 +520,11 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-5 flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-2">
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
-            <span className="font-mono text-[9px] tracking-widest" style={{ color: '#94A3B8' }}>ОНЛАЙН</span>
+            <span className="font-mono text-[9px] tracking-widest" style={{ color: '#94A3B8' }}>{tr.home.footerOnline}</span>
           </div>
           <span className="font-black text-sm tracking-widest" style={{ color: '#CBD5E1' }}>BES SAIMAN GROUP</span>
           <span className="text-[10px] font-mono" style={{ color: '#94A3B8' }}>
-            © 2026 · Казахстан · bessaimangroup1@gmail.com
+            © 2026 · Kazakhstan · bessaimangroup1@gmail.com
           </span>
         </div>
       </footer>

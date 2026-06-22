@@ -12,26 +12,10 @@ export default function AboutPage() {
   }, [])
 
   const values = [
-    {
-      icon: <Wrench size={24} className="text-steel-accent" />,
-      title: 'Разработка. Производство. Применение.',
-      desc: 'Проектируем и производим современное оборудование и пилотные установки для лабораторий, научно-исследовательских центров, промышленных и медицинских предприятий.',
-    },
-    {
-      icon: <Target size={24} className="text-steel-accent" />,
-      title: 'Серийность. Индивидуальность. Точность.',
-      desc: 'Предлагаем серийные решения и уникальные разработки по техническому заданию клиента. Каждое изделие адаптируется под конкретные задачи.',
-    },
-    {
-      icon: <Lightbulb size={24} className="text-steel-accent" />,
-      title: 'Связь. Идея. Внедрение.',
-      desc: 'Мы — мост между инновационными идеями учёных и реальными производственными решениями. От концепции до готового продукта.',
-    },
-    {
-      icon: <TrendingUp size={24} className="text-steel-accent" />,
-      title: 'Достижения. Поддержка. Развитие.',
-      desc: 'Участвуем в научно-технических программах, поддерживаем исследования в области наноматериалов, энергонакопителей и зелёного водорода.',
-    },
+    { icon: <Wrench size={24} className="text-steel-accent" />,    title: tr.about.v1Title, desc: tr.about.v1Desc },
+    { icon: <Target size={24} className="text-steel-accent" />,    title: tr.about.v2Title, desc: tr.about.v2Desc },
+    { icon: <Lightbulb size={24} className="text-steel-accent" />, title: tr.about.v3Title, desc: tr.about.v3Desc },
+    { icon: <TrendingUp size={24} className="text-steel-accent" />,title: tr.about.v4Title, desc: tr.about.v4Desc },
   ]
 
   return (
@@ -52,10 +36,10 @@ export default function AboutPage() {
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-16">
         {[
-          { value: stats.products > 0 ? `${stats.products}+` : '—', label: 'Единиц оборудования' },
-          { value: stats.clients > 0  ? `${stats.clients}+`  : '—', label: 'Клиентов' },
-          { value: `${stats.years}+`,                                 label: 'Лет опыта' },
-          { value: stats.categories > 0 ? String(stats.categories) : '—', label: 'Категорий оборудования' },
+          { value: stats.products > 0 ? `${stats.products}+` : '—', label: tr.about.statsEquipment },
+          { value: stats.clients > 0  ? `${stats.clients}+`  : '—', label: tr.about.statsClients },
+          { value: `${stats.years}+`,                                 label: tr.about.statsYears },
+          { value: stats.categories > 0 ? String(stats.categories) : '—', label: tr.about.statsCategories },
         ].map((s) => (
           <div key={s.label} className="steel-card p-6 text-center">
             <div className="text-3xl font-black text-steel-accent mb-1">{s.value}</div>
@@ -88,7 +72,7 @@ export default function AboutPage() {
             BES <span className="text-steel-accent">SAIMAN</span>
           </div>
           <p className="text-steel-silver max-w-lg mx-auto">
-            Научно-производственная компания. Оборудование для науки и промышленности. Индивидуальные разработки под заказ. Работаем по РК и СНГ.
+            {tr.about.besDesc}
           </p>
         </div>
       </div>

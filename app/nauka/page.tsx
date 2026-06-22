@@ -4,46 +4,22 @@ import { useEffect, useState } from 'react'
 import { FlaskConical, Microscope, Atom, Zap, BookOpen, Award } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 
-const directions = [
-  {
-    icon: <FlaskConical size={28} />,
-    title: 'Электроспиннинг',
-    desc: 'Разработка и производство установок для формирования нановолокон методом электростатического прядения. Применяется в биомедицине, фильтрации и энергетике.',
-  },
-  {
-    icon: <Atom size={28} />,
-    title: 'Наноматериалы',
-    desc: 'Исследования в области синтеза и применения наноматериалов: нанопорошки, нанокомпозиты, нановолокна для промышленных и научных задач.',
-  },
-  {
-    icon: <Zap size={28} />,
-    title: 'Зелёный водород',
-    desc: 'Участие в программах по развитию технологий зелёного водорода — электролизёры, накопители энергии, водородные топливные ячейки.',
-  },
-  {
-    icon: <Microscope size={28} />,
-    title: 'Лабораторное термооборудование',
-    desc: 'Высокотемпературные муфельные и трубчатые печи для материаловедения, спекания, отжига и других термических процессов.',
-  },
-  {
-    icon: <BookOpen size={28} />,
-    title: 'Научные публикации',
-    desc: 'Сотрудничество с университетами и НИИ Казахстана. Поддержка публикаций и патентования разработок совместно с научными партнёрами.',
-  },
-  {
-    icon: <Award size={28} />,
-    title: 'Гранты и программы',
-    desc: 'Участие в государственных научно-технических программах Казахстана. Поддержка стартапов и R&D проектов в области передовых материалов.',
-  },
-]
-
 export default function NaukaPage() {
-  const { tr: _tr } = useLang()
+  const { tr } = useLang()
   const [partners, setPartners] = useState<{ id: string; name: string; logo_url: string | null; website_url: string | null }[]>([])
 
   useEffect(() => {
     fetch('/api/partners').then(r => r.json()).then(d => setPartners(Array.isArray(d) ? d : [])).catch(() => {})
   }, [])
+
+  const directions = [
+    { icon: <FlaskConical size={28} />, title: tr.nauka.d1Title, desc: tr.nauka.d1Desc },
+    { icon: <Atom size={28} />,         title: tr.nauka.d2Title, desc: tr.nauka.d2Desc },
+    { icon: <Zap size={28} />,          title: tr.nauka.d3Title, desc: tr.nauka.d3Desc },
+    { icon: <Microscope size={28} />,   title: tr.nauka.d4Title, desc: tr.nauka.d4Desc },
+    { icon: <BookOpen size={28} />,     title: tr.nauka.d5Title, desc: tr.nauka.d5Desc },
+    { icon: <Award size={28} />,        title: tr.nauka.d6Title, desc: tr.nauka.d6Desc },
+  ]
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -55,11 +31,10 @@ export default function NaukaPage() {
           Bes Saiman Group
         </div>
         <h1 className="text-4xl font-black mb-4" style={{ color: '#0F172A' }}>
-          Наука и инновации
+          {tr.nauka.heroTitle}
         </h1>
         <p className="text-lg max-w-2xl mx-auto" style={{ color: '#64748B' }}>
-          Мы соединяем науку и производство — от фундаментальных исследований до готовых технических решений
-          для лабораторий, университетов и промышленных предприятий.
+          {tr.nauka.heroSubtitle}
         </p>
       </div>
 
@@ -87,13 +62,13 @@ export default function NaukaPage() {
 
       {/* Scientific partners */}
       <div className="rounded-2xl p-8 mb-12" style={{ background: 'linear-gradient(135deg, #EBF2FB 0%, #F0F9FF 100%)', border: '1px solid rgba(21,101,192,0.12)' }}>
-        <h2 className="text-2xl font-bold mb-2" style={{ color: '#0F172A' }}>Научные партнёры</h2>
+        <h2 className="text-2xl font-bold mb-2" style={{ color: '#0F172A' }}>{tr.nauka.partnersTitle}</h2>
         <p className="text-sm mb-6" style={{ color: '#64748B' }}>
-          Мы активно сотрудничаем с ведущими учебными и научными организациями Казахстана.
+          {tr.nauka.partnersSubtitle}
         </p>
         <div className="flex flex-wrap gap-3">
           {partners.length === 0 ? (
-            <span className="text-sm" style={{ color: '#94A3B8' }}>Партнёры не добавлены</span>
+            <span className="text-sm" style={{ color: '#94A3B8' }}>{tr.nauka.noPartners}</span>
           ) : partners.map((p) => {
             const card = (
               <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl transition-all duration-200"
@@ -113,16 +88,16 @@ export default function NaukaPage() {
 
       {/* CTA */}
       <div className="text-center p-10 rounded-2xl" style={{ background: 'linear-gradient(135deg, #1565C0 0%, #0284C7 100%)' }}>
-        <h2 className="text-2xl font-bold text-white mb-3">Хотите сотрудничать?</h2>
+        <h2 className="text-2xl font-bold text-white mb-3">{tr.nauka.ctaTitle}</h2>
         <p className="text-blue-100 mb-6 text-sm">
-          Мы открыты к совместным исследованиям, разработке оборудования по ТЗ и участию в научных программах.
+          {tr.nauka.ctaSubtitle}
         </p>
         <a
           href="/contacts"
           className="inline-block px-8 py-3 rounded-xl font-semibold text-sm transition-all"
           style={{ background: '#FFFFFF', color: '#1565C0' }}
         >
-          Связаться с нами
+          {tr.nauka.ctaButton}
         </a>
       </div>
 
