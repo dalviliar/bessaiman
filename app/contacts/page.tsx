@@ -39,6 +39,50 @@ export default function ContactsPage() {
         <div className="h-1 w-16 rounded-full" style={{ background: 'linear-gradient(90deg, #1565C0, #00B0FF)' }} />
       </div>
 
+      {/* Map */}
+      <div className="mb-8 rounded-2xl overflow-hidden" style={{ border: '1px solid #E2E8F0', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+        <div className="relative" style={{ height: 320 }}>
+          <iframe
+            src="https://maps.google.com/maps?q=%D0%A2%D1%83%D0%BB%D0%B5%D0%B1%D0%B0%D0%B5%D0%B2%D0%B0+38%2C+%D0%90%D0%BB%D0%BC%D0%B0%D1%82%D1%8B%2C+%D0%9A%D0%B0%D0%B7%D0%B0%D1%85%D1%81%D1%82%D0%B0%D0%BD&z=16&output=embed&hl=ru"
+            width="100%"
+            height="100%"
+            style={{ border: 'none', display: 'block' }}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            title="Bes Saiman Group на карте"
+          />
+        </div>
+        <div className="flex items-center justify-between px-5 py-3.5" style={{ background: '#F8FAFC', borderTop: '1px solid #E2E8F0' }}>
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full" style={{ background: '#1565C0' }} />
+            <span className="text-sm font-medium" style={{ color: '#0F172A' }}>ул. Тулебаева 38, Алматы</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <a
+              href="https://2gis.kz/almaty/search/%D1%83%D0%BB.%20%D0%A2%D1%83%D0%BB%D0%B5%D0%B1%D0%B0%D0%B5%D0%B2%D0%B0%2038"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:-translate-y-0.5"
+              style={{ background: '#1BA557', color: 'white', boxShadow: '0 2px 8px rgba(27,165,87,0.25)' }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              2ГИС
+            </a>
+            <a
+              href="https://www.google.com/maps/search/Тулебаева+38+Алматы+Казахстан"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:-translate-y-0.5"
+              style={{ background: '#1565C0', color: 'white', boxShadow: '0 2px 8px rgba(21,101,192,0.25)' }}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+              Google Maps
+            </a>
+          </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
         {/* Contact info */}
         <div className="space-y-6">
