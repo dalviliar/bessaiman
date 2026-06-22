@@ -60,7 +60,7 @@ export default function ContactsPage() {
           </div>
           <div className="flex items-center gap-2">
             <a
-              href="https://2gis.kz/almaty/search/%D1%83%D0%BB.%20%D0%A2%D1%83%D0%BB%D0%B5%D0%B1%D0%B0%D0%B5%D0%B2%D0%B0%2038"
+              href="https://go.2gis.com/Yczsc"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:-translate-y-0.5"
