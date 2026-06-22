@@ -4,11 +4,22 @@ import { LanguageProvider } from '@/context/LanguageContext'
 import { CartProvider } from '@/context/CartContext'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import WhatsAppFloat from '@/components/WhatsAppFloat'
 
 export const metadata: Metadata = {
-  title: 'Bes Saiman Group — Лабораторное оборудование',
-  description: 'Поставки высокотехнологичного лабораторного и промышленного оборудования в Казахстане',
-  keywords: 'лабораторное оборудование, печи, мельницы, Казахстан, Алматы',
+  title: {
+    default: 'Bes Saiman Group — Лабораторное оборудование Казахстан',
+    template: '%s — Bes Saiman Group',
+  },
+  description: 'Поставки высокотемпературных печей, шаровых мельниц, вакуумных камер и лабораторного оборудования в Казахстане. Алматы.',
+  keywords: 'лабораторное оборудование, муфельные печи, трубчатые печи, шаровые мельницы, электроспиннинг, Казахстан, Алматы, Bes Saiman',
+  metadataBase: new URL('https://bes-saiman.kz'),
+  openGraph: {
+    siteName: 'Bes Saiman Group',
+    locale: 'ru_RU',
+    type: 'website',
+  },
+  robots: { index: true, follow: true },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -28,6 +39,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Navbar />
             <main className="flex-1">{children}</main>
             <Footer />
+            <WhatsAppFloat />
           </CartProvider>
         </LanguageProvider>
       </body>
