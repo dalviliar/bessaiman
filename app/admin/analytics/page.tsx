@@ -96,30 +96,74 @@ export default function AdminAnalyticsPage() {
 
         {/* Daily bar chart */}
         <div className="lg:col-span-2 rounded-xl p-5" style={{ background: '#1E293B', border: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="flex items-center gap-2 mb-5">
-            <BarChart3 size={13} style={{ color: '#60A5FA' }} />
-            <h2 className="text-sm font-semibold text-white">Запросы КП за 30 дней</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <BarChart3 size={13} style={{ color: '#60A5FA' }} />
+              <h2 className="text-sm font-semibold text-white">Запросы КП за 30 дней</h2>
+            </div>
+            <span className="text-[11px] font-mono font-bold" style={{ color: '#60A5FA' }}>
+              макс. {maxDaily}
+            </span>
           </div>
           {data.daily.length === 0 ? (
             <p className="text-xs text-center py-10" style={{ color: 'rgba(255,255,255,0.2)' }}>Нет данных</p>
           ) : (
-            <div className="flex items-end gap-0.5 h-28">
-              {data.daily.map(d => {
-                const pct = (Number(d.count) / maxDaily) * 100
-                return (
-                  <div key={d.day} className="flex-1 flex flex-col items-center gap-1 group relative">
-                    <div className="absolute bottom-full mb-1.5 px-2 py-1 rounded-lg text-[9px] font-medium opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-10 text-white"
-                      style={{ background: '#0F172A', border: '1px solid rgba(255,255,255,0.1)' }}>
-                      {d.day} — {d.count}
+            <div className="relative">
+              {/* Grid lines */}
+              <div className="absolute inset-x-0 top-0" style={{ height: 120 }}>
+                {[75, 50, 25].map(p => (
+                  <div key={p} className="absolute w-full" style={{ bottom: `${p}%`, borderTop: '1px dashed rgba(255,255,255,0.04)' }} />
+                ))}
+              </div>
+              {/* Bars */}
+              <div className="flex items-end gap-px" style={{ height: 120 }}>
+                {data.daily.map((d, i) => {
+                  const count = Number(d.count)
+                  const pct = count > 0 ? Math.max((count / maxDaily) * 100, 6) : 0
+                  const isLast = i === data.daily.length - 1
+                  const showLabel = i === 0 || i % 6 === 0 || isLast
+                  return (
+                    <div key={d.day} className="flex-1 flex flex-col justify-end group relative" style={{ height: '100%' }}>
+                      {/* Tooltip */}
+                      {count > 0 && (
+                        <div className="absolute z-20 px-2 py-1 rounded-lg text-[9px] font-semibold opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap text-white"
+                          style={{
+                            bottom: `calc(${pct}% + 6px)`,
+                            left: '50%', transform: 'translateX(-50%)',
+                            background: '#1565C0',
+                            boxShadow: '0 2px 8px rgba(21,101,192,0.4)',
+                          }}>
+                          {d.day}: {count}
+                        </div>
+                      )}
+                      {/* Bar */}
+                      <div className="w-full transition-all duration-300 rounded-t-sm"
+                        style={{
+                          height: count > 0 ? `${pct}%` : 1,
+                          background: count > 0
+                            ? `rgba(96,165,250,${0.4 + (count / maxDaily) * 0.6})`
+                            : 'rgba(255,255,255,0.04)',
+                          minHeight: count > 0 ? 4 : 1,
+                        }} />
                     </div>
-                    <div className="w-full rounded-sm"
-                      style={{ height: `${Math.max(pct, 3)}%`, background: 'rgba(96,165,250,0.7)', minHeight: 2 }} />
-                    <span style={{ fontSize: 7, color: 'rgba(255,255,255,0.15)', writingMode: 'horizontal-tb' }}>
-                      {d.day.slice(0, 5)}
-                    </span>
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
+              {/* X-axis labels */}
+              <div className="flex gap-px mt-2" style={{ height: 14 }}>
+                {data.daily.map((d, i) => {
+                  const showLabel = i === 0 || i % 6 === 0 || i === data.daily.length - 1
+                  return (
+                    <div key={d.day} className="flex-1 text-center overflow-hidden">
+                      {showLabel && (
+                        <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.2)', whiteSpace: 'nowrap' }}>
+                          {d.day}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           )}
         </div>
