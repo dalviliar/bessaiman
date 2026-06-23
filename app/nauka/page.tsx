@@ -112,12 +112,6 @@ export default function NaukaPage() {
         {pubOpen && (
           <div className="mt-3 rounded-2xl overflow-hidden"
             style={{ border: '1.5px solid #E2E8F0', background: 'white' }}>
-            {/* Intro text */}
-            <div className="px-6 pt-5 pb-4" style={{ borderBottom: '1px solid #F1F5F9' }}>
-              <p className="text-sm leading-relaxed mb-2" style={{ color: '#475569' }}>{tr.nauka.pubIntro}</p>
-              <p className="text-sm leading-relaxed" style={{ color: '#475569' }}>{tr.nauka.pubIntro2}</p>
-            </div>
-            {/* Publication rows */}
             <div className="divide-y" style={{ borderColor: '#F1F5F9' }}>
               {PUBLICATIONS.map((pub, i) => (
                 <div key={pub.doi} className="flex items-start gap-3 px-6 py-4">
