@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Loader2, Pencil, Check, X, Tag, Plus } from 'lucide-react'
+import { Loader2, Pencil, Check, X, Tag, Plus, Trash2 } from 'lucide-react'
 import { useAdminAuth } from '@/context/AdminAuthContext'
 import type { Category } from '@/types'
 
@@ -133,6 +133,7 @@ export default function AdminCategoriesPage() {
   const [editDesc, setEditDesc]     = useState('')
   const [saving, setSaving]         = useState(false)
   const [showCreate, setShowCreate] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/admin/categories')
@@ -163,6 +164,19 @@ export default function AdminCategoriesPage() {
       setEditingId(null)
     }
     setSaving(false)
+  }
+
+  const deleteCategory = async (cat: Category) => {
+    if (!confirm(`Удалить категорию «${cat.name_ru}»? Товары этой категории останутся, но потеряют привязку.`)) return
+    setDeletingId(cat.id)
+    const res = await fetch(`/api/admin/categories/${cat.id}`, { method: 'DELETE' })
+    if (res.ok) {
+      setCategories(prev => prev.filter(c => c.id !== cat.id))
+    } else {
+      const data = await res.json().catch(() => ({}))
+      alert(data.error || 'Не удалось удалить категорию')
+    }
+    setDeletingId(null)
   }
 
   return (
@@ -258,10 +272,20 @@ export default function AdminCategoriesPage() {
                         </button>
                       </div>
                     ) : (
-                      <button onClick={() => startEdit(cat)}
-                        className="p-1.5 rounded" style={{ color: '#60A5FA', background: 'rgba(59,130,246,0.1)' }}>
-                        <Pencil size={12} />
-                      </button>
+                      <div className="flex items-center justify-center gap-1">
+                        {can('categories', 'update') && (
+                          <button onClick={() => startEdit(cat)}
+                            className="p-1.5 rounded" style={{ color: '#60A5FA', background: 'rgba(59,130,246,0.1)' }}>
+                            <Pencil size={12} />
+                          </button>
+                        )}
+                        {can('categories', 'delete') && (
+                          <button onClick={() => deleteCategory(cat)} disabled={deletingId === cat.id}
+                            className="p-1.5 rounded disabled:opacity-50" style={{ color: '#F87171', background: 'rgba(239,68,68,0.1)' }}>
+                            {deletingId === cat.id ? <Loader2 size={12} className="animate-spin" /> : <Trash2 size={12} />}
+                          </button>
+                        )}
+                      </div>
                     )}
                   </td>
                 </tr>

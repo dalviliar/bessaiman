@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { query, queryOne } from '@/lib/db'
 import { getCurrentAdminUser } from '@/lib/auth'
 import { can } from '@/lib/admin'
+import { logAction } from '@/lib/audit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -30,6 +31,12 @@ export async function POST(request: Request) {
        VALUES ($1,$2,$3,$4,$5,$5,$5,$6) RETURNING *`,
       [slug, name_ru, name_kk || name_ru, name_en || name_ru, description_ru || null, classification_code || null],
     )
+
+    await logAction({
+      adminId: me.id, adminEmail: me.email, action: 'create',
+      entityType: 'category', entityId: category.id, entityLabel: category.name_ru,
+    })
+
     return NextResponse.json(category)
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Ошибка' }, { status: 500 })

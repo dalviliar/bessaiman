@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
-import { queryOne } from '@/lib/db'
+import { query, queryOne } from '@/lib/db'
 import { getCurrentAdminUser } from '@/lib/auth'
+import { can } from '@/lib/admin'
+import { logAction } from '@/lib/audit'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -8,7 +10,7 @@ export const dynamic = 'force-dynamic'
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const me = await getCurrentAdminUser()
-    if (!me || !me.role?.permissions?.all) {
+    if (!me || !can(me.role, 'categories', 'update')) {
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
     const { id } = await params
@@ -19,7 +21,36 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       [name_ru, name_kk || name_ru, name_en || name_ru, description_ru || null, classification_code || null, image_url || null, id],
     )
     if (!category) return NextResponse.json({ error: 'Не найдено' }, { status: 404 })
+
+    await logAction({
+      adminId: me.id, adminEmail: me.email, action: 'update',
+      entityType: 'category', entityId: category.id, entityLabel: category.name_ru,
+    })
+
     return NextResponse.json(category)
+  } catch (err) {
+    return NextResponse.json({ error: err instanceof Error ? err.message : 'Ошибка' }, { status: 500 })
+  }
+}
+
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const me = await getCurrentAdminUser()
+    if (!me || !can(me.role, 'categories', 'delete')) {
+      return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
+    }
+    const { id } = await params
+    const category = await queryOne('SELECT id, name_ru FROM categories WHERE id = $1', [id])
+    if (!category) return NextResponse.json({ error: 'Не найдено' }, { status: 404 })
+
+    await query('DELETE FROM categories WHERE id = $1', [id])
+
+    await logAction({
+      adminId: me.id, adminEmail: me.email, action: 'delete',
+      entityType: 'category', entityId: category.id, entityLabel: category.name_ru,
+    })
+
+    return NextResponse.json({ ok: true })
   } catch (err) {
     return NextResponse.json({ error: err instanceof Error ? err.message : 'Ошибка' }, { status: 500 })
   }
