@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Eye, EyeOff, Loader2, ShieldCheck } from 'lucide-react'
+import { useAdminAuth } from '@/context/AdminAuthContext'
 
 export default function AdminLogin() {
   const router = useRouter()
+  const { refresh } = useAdminAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [show, setShow] = useState(false)
@@ -29,6 +31,7 @@ export default function AdminLogin() {
         setLoading(false)
         return
       }
+      await refresh()
       router.replace('/admin')
     } catch {
       setError('Ошибка соединения')

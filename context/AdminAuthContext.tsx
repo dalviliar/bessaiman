@@ -8,6 +8,7 @@ interface AdminAuthCtx {
   user: AdminUser | null
   loading: boolean
   logout: () => Promise<void>
+  refresh: () => Promise<void>
   can: (resource: string, action: string) => boolean
 }
 
@@ -15,6 +16,7 @@ const Ctx = createContext<AdminAuthCtx>({
   user: null,
   loading: true,
   logout: async () => {},
+  refresh: async () => {},
   can: () => false,
 })
 
@@ -24,31 +26,37 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
 
+  const fetchSession = async () => {
+    try {
+      const res = await fetch('/api/admin/auth/session')
+      if (!res.ok) {
+        setUser(null)
+        if (!pathname.startsWith('/admin/login')) router.replace('/admin/login')
+        return
+      }
+      const profile = await res.json()
+      setUser(profile)
+    } catch {
+      setUser(null)
+      if (!pathname.startsWith('/admin/login')) router.replace('/admin/login')
+    }
+  }
+
   useEffect(() => {
     let mounted = true
 
     const init = async () => {
-      try {
-        const res = await fetch('/api/admin/auth/session')
-        if (!res.ok) {
-          if (!pathname.startsWith('/admin/login')) router.replace('/admin/login')
-          if (mounted) setLoading(false)
-          return
-        }
-        const profile = await res.json()
-        if (mounted) {
-          setUser(profile)
-          setLoading(false)
-        }
-      } catch {
-        if (!pathname.startsWith('/admin/login')) router.replace('/admin/login')
-        if (mounted) setLoading(false)
-      }
+      await fetchSession()
+      if (mounted) setLoading(false)
     }
 
     init()
     return () => { mounted = false }
   }, [])
+
+  const refresh = async () => {
+    await fetchSession()
+  }
 
   const logout = async () => {
     await fetch('/api/admin/auth/logout', { method: 'POST' })
@@ -60,7 +68,7 @@ export function AdminAuthProvider({ children }: { children: ReactNode }) {
     canCheck(user?.role as AdminRole, resource, action)
 
   return (
-    <Ctx.Provider value={{ user, loading, logout, can: canDo }}>
+    <Ctx.Provider value={{ user, loading, logout, refresh, can: canDo }}>
       {children}
     </Ctx.Provider>
   )
