@@ -2,16 +2,18 @@
 
 import { useEffect, useState } from 'react'
 import { useAdminAuth } from '@/context/AdminAuthContext'
-import { canManageRole, type AdminUser, type AdminRole } from '@/lib/admin'
+import { canManageUser, type AdminUser, type AdminRole } from '@/lib/admin'
 import {
   UserPlus, Search, Shield, CheckCircle, XCircle,
   MoreHorizontal, Loader2, X, Eye, EyeOff, Check, Pencil,
 } from 'lucide-react'
 
 const PERM_SECTIONS = [
-  { key: 'users',    label: 'Управление пользователями', actions: ['create', 'read', 'update', 'delete'] },
-  { key: 'products', label: 'Управление товарами',       actions: ['create', 'read', 'update', 'delete'] },
-  { key: 'content',  label: 'Новости и уведомления',     actions: ['create', 'read', 'update', 'delete'] },
+  { key: 'users',       label: 'Управление пользователями',   actions: ['create', 'read', 'update', 'delete'] },
+  { key: 'products',    label: 'Управление товарами',         actions: ['create', 'read', 'update', 'delete'] },
+  { key: 'categories',  label: 'Категории и классификаторы',  actions: ['create', 'read', 'update', 'delete'] },
+  { key: 'kp_requests', label: 'Заявки КП, обращения, аналитика', actions: ['read', 'delete'] },
+  { key: 'content',     label: 'Новости и партнёры',          actions: ['create', 'read', 'update', 'delete'] },
 ] as const
 
 const ACTION_LABELS: Record<string, string> = {
@@ -161,9 +163,11 @@ function EditUserModal({ user, onClose, onSaved }: { user: AdminUser; onClose: (
   const existingPerms = ((user.role as AdminRole)?.permissions ?? {}) as Record<string, Record<string, boolean>>
 
   const [perms, setPerms] = useState<Record<string, Record<string, boolean>>>({
-    users:    existingPerms.users    ?? {},
-    products: existingPerms.products ?? {},
-    content:  existingPerms.content  ?? {},
+    users:       existingPerms.users       ?? {},
+    products:    existingPerms.products    ?? {},
+    categories:  existingPerms.categories  ?? {},
+    kp_requests: existingPerms.kp_requests ?? {},
+    content:     existingPerms.content     ?? {},
   })
 
   const handleSave = async () => {
@@ -341,7 +345,7 @@ export default function AdminUsersPage() {
             ) : filtered.map((u, i) => {
               const roleColor = ROLE_COLORS[u.role?.name ?? ''] ?? '#6B7280'
               const isMe = u.id === me?.id
-              const canAct = !isMe && can('users', 'update') && canManageRole(myLevel, u.role?.level ?? 999)
+              const canAct = !isMe && can('users', 'update') && canManageUser(myLevel, u.role?.level ?? 999)
               return (
                 <tr key={u.id} style={{
                   background: i % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent',

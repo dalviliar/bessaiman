@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { query, queryOne } from '@/lib/db'
 import { getCurrentAdminUser, hashPassword } from '@/lib/auth'
-import { can, canManageRole } from '@/lib/admin'
+import { can, canManageUser, sanitizePermissions } from '@/lib/admin'
 import { logAction } from '@/lib/audit'
 
 export const runtime = 'nodejs'
@@ -26,7 +26,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (!target) return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 })
 
   const t = target as unknown as { level: number; role_id: string; is_system: boolean }
-  if (!canManageRole(me.role?.level ?? 999, t.level ?? 999)) {
+  if (!canManageUser(me.role?.level ?? 999, t.level ?? 999)) {
     return NextResponse.json({ error: 'Недостаточно прав' }, { status: 403 })
   }
 
@@ -61,7 +61,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (permissions !== undefined && t.role_id && !t.is_system) {
     await query(
       `UPDATE admin_roles SET permissions = $1 WHERE id = $2 AND is_system = false`,
-      [JSON.stringify(permissions), t.role_id],
+      [JSON.stringify(sanitizePermissions(permissions)), t.role_id],
     )
   }
 
