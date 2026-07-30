@@ -52,6 +52,7 @@ export interface Product {
   barcode: string | null
   images: string[]
   video_url: string | null
+  instagram_url: string | null
   specs: Record<string, string> | null
   product_type: ProductType
   classification_code: string | null

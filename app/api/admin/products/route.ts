@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       name_ru, name_kk, name_en, model, category_id,
       description_ru, description_kk, description_en,
       price, price_with_discount, bulk_threshold, bulk_discount_percent,
-      availability, barcode, images, video_url, specs, product_type, classification_code,
+      availability, barcode, images, video_url, instagram_url, specs, product_type, classification_code,
       compatible_with, weight_kg, unit, quantity, length_cm, width_cm, height_cm,
       accessory_ids,
     } = body
@@ -76,13 +76,13 @@ export async function POST(request: Request) {
              slug, category_id, name_ru, name_kk, name_en, model,
              description_ru, description_kk, description_en,
              price, price_with_discount, bulk_threshold, bulk_discount_percent,
-             availability, barcode, images, video_url, specs, product_type, classification_code,
+             availability, barcode, images, video_url, instagram_url, specs, product_type, classification_code,
              compatible_with, weight_kg, unit, length_cm, width_cm, height_cm, sort_order
            ) VALUES (
-             $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,
+             $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,
              (SELECT COALESCE(MAX(sort_order),0)+10 FROM products WHERE category_id = $2)
            ) RETURNING *`,
-          [...baseVals.slice(0, 16), video_url ?? null, ...baseVals.slice(16)],
+          [...baseVals.slice(0, 16), video_url ?? null, instagram_url ?? null, ...baseVals.slice(16)],
         )
         await client.query('RELEASE SAVEPOINT before_video_url')
       } catch (insertErr: unknown) {

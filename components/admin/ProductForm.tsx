@@ -41,6 +41,7 @@ interface FormState {
   availability: string; barcode: string
   images: string[]
   video_url: string
+  instagram_url: string
   specs: { key: string; value: string }[]
   product_type: ProductType
   classification_code: string
@@ -62,6 +63,7 @@ const EMPTY: FormState = {
   availability: 'in_stock', barcode: '',
   images: [],
   video_url: '',
+  instagram_url: '',
   specs: [],
   product_type: 'S',
   classification_code: '',
@@ -105,6 +107,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       availability: product.availability, barcode: product.barcode ?? '',
       images: product.images ?? [],
       video_url: product.video_url ?? '',
+      instagram_url: product.instagram_url ?? '',
       specs: product.specs ? Object.entries(product.specs).map(([key, value]) => ({ key, value: String(value) })) : [],
       product_type: product.product_type,
       classification_code: product.classification_code ?? '',
@@ -217,6 +220,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       availability: form.availability, barcode: form.barcode || null,
       images: form.images,
       video_url: form.video_url || null,
+      instagram_url: form.instagram_url || null,
       specs: Object.keys(specsObj).length ? specsObj : null,
       product_type: form.product_type,
       classification_code: form.classification_code || null,
@@ -486,6 +490,19 @@ export default function ProductForm({ product }: { product?: Product }) {
           </Field>
           <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
             Видео будет встроено на странице товара под галереей фотографий
+          </p>
+        </div>
+        <div className="mt-4 pt-4" style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+          <Field label="Ссылка на публикацию в Instagram">
+            <input
+              className="steel-input w-full"
+              value={form.instagram_url}
+              onChange={e => set('instagram_url', e.target.value)}
+              placeholder="https://www.instagram.com/p/..."
+            />
+          </Field>
+          <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
+            На странице товара появится отдельная кнопка «Смотреть в Instagram» — ссылку на видео с YouTube сюда вставлять не нужно
           </p>
         </div>
       </Section>
