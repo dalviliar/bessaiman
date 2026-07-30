@@ -35,7 +35,7 @@ export default function Footer() {
               alt="Bes Saiman Group"
               width={1200}
               height={297}
-              className="h-12 w-auto mb-4"
+              className="h-[68px] w-auto mb-4"
             />
             <p className="text-steel-silver text-sm leading-relaxed max-w-xs">
               {tr.about.missionText}

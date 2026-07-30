@@ -61,7 +61,7 @@ export default function Navbar() {
         background: 'linear-gradient(90deg, #1565C0 0%, #0284C7 50%, #1565C0 100%)',
       }} />
 
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-[60px]">
+      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between py-2.5">
 
         {/* Logo */}
         <Link href="/" className="flex items-center select-none">
@@ -71,7 +71,7 @@ export default function Navbar() {
             width={1200}
             height={297}
             priority
-            className="h-10 sm:h-12 w-auto"
+            className="h-14 sm:h-[72px] w-auto"
           />
         </Link>
 
