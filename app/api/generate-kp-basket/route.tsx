@@ -1,6 +1,6 @@
 import React from 'react'
 import path from 'path'
-import { readFileSync, statSync } from 'fs'
+import { readFileSync, statSync, existsSync } from 'fs'
 import { NextResponse } from 'next/server'
 import { renderToBuffer, Font, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 import { query } from '@/lib/db'
@@ -527,11 +527,12 @@ async function loadProductImageDataUri(imageUrl: string | undefined): Promise<st
   if (!imageUrl) return null
   try {
     if (imageUrl.startsWith('/')) {
-      // Uploaded files live outside /public (see app/uploads/[...path]/route.ts) so
-      // Next.js doesn't need a restart to see files written after the server started.
-      const filePath = imageUrl.startsWith('/uploads/')
-        ? path.join(process.cwd(), imageUrl)
-        : path.join(process.cwd(), 'public', imageUrl)
+      // Uploads made after the app/uploads/[...path] route was added live outside
+      // /public (see that route's comment for why); anything uploaded before then
+      // is still sitting in /public/uploads and was never moved, so check the new
+      // location first and fall back to the old one.
+      const newPath = imageUrl.startsWith('/uploads/') ? path.join(process.cwd(), imageUrl) : null
+      const filePath = newPath && existsSync(newPath) ? newPath : path.join(process.cwd(), 'public', imageUrl)
       if (statSync(filePath).size > 2 * 1024 * 1024) return null
       const ext = path.extname(imageUrl).toLowerCase()
       const mime = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg'
