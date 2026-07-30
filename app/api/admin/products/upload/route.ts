@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { mkdir, writeFile } from 'fs/promises'
 import path from 'path'
 import { randomUUID } from 'crypto'
+import sharp from 'sharp'
 import { getCurrentAdminUser } from '@/lib/auth'
 import { can } from '@/lib/admin'
 
@@ -10,6 +11,11 @@ export const dynamic = 'force-dynamic'
 
 const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/avif']
 const MAX_SIZE = 8 * 1024 * 1024
+// Product photos are shown full-size on catalog pages and embedded in
+// generated KP PDFs (which skip anything over 2MB) - camera-straight-out
+// uploads can be 5-10MB, so resize/recompress on the way in instead of
+// serving whatever the customer's phone produced.
+const MAX_DIMENSION = 1920
 
 export async function POST(request: Request) {
   try {
@@ -37,7 +43,18 @@ export async function POST(request: Request) {
     const fileName = `${randomUUID()}.${ext}`
     const dir = path.join(process.cwd(), 'uploads', 'products')
     await mkdir(dir, { recursive: true })
-    await writeFile(path.join(dir, fileName), Buffer.from(await file.arrayBuffer()))
+
+    const inputBuffer = Buffer.from(await file.arrayBuffer())
+    let pipeline = sharp(inputBuffer)
+      .rotate() // apply EXIF orientation, then the metadata is dropped
+      .resize({ width: MAX_DIMENSION, height: MAX_DIMENSION, fit: 'inside', withoutEnlargement: true })
+    if (file.type === 'image/jpeg') pipeline = pipeline.jpeg({ quality: 82, mozjpeg: true })
+    else if (file.type === 'image/png') pipeline = pipeline.png({ compressionLevel: 9 })
+    else if (file.type === 'image/webp') pipeline = pipeline.webp({ quality: 82 })
+    else pipeline = pipeline.avif({ quality: 60 })
+    const outputBuffer = await pipeline.toBuffer()
+
+    await writeFile(path.join(dir, fileName), outputBuffer)
 
     return NextResponse.json({ url: `/uploads/products/${fileName}` })
   } catch (err) {

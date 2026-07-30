@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { mkdir, writeFile } from 'fs/promises'
 import path from 'path'
 import { randomUUID } from 'crypto'
+import sharp from 'sharp'
 import { getCurrentAdminUser } from '@/lib/auth'
 import { can } from '@/lib/admin'
 
@@ -10,6 +11,7 @@ export const dynamic = 'force-dynamic'
 
 const ALLOWED = ['image/jpeg', 'image/png', 'image/webp', 'image/avif', 'image/svg+xml']
 const MAX_SIZE = 4 * 1024 * 1024
+const MAX_DIMENSION = 800
 
 export async function POST(request: Request) {
   try {
@@ -32,7 +34,20 @@ export async function POST(request: Request) {
     const fileName = `${randomUUID()}.${ext}`
     const dir = path.join(process.cwd(), 'uploads', 'partners')
     await mkdir(dir, { recursive: true })
-    await writeFile(path.join(dir, fileName), Buffer.from(await file.arrayBuffer()))
+
+    const inputBuffer = Buffer.from(await file.arrayBuffer())
+    let outputBuffer = inputBuffer
+    if (file.type !== 'image/svg+xml') {
+      let pipeline = sharp(inputBuffer)
+        .rotate()
+        .resize({ width: MAX_DIMENSION, height: MAX_DIMENSION, fit: 'inside', withoutEnlargement: true })
+      if (file.type === 'image/jpeg') pipeline = pipeline.jpeg({ quality: 85, mozjpeg: true })
+      else if (file.type === 'image/png') pipeline = pipeline.png({ compressionLevel: 9 })
+      else if (file.type === 'image/webp') pipeline = pipeline.webp({ quality: 85 })
+      else pipeline = pipeline.avif({ quality: 65 })
+      outputBuffer = await pipeline.toBuffer()
+    }
+    await writeFile(path.join(dir, fileName), outputBuffer)
 
     return NextResponse.json({ url: `/uploads/partners/${fileName}` })
   } catch (err) {
