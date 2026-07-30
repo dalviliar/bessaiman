@@ -527,7 +527,11 @@ async function loadProductImageDataUri(imageUrl: string | undefined): Promise<st
   if (!imageUrl) return null
   try {
     if (imageUrl.startsWith('/')) {
-      const filePath = path.join(process.cwd(), 'public', imageUrl)
+      // Uploaded files live outside /public (see app/uploads/[...path]/route.ts) so
+      // Next.js doesn't need a restart to see files written after the server started.
+      const filePath = imageUrl.startsWith('/uploads/')
+        ? path.join(process.cwd(), imageUrl)
+        : path.join(process.cwd(), 'public', imageUrl)
       if (statSync(filePath).size > 2 * 1024 * 1024) return null
       const ext = path.extname(imageUrl).toLowerCase()
       const mime = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg'

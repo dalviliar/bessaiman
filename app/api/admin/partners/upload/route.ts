@@ -30,7 +30,7 @@ export async function POST(request: Request) {
 
     const ext = file.type === 'image/svg+xml' ? 'svg' : file.type.split('/')[1]
     const fileName = `${randomUUID()}.${ext}`
-    const dir = path.join(process.cwd(), 'public', 'uploads', 'partners')
+    const dir = path.join(process.cwd(), 'uploads', 'partners')
     await mkdir(dir, { recursive: true })
     await writeFile(path.join(dir, fileName), Buffer.from(await file.arrayBuffer()))
 
