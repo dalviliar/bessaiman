@@ -20,7 +20,7 @@ export async function GET() {
      FROM products p
      LEFT JOIN categories c ON c.id = p.category_id
      LEFT JOIN warehouse_items w ON w.product_id = p.id
-     ORDER BY p.classification_code ASC, p.name_ru ASC`,
+     ORDER BY c.name_ru ASC, p.sort_order ASC, p.classification_code ASC, p.name_ru ASC`,
   )
   return NextResponse.json(products)
 }
@@ -77,9 +77,10 @@ export async function POST(request: Request) {
              description_ru, description_kk, description_en,
              price, price_with_discount, bulk_threshold, bulk_discount_percent,
              availability, barcode, images, video_url, specs, product_type, classification_code,
-             compatible_with, weight_kg, unit, length_cm, width_cm, height_cm
+             compatible_with, weight_kg, unit, length_cm, width_cm, height_cm, sort_order
            ) VALUES (
-             $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26
+             $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,
+             (SELECT COALESCE(MAX(sort_order),0)+10 FROM products WHERE category_id = $2)
            ) RETURNING *`,
           [...baseVals.slice(0, 16), video_url ?? null, ...baseVals.slice(16)],
         )
@@ -93,9 +94,10 @@ export async function POST(request: Request) {
                description_ru, description_kk, description_en,
                price, price_with_discount, bulk_threshold, bulk_discount_percent,
                availability, barcode, images, specs, product_type, classification_code,
-               compatible_with, weight_kg, unit, length_cm, width_cm, height_cm
+               compatible_with, weight_kg, unit, length_cm, width_cm, height_cm, sort_order
              ) VALUES (
-               $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25
+               $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,
+               (SELECT COALESCE(MAX(sort_order),0)+10 FROM products WHERE category_id = $2)
              ) RETURNING *`,
             baseVals,
           )

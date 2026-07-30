@@ -21,11 +21,10 @@ function NewsModal({ post, onClose, postTitle, postContent }: {
       <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl"
         style={{ background: 'white', boxShadow: '0 24px 64px rgba(0,0,0,0.2)' }}>
         {post.image_url && (
-          <div className="relative w-full" style={{ height: 260 }}>
-            <img src={post.image_url} alt={postTitle(post)} className="w-full h-full object-cover"
-              style={{ borderRadius: '16px 16px 0 0' }} />
-            <div className="absolute inset-0"
-              style={{ background: 'linear-gradient(to top,rgba(15,23,42,0.5) 0%,transparent 60%)', borderRadius: '16px 16px 0 0' }} />
+          <div className="relative w-full flex items-center justify-center"
+            style={{ maxHeight: 420, background: '#F1F5F9', borderRadius: '16px 16px 0 0', overflow: 'hidden' }}>
+            <img src={post.image_url} alt={postTitle(post)} className="w-full"
+              style={{ maxHeight: 420, objectFit: 'contain' }} />
           </div>
         )}
         <div className="p-7">

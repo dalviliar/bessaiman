@@ -11,6 +11,7 @@ export interface Category {
   description_en: string | null
   image_url: string | null
   classification_code: string | null
+  sort_order: number
   created_at: string
 }
 
@@ -61,6 +62,7 @@ export interface Product {
   width_cm: number | null
   height_cm: number | null
   stock_quantity?: number | null
+  sort_order: number
   created_at: string
   category?: Category
   accessories?: Product[]

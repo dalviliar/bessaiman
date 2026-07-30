@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useAdminAuth } from '@/context/AdminAuthContext'
-import { Package, Search, ExternalLink, Loader2, CheckCircle, Plus, Pencil, Trash2 } from 'lucide-react'
+import { Package, Search, ExternalLink, Loader2, CheckCircle, Plus, Pencil, Trash2, ArrowUp, ArrowDown } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { Product } from '@/types'
@@ -21,6 +21,7 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('all')
+  const [categoryFilter, setCategoryFilter] = useState('all')
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const load = () => {
@@ -49,12 +50,44 @@ export default function AdminProductsPage() {
 
   const filtered = products.filter(p => {
     const matchType = typeFilter === 'all' || p.product_type === typeFilter
+    const matchCategory = categoryFilter === 'all' || p.category_id === categoryFilter
     const matchSearch = !search ||
       p.name_ru.toLowerCase().includes(search.toLowerCase()) ||
       (p.model?.toLowerCase().includes(search.toLowerCase()) ?? false) ||
       (p.classification_code?.toLowerCase().includes(search.toLowerCase()) ?? false)
-    return matchType && matchSearch
+    return matchType && matchCategory && matchSearch
   })
+
+  const categoryOptions = Array.from(
+    new Map(
+      products
+        .filter(p => p.category_id && p.category)
+        .map(p => [p.category_id, (p.category as { name_ru?: string }).name_ru ?? ''])
+    ).entries()
+  ).sort((a, b) => a[1].localeCompare(b[1], 'ru'))
+
+  const canReorder = categoryFilter !== 'all' && !search
+
+  const moveProduct = async (index: number, direction: -1 | 1) => {
+    const target = index + direction
+    if (target < 0 || target >= filtered.length) return
+    const a = filtered[index]
+    const b = filtered[target]
+    setProducts(prev => {
+      const next = [...prev]
+      const ia = next.findIndex(p => p.id === a.id)
+      const ib = next.findIndex(p => p.id === b.id)
+      ;[next[ia], next[ib]] = [next[ib], next[ia]]
+      return next
+    })
+    const reorderedIds = [...filtered]
+    ;[reorderedIds[index], reorderedIds[target]] = [reorderedIds[target], reorderedIds[index]]
+    await fetch('/api/admin/products/reorder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderedIds: reorderedIds.map(p => p.id) }),
+    })
+  }
 
   return (
     <div className="p-4 sm:p-8 max-w-6xl">
@@ -82,7 +115,7 @@ export default function AdminProductsPage() {
       </div>
 
       {/* Filters */}
-      <div className="flex gap-2 flex-wrap mb-4">
+      <div className="flex gap-2 flex-wrap mb-3 items-center">
         {[
           { key: 'all', label: 'Все' },
           { key: 'S',   label: 'Серийные (S)' },
@@ -100,7 +133,19 @@ export default function AdminProductsPage() {
             {t.label}
           </button>
         ))}
+        <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}
+          className="steel-input text-xs py-1.5" style={{ width: 220 }}>
+          <option value="all">Все категории</option>
+          {categoryOptions.map(([id, name]) => (
+            <option key={id} value={id}>{name}</option>
+          ))}
+        </select>
       </div>
+      {canReorder && (
+        <p className="text-[11px] mb-3" style={{ color: 'rgba(255,255,255,0.35)' }}>
+          Стрелками можно изменить порядок моделей внутри категории — так они будут идти в каталоге на сайте.
+        </p>
+      )}
 
       <div className="relative mb-5">
         <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.3)' }} />
@@ -114,6 +159,7 @@ export default function AdminProductsPage() {
           <table className="w-full text-sm min-w-[700px]">
             <thead>
               <tr style={{ background: '#0D1421', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                {canReorder && <th className="px-5 py-3 w-12" />}
                 <th className="px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Код / Модель</th>
                 <th className="px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Название</th>
                 <th className="px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Категория</th>
@@ -126,13 +172,27 @@ export default function AdminProductsPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={8} className="px-5 py-10 text-center">
+                <tr><td colSpan={canReorder ? 9 : 8} className="px-5 py-10 text-center">
                   <Loader2 size={20} className="animate-spin mx-auto" style={{ color: '#3B82F6' }} />
                 </td></tr>
               ) : filtered.map((p, i) => {
                 const typeMeta = TYPE_COLORS[p.product_type ?? 'S'] ?? TYPE_COLORS.S
                 return (
                   <tr key={p.id} style={{ background: i % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                    {canReorder && (
+                      <td className="px-5 py-3">
+                        <div className="flex flex-col gap-0.5">
+                          <button onClick={() => moveProduct(i, -1)} disabled={i === 0}
+                            className="p-0.5 rounded disabled:opacity-20" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                            <ArrowUp size={12} />
+                          </button>
+                          <button onClick={() => moveProduct(i, 1)} disabled={i === filtered.length - 1}
+                            className="p-0.5 rounded disabled:opacity-20" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                            <ArrowDown size={12} />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                     <td className="px-5 py-3">
                       {p.classification_code && (
                         <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded mr-2"

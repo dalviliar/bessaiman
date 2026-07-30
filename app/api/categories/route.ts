@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 
 export async function GET() {
   const categories = await query<Category>(
-    'SELECT * FROM categories ORDER BY name_ru'
+    'SELECT * FROM categories ORDER BY sort_order, name_ru'
   )
   return NextResponse.json(categories)
 }

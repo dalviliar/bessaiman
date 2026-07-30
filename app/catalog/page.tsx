@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo, Suspense } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { Search, X, Flame, Cog, Wind, Zap, Package, Wrench, ChevronRight, type LucideIcon } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 import ProductCard from '@/components/ProductCard'
@@ -135,6 +135,8 @@ function AttrFilterRow({
 // ── Основной компонент ────────────────────────────────────────────
 function CatalogContent() {
   const { lang, tr } = useLang()
+  const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
 
   const [categories, setCategories]   = useState<Category[]>([])
@@ -158,11 +160,25 @@ function CatalogContent() {
       })
   }, [])
 
+  // Держим тип/категорию в URL — иначе кнопка "назад" из карточки товара
+  // возвращает на каталог без фильтров (React-состояние не переживает переход)
+  const updateUrl = (next: { type?: string; category?: string }) => {
+    const type = next.type ?? selType
+    const category = next.category ?? selCat
+    const sp = new URLSearchParams()
+    if (type && type !== 'all') sp.set('type', type)
+    if (category) sp.set('category', category)
+    const qs = sp.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }
+
   // При смене категории — сбрасываем подтип и атрибуты
   const handleCatSelect = (slug: string) => {
-    setSelCat(prev => prev === slug ? '' : slug)
+    const next = selCat === slug ? '' : slug
+    setSelCat(next)
     setSelSubcat('')
     setSelAttrs({})
+    updateUrl({ category: next })
   }
 
   // При смене типа — сбрасываем всё ниже
@@ -172,6 +188,7 @@ function CatalogContent() {
     setSelSubcat('')
     setSelAttrs({})
     setSearchQuery('')
+    updateUrl({ type: key, category: '' })
   }
 
   // При смене подтипа — сбрасываем атрибуты
@@ -383,7 +400,7 @@ function CatalogContent() {
 
           {hasActiveFilters && (
             <button
-              onClick={() => { setSelType('all'); setSelCat(''); setSelSubcat(''); setSelAttrs({}); setSearchQuery('') }}
+              onClick={() => { setSelType('all'); setSelCat(''); setSelSubcat(''); setSelAttrs({}); setSearchQuery(''); updateUrl({ type: 'all', category: '' }) }}
               className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all"
               style={{ background: '#FEF2F2', color: '#DC2626', border: '1.5px solid #FECACA' }}>
               <X size={12} /> Сбросить

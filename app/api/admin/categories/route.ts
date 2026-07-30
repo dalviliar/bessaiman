@@ -12,7 +12,7 @@ export async function GET() {
   if (!me || !can(me.role, 'products', 'read')) {
     return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
   }
-  const categories = await query('SELECT * FROM categories ORDER BY name_ru')
+  const categories = await query('SELECT * FROM categories ORDER BY sort_order, name_ru')
   return NextResponse.json(categories)
 }
 
@@ -27,8 +27,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Заполните slug и название' }, { status: 400 })
     }
     const category = await queryOne(
-      `INSERT INTO categories (slug, name_ru, name_kk, name_en, description_ru, description_kk, description_en, classification_code)
-       VALUES ($1,$2,$3,$4,$5,$5,$5,$6) RETURNING *`,
+      `INSERT INTO categories (slug, name_ru, name_kk, name_en, description_ru, description_kk, description_en, classification_code, sort_order)
+       VALUES ($1,$2,$3,$4,$5,$5,$5,$6, (SELECT COALESCE(MAX(sort_order),0)+10 FROM categories)) RETURNING *`,
       [slug, name_ru, name_kk || name_ru, name_en || name_ru, description_ru || null, classification_code || null],
     )
 

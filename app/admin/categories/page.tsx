@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Loader2, Pencil, Check, X, Tag, Plus, Trash2 } from 'lucide-react'
+import { Loader2, Pencil, Check, X, Tag, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react'
 import { useAdminAuth } from '@/context/AdminAuthContext'
 import type { Category } from '@/types'
 
@@ -166,6 +166,19 @@ export default function AdminCategoriesPage() {
     setSaving(false)
   }
 
+  const moveCategory = async (index: number, direction: -1 | 1) => {
+    const target = index + direction
+    if (target < 0 || target >= categories.length) return
+    const reordered = [...categories]
+    ;[reordered[index], reordered[target]] = [reordered[target], reordered[index]]
+    setCategories(reordered)
+    await fetch('/api/admin/categories/reorder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderedIds: reordered.map(c => c.id) }),
+    })
+  }
+
   const deleteCategory = async (cat: Category) => {
     if (!confirm(`Удалить категорию «${cat.name_ru}»? Товары этой категории останутся, но потеряют привязку.`)) return
     setDeletingId(cat.id)
@@ -211,6 +224,7 @@ export default function AdminCategoriesPage() {
           <table className="w-full text-sm min-w-[500px]">
             <thead>
               <tr style={{ background: '#0D1421', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+                <th className="px-5 py-3 w-14" />
                 <th className="px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Категория</th>
                 <th className="px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Код</th>
                 <th className="px-5 py-3 text-left text-xs font-medium hidden sm:table-cell" style={{ color: 'rgba(255,255,255,0.4)' }}>Расшифровка</th>
@@ -219,11 +233,25 @@ export default function AdminCategoriesPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={4} className="px-5 py-10 text-center">
+                <tr><td colSpan={5} className="px-5 py-10 text-center">
                   <Loader2 size={20} className="animate-spin mx-auto" style={{ color: '#3B82F6' }} />
                 </td></tr>
               ) : categories.map((cat, i) => (
                 <tr key={cat.id} style={{ background: i % 2 === 1 ? 'rgba(255,255,255,0.015)' : 'transparent', borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                  <td className="px-5 py-3">
+                    {can('categories', 'update') && (
+                      <div className="flex flex-col gap-0.5">
+                        <button onClick={() => moveCategory(i, -1)} disabled={i === 0}
+                          className="p-0.5 rounded disabled:opacity-20" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                          <ArrowUp size={12} />
+                        </button>
+                        <button onClick={() => moveCategory(i, 1)} disabled={i === categories.length - 1}
+                          className="p-0.5 rounded disabled:opacity-20" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                          <ArrowDown size={12} />
+                        </button>
+                      </div>
+                    )}
+                  </td>
                   <td className="px-5 py-3 text-white text-xs font-medium">{cat.name_ru}</td>
                   <td className="px-5 py-3">
                     {editingId === cat.id ? (
@@ -310,7 +338,7 @@ export default function AdminCategoriesPage() {
       {showCreate && (
         <CreateCategoryModal
           onClose={() => setShowCreate(false)}
-          onCreated={cat => setCategories(prev => [...prev, cat].sort((a, b) => a.name_ru.localeCompare(b.name_ru, 'ru')))}
+          onCreated={cat => setCategories(prev => [...prev, cat])}
         />
       )}
     </div>
