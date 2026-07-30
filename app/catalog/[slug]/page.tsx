@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowLeft, FileText, Package } from 'lucide-react'
@@ -190,10 +190,24 @@ function ImageGallery({ images, name, videoUrl }: { images: string[]; name: stri
 
 export default function ProductDetailPage() {
   const { slug } = useParams<{ slug: string }>()
+  const router = useRouter()
   const { lang, tr } = useLang()
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [showKP, setShowKP] = useState(false)
+
+  // "Назад к каталогу" should return to whatever filters (category etc.)
+  // the visitor had selected, not reset to "all" - going back in browser
+  // history does that automatically since the catalog page keeps its
+  // filters in the URL. Falls back to a plain /catalog link if this page
+  // was opened directly (no history to go back to, e.g. a shared link).
+  const goBackToCatalog = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      router.back()
+    } else {
+      router.push('/catalog')
+    }
+  }
 
   useEffect(() => {
     getProductBySlug(slug).then((p) => {
@@ -236,11 +250,11 @@ export default function ProductDetailPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       {/* Breadcrumb */}
-      <Link href="/catalog"
+      <button onClick={goBackToCatalog}
         className="inline-flex items-center gap-2 text-steel-silver hover:text-steel-accent text-sm mb-8 transition-colors">
         <ArrowLeft size={15} />
         {tr.product.back}
-      </Link>
+      </button>
 
       {/* Main grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-10">
