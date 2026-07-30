@@ -1,7 +1,8 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
-import { Phone, Mail, MapPin, Layers } from 'lucide-react'
+import { Phone, Mail, MapPin } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 
 const InstagramIcon = () => (
@@ -29,16 +30,13 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {/* Brand */}
           <div>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #1565C0, #00B0FF)' }}>
-                <Layers size={18} className="text-white" />
-              </div>
-              <div>
-                <div className="font-bold text-white text-sm">BES SAIMAN GROUP</div>
-                <div className="text-steel-silver text-[10px] tracking-widest">LABORATORY EQUIPMENT</div>
-              </div>
-            </div>
+            <Image
+              src="/logo-full-white.png"
+              alt="Bes Saiman Group"
+              width={1200}
+              height={297}
+              className="h-10 w-auto mb-4"
+            />
             <p className="text-steel-silver text-sm leading-relaxed max-w-xs">
               {tr.about.missionText}
             </p>
@@ -110,7 +108,7 @@ export default function Footer() {
               <InstagramIcon />
             </a>
             <a
-              href="https://wa.me/77011013433"
+              href="https://wa.me/77076202890"
               target="_blank"
               rel="noopener noreferrer"
               className="transition-colors"

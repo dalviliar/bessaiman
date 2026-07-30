@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Menu, X, Globe, ShoppingCart } from 'lucide-react'
@@ -63,23 +64,15 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-[60px]">
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3 group select-none">
-          <svg width="28" height="32" viewBox="0 0 28 32" className="shrink-0">
-            <polygon points="14,1 27,8 27,24 14,31 1,24 1,8"
-              fill="none" stroke="#1565C0" strokeWidth="1.5" />
-            <polygon points="14,6 22,10.5 22,21.5 14,26 6,21.5 6,10.5"
-              fill="rgba(21,101,192,0.08)" stroke="rgba(21,101,192,0.3)" strokeWidth="1" />
-            <text x="14" y="20" textAnchor="middle" fontSize="11" fontWeight="800"
-              fill="#1565C0" fontFamily="Inter,sans-serif">B</text>
-          </svg>
-          <div>
-            <div className="font-black text-[13px] tracking-[0.08em]" style={{ color: '#0F172A', lineHeight: 1.1 }}>
-              BES SAIMAN
-            </div>
-            <div className="font-light text-[9px] tracking-[0.3em]" style={{ color: '#94A3B8' }}>
-              GROUP
-            </div>
-          </div>
+        <Link href="/" className="flex items-center select-none">
+          <Image
+            src="/logo-full.png"
+            alt="Bes Saiman Group"
+            width={1200}
+            height={297}
+            priority
+            className="h-9 w-auto"
+          />
         </Link>
 
         {/* Desktop links */}
@@ -118,7 +111,7 @@ export default function Navbar() {
             <InstagramIcon />
           </a>
           <a
-            href="https://wa.me/77011013433"
+            href="https://wa.me/77076202890"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center w-9 h-9 rounded-lg transition-all"

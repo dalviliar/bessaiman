@@ -232,7 +232,7 @@ function KPBasketDocument({
             <Text style={s.companyName}>ТОО «Bes Saiman Group»</Text>
             <Text style={s.companyTagline}>Научно-производственная компания</Text>
             <Text style={s.companyContact}>
-              +7 (701) 101-34-33  ·  bessaimangroup1@gmail.com  ·  г. Алматы, ул. Тулебаева 38/61
+              +7 (707) 620-28-90  ·  bessaimangroup1@gmail.com  ·  г. Алматы, ул. Тулебаева 38/61
             </Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
@@ -255,7 +255,7 @@ function KPBasketDocument({
             <Text style={s.partyName}>ТОО «Bes Saiman Group»</Text>
             <Text style={s.partyDetail}>БИН: 210440034775</Text>
             <Text style={s.partyDetail}>РК, г. Алматы, ул. Тулебаева 38/61</Text>
-            <Text style={s.partyDetail}>Тел: +7 (701) 101-34-33</Text>
+            <Text style={s.partyDetail}>Тел: +7 (707) 620-28-90</Text>
           </View>
           <View style={s.partyBoxLast}>
             <Text style={s.partyLabel}>Покупатель</Text>
@@ -461,7 +461,7 @@ function KPBasketDocument({
         {/* FOOTER */}
         <View style={s.footer} fixed>
           <Text style={s.footerText}>
-            ТОО «Bes Saiman Group»  ·  БИН 210440034775  ·  +7 (701) 101-34-33  ·  bessaimangroup1@gmail.com
+            ТОО «Bes Saiman Group»  ·  БИН 210440034775  ·  +7 (707) 620-28-90  ·  bessaimangroup1@gmail.com
           </Text>
           <Text style={s.footerText}
             render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
