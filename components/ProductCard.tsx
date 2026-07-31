@@ -22,7 +22,7 @@ const AVAIL_META = {
 
 function getKeySpecs(specs: Record<string, string> | null, code: string | null): [string, string][] {
   if (!specs) return []
-  const entries = Object.entries(specs)
+  const entries = Object.entries(specs).filter(([, val]) => val?.trim())
   if (code?.startsWith('SF')) {
     const priority = ['Макс. температура', 'Максимальная температура', 'Объём камеры', 'Диаметр трубки', 'Диаметр трубы']
     const sorted = [...priority.map(k => entries.find(([key]) => key === k)).filter(Boolean) as [string,string][],
@@ -125,9 +125,9 @@ export default function ProductCard({ product }: { product: Product }) {
         {keySpecs.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {keySpecs.map(([key, val]) => (
-              <div key={key} className="flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-mono"
+              <div key={key} className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono font-semibold"
                 style={{ background: '#EFF9FF', border: '1px solid #BAE6FD', color: '#0369A1' }}>
-                <Zap size={8} style={{ color: '#0284C7', flexShrink: 0 }} />
+                <Zap size={10} style={{ color: '#0284C7', flexShrink: 0 }} />
                 {val}
               </div>
             ))}

@@ -100,7 +100,7 @@ interface Partner {
   website_url: string | null
 }
 
-function PartnersSection() {
+function ClientsSection() {
   const { tr } = useLang()
   const [partners, setPartners] = useState<Partner[]>([])
 
@@ -114,10 +114,7 @@ function PartnersSection() {
     <section style={{ borderTop: '1px solid #E2E8F0', background: '#F8FAFC' }}>
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-14">
         <div className="text-center mb-10">
-          <p className="text-[10px] font-mono tracking-[0.25em] mb-3 font-bold" style={{ color: '#94A3B8' }}>
-            {tr.home.partnersLabel}
-          </p>
-          <h2 className="text-2xl font-black" style={{ color: '#0F172A' }}>{tr.home.partnersTitle}</h2>
+          <h2 className="text-2xl font-black" style={{ color: '#0F172A' }}>{tr.home.clientsTitle}</h2>
         </div>
         <div className="flex flex-wrap justify-center gap-5">
           {partners.map(p => {
@@ -512,8 +509,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ══ PARTNERS ══ */}
-      <PartnersSection />
+      {/* ══ CLIENTS ══ */}
+      <ClientsSection />
 
       {/* ══ FOOTER ══ */}
       <footer style={{ borderTop: '1px solid #E2E8F0', background: 'white' }}>
