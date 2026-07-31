@@ -68,10 +68,10 @@ export default function Navbar() {
           <Image
             src="/logo-full.png"
             alt="Bes Saiman Group"
-            width={1200}
-            height={297}
+            width={1600}
+            height={396}
             priority
-            className="h-14 sm:h-[72px] w-auto"
+            className="h-16 sm:h-20 w-auto"
           />
         </Link>
 

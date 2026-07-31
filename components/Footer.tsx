@@ -33,9 +33,9 @@ export default function Footer() {
             <Image
               src="/logo-full-white.png"
               alt="Bes Saiman Group"
-              width={1200}
-              height={297}
-              className="h-[68px] w-auto mb-4"
+              width={1600}
+              height={396}
+              className="h-20 w-auto mb-4"
             />
             <p className="text-steel-silver text-sm leading-relaxed max-w-xs">
               {tr.about.missionText}
