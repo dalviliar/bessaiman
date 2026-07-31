@@ -68,11 +68,8 @@ export default function AboutPage() {
       <div className="steel-card p-8 text-center relative overflow-hidden">
         <div className="absolute inset-0 bg-steel-sheen" />
         <div className="relative">
-          <p className="text-steel-silver text-sm font-semibold tracking-wide mb-1">
+          <div className="text-4xl font-black text-[#0F172A] mb-3 tracking-tight">
             {tr.contacts.company}
-          </p>
-          <div className="text-5xl font-black text-[#0F172A] mb-3 tracking-tight">
-            BES <span className="text-steel-accent">SAIMAN</span> GROUP
           </div>
           <p className="text-steel-silver max-w-lg mx-auto">
             {tr.about.besDesc}

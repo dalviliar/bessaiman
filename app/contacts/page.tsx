@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { MapPin, Phone, Mail, User, MessageCircle, Send, CheckCircle, Navigation } from 'lucide-react'
+import { MapPin, Phone, Mail, MessageCircle, Send, CheckCircle, Navigation } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 
 export default function ContactsPage() {
@@ -49,7 +49,6 @@ export default function ContactsPage() {
               { icon: <MapPin size={18} className="text-steel-accent" />, value: tr.contacts.address },
               { icon: <Phone size={18} className="text-steel-accent" />, value: tr.contacts.phone, href: `tel:${tr.contacts.phone}` },
               { icon: <Mail size={18} className="text-steel-accent" />, value: tr.contacts.email, href: `mailto:${tr.contacts.email}` },
-              { icon: <User size={18} className="text-steel-accent" />, value: tr.contacts.contactPerson },
             ].map((item, i) => (
               <div key={i} className="flex items-start gap-3">
                 <div className="w-9 h-9 rounded-lg bg-steel-blue/10 border border-steel-blue/20 flex items-center justify-center shrink-0">
