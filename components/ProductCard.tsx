@@ -20,20 +20,31 @@ const AVAIL_META = {
   out_of_stock:{ dot: '#EF4444', label: 'Нет в наличии' },
 }
 
+// Admin-entered spec keys drift slightly between products (extra spaces, "ё" vs
+// "е", different casing) - normalize before matching against the priority list
+// so e.g. "объем камеры" still matches "Объём камеры" and the badge doesn't
+// silently disappear for that one product.
+function normalizeKey(k: string) {
+  return k.trim().toLowerCase().replace(/ё/g, 'е')
+}
+
+function pickByPriority(entries: [string, string][], priority: string[]): [string, string][] {
+  const normPriority = priority.map(normalizeKey)
+  const sorted = [
+    ...normPriority.map(np => entries.find(([key]) => normalizeKey(key) === np)).filter(Boolean) as [string, string][],
+    ...entries.filter(([key]) => !normPriority.includes(normalizeKey(key))),
+  ]
+  return sorted.slice(0, 2)
+}
+
 function getKeySpecs(specs: Record<string, string> | null, code: string | null): [string, string][] {
   if (!specs) return []
   const entries = Object.entries(specs).filter(([, val]) => val?.trim())
   if (code?.startsWith('SF')) {
-    const priority = ['Макс. температура', 'Максимальная температура', 'Объём камеры', 'Диаметр трубки', 'Диаметр трубы']
-    const sorted = [...priority.map(k => entries.find(([key]) => key === k)).filter(Boolean) as [string,string][],
-                    ...entries.filter(([k]) => !priority.includes(k))]
-    return sorted.slice(0, 2) as [string, string][]
+    return pickByPriority(entries, ['Макс. температура', 'Максимальная температура', 'Объём камеры', 'Диаметр трубки', 'Диаметр трубы'])
   }
   if (code?.startsWith('SM')) {
-    const priority = ['Скорость вращения', 'Объём барабана', 'Мощность']
-    const sorted = [...priority.map(k => entries.find(([key]) => key === k)).filter(Boolean) as [string,string][],
-                    ...entries.filter(([k]) => !priority.includes(k))]
-    return sorted.slice(0, 2) as [string, string][]
+    return pickByPriority(entries, ['Скорость вращения', 'Объём барабана', 'Мощность'])
   }
   return entries.slice(0, 2) as [string, string][]
 }
