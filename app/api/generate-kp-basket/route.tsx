@@ -34,6 +34,7 @@ const s = StyleSheet.create({
   logoBox: { width: 52, height: 52, backgroundColor: C.primary, alignItems: 'center', justifyContent: 'center', borderRadius: 4, marginRight: 14 },
   logoMain: { fontSize: 18, fontWeight: 'bold', color: C.white },
   logoSub:  { fontSize: 5, color: 'rgba(255,255,255,0.7)', letterSpacing: 2 },
+  logoImg:  { width: 148, height: 36.6, marginRight: 14 },
   headerInfo: { flex: 1 },
   companyName:    { fontSize: 13, fontWeight: 'bold', color: C.primary, marginBottom: 2 },
   companyTagline: { fontSize: 7.5, color: C.gray, marginBottom: 2 },
@@ -130,14 +131,14 @@ const s = StyleSheet.create({
   bankLabel: { width: 68, fontSize: 7, color: C.gray },
   bankValue: { flex: 1, fontSize: 7.5, fontWeight: 'bold', color: C.primaryDark },
 
-  sigSection: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 10 },
-  sigBox:  { flex: 1 },
+  sigSection: { flexDirection: 'row', marginTop: 10, position: 'relative' },
+  sigBox:  { width: 220 },
   sigRole: { fontSize: 7.5, color: C.gray, marginBottom: 3 },
-  sigOrg:  { fontSize: 8, fontWeight: 'bold', color: C.primaryDark, marginBottom: 18 },
-  sigLine: { borderBottomWidth: 0.5, borderBottomColor: '#888', marginBottom: 4, marginRight: 60 },
+  sigOrg:  { fontSize: 8, fontWeight: 'bold', color: C.primaryDark, marginBottom: 8 },
+  sigLine: { borderBottomWidth: 0.5, borderBottomColor: '#888', marginBottom: 4, marginRight: 60, width: 90 },
   sigName: { fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark },
   sigDate: { fontSize: 7, color: C.gray, marginTop: 2 },
-  stampBox: { width: 110, height: 110, alignItems: 'center', justifyContent: 'center' },
+  stampBox: { position: 'absolute', left: 90, top: 8, width: 125, height: 125 },
 
   footer: {
     position: 'absolute', bottom: 18, left: 40, right: 40,
@@ -198,7 +199,7 @@ function parseDescriptionLines(text: string): { type: 'heading' | 'bullet' | 'te
 }
 
 function KPBasketDocument({
-  items, clientInfo, kpNumber, dateStr, stampDataUri, signatureDataUri,
+  items, clientInfo, kpNumber, dateStr, stampDataUri, signatureDataUri, logoDataUri,
 }: {
   items: CartItem[]
   clientInfo: ClientInfo
@@ -206,6 +207,7 @@ function KPBasketDocument({
   dateStr: string
   stampDataUri: string | null
   signatureDataUri: string | null
+  logoDataUri: string | null
 }) {
   const totalKnown = items.reduce((s, i) => s + (i.price ?? 0) * i.quantity, 0)
   const hasUnknown = items.some(i => !i.price)
@@ -224,10 +226,14 @@ function KPBasketDocument({
 
         {/* HEADER */}
         <View style={s.header}>
-          <View style={s.logoBox}>
-            <Text style={s.logoMain}>BS</Text>
-            <Text style={s.logoSub}>GROUP</Text>
-          </View>
+          {logoDataUri
+            ? <Image src={logoDataUri} style={s.logoImg} />
+            : (
+              <View style={s.logoBox}>
+                <Text style={s.logoMain}>BS</Text>
+                <Text style={s.logoSub}>GROUP</Text>
+              </View>
+            )}
           <View style={s.headerInfo}>
             <Text style={s.companyName}>ТОО «Bes Saiman Group»</Text>
             <Text style={s.companyTagline}>Научно-производственная компания</Text>
@@ -453,7 +459,7 @@ function KPBasketDocument({
           </View>
           {stampDataUri && (
             <View style={s.stampBox}>
-              <Image src={stampDataUri} style={{ width: 105, height: 105 }} />
+              <Image src={stampDataUri} style={{ width: 125, height: 125 }} />
             </View>
           )}
         </View>
@@ -523,6 +529,15 @@ function loadSignatureDataUri(): string | null {
   }
 }
 
+function loadLogoDataUri(): string | null {
+  try {
+    const logoPath = path.join(process.cwd(), 'public', 'logo-full.png')
+    return `data:image/png;base64,${readFileSync(logoPath).toString('base64')}`
+  } catch {
+    return null
+  }
+}
+
 async function loadProductImageDataUri(imageUrl: string | undefined): Promise<string | null> {
   if (!imageUrl) return null
   try {
@@ -565,6 +580,7 @@ export async function POST(request: Request) {
     ensureFontsRegistered()
     const stampDataUri = loadStampDataUri()
     const signatureDataUri = loadSignatureDataUri()
+    const logoDataUri = loadLogoDataUri()
 
     const kpNumber = generateKPNumber()
     const dateStr = formatDate(new Date())
@@ -612,6 +628,7 @@ export async function POST(request: Request) {
         dateStr={dateStr}
         stampDataUri={stampDataUri}
         signatureDataUri={signatureDataUri}
+        logoDataUri={logoDataUri}
       />
     )
 
