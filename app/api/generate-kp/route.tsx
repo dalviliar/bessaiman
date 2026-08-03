@@ -144,10 +144,11 @@ const s = StyleSheet.create({
   bankValue: { flex: 1, fontSize: 7.5, fontWeight: 'bold', color: C.primaryDark },
 
   // ── Signature ──
-  // Stamp overlaps the tail of the signature/name (position: relative + absolute
-  // stamp), matching how these are actually stamped on paper - not floated off
-  // to the far right of the page with a big empty gap.
-  sigSection: { flexDirection: 'row', marginTop: 10, position: 'relative' },
+  // Whole block is centered on the page as a unit; stamp overlaps the tail of
+  // the signature/name (sigInner: relative + stampBox: absolute within it),
+  // matching how these are actually stamped on paper.
+  sigSection: { marginTop: 10, alignItems: 'center' },
+  sigInner: { position: 'relative', width: 220 },
   sigBox:  { width: 220 },
   sigRole: { fontSize: 7.5, color: C.gray, marginBottom: 3 },
   sigOrg:  { fontSize: 8, fontWeight: 'bold', color: C.primaryDark, marginBottom: 8 },
@@ -446,22 +447,24 @@ function KPDocument({
 
         {/* SIGNATURE + STAMP */}
         <View style={s.sigSection}>
-          <View style={s.sigBox}>
-            <Text style={s.sigRole}>Генеральный директор</Text>
-            <Text style={s.sigOrg}>ТОО «Bes Saiman Group»</Text>
-            {signatureDataUri ? (
-              <Image src={signatureDataUri} style={{ width: 90, height: 36, marginBottom: 4 }} />
-            ) : (
-              <View style={s.sigLine} />
-            )}
-            <Text style={s.sigName}>Елеуов М.А.</Text>
-            <Text style={s.sigDate}>{dateStr}</Text>
-          </View>
-          {stampDataUri && (
-            <View style={s.stampBox}>
-              <Image src={stampDataUri} style={{ width: 125, height: 125 }} />
+          <View style={s.sigInner}>
+            <View style={s.sigBox}>
+              <Text style={s.sigRole}>Генеральный директор</Text>
+              <Text style={s.sigOrg}>ТОО «Bes Saiman Group»</Text>
+              {signatureDataUri ? (
+                <Image src={signatureDataUri} style={{ width: 90, height: 36, marginBottom: 4 }} />
+              ) : (
+                <View style={s.sigLine} />
+              )}
+              <Text style={s.sigName}>Елеуов М.А.</Text>
+              <Text style={s.sigDate}>{dateStr}</Text>
             </View>
-          )}
+            {stampDataUri && (
+              <View style={s.stampBox}>
+                <Image src={stampDataUri} style={{ width: 125, height: 125 }} />
+              </View>
+            )}
+          </View>
         </View>
 
         {/* FOOTER */}
