@@ -14,13 +14,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
     const { id } = await params
-    const { title, authors, journal, year, doi, sort_order } = await request.json()
+    const { title, authors, journal, year, doi } = await request.json()
     if (!title?.trim()) return NextResponse.json({ error: 'Укажите название публикации' }, { status: 400 })
 
     const row = await queryOne(
-      `UPDATE science_publications SET title=$1, authors=$2, journal=$3, year=$4, doi=$5, sort_order=$6
-       WHERE id=$7 RETURNING *`,
-      [title.trim(), authors || null, journal || null, year ? Number(year) : null, doi || null, sort_order ?? 0, id],
+      `UPDATE science_publications SET title=$1, authors=$2, journal=$3, year=$4, doi=$5
+       WHERE id=$6 RETURNING *`,
+      [title.trim(), authors || null, journal || null, year ? Number(year) : null, doi || null, id],
     )
     if (!row) return NextResponse.json({ error: 'Не найдено' }, { status: 404 })
 

@@ -22,13 +22,13 @@ export async function POST(request: Request) {
     if (!me || !can(me.role, 'content', 'create')) {
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
-    const { title_ru, title_kk, title_en, period, tags, image_url, sort_order } = await request.json()
+    const { title_ru, title_kk, title_en, period, tags, image_url } = await request.json()
     if (!title_ru?.trim()) return NextResponse.json({ error: 'Укажите название проекта' }, { status: 400 })
 
     const row = await queryOne(
       `INSERT INTO science_projects (title_ru, title_kk, title_en, period, tags, image_url, sort_order)
-       VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
-      [title_ru.trim(), title_kk || null, title_en || null, period || null, tags || null, image_url || null, sort_order ?? 0],
+       VALUES ($1,$2,$3,$4,$5,$6, (SELECT COALESCE(MAX(sort_order),0)+10 FROM science_projects)) RETURNING *`,
+      [title_ru.trim(), title_kk || null, title_en || null, period || null, tags || null, image_url || null],
     )
 
     await logAction({

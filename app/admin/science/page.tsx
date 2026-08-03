@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import {
-  Plus, Trash2, Upload, Edit2, X, Loader2, ExternalLink,
+  Plus, Trash2, Upload, Edit2, X, Loader2, ExternalLink, ChevronUp, ChevronDown,
   BookOpen, ShieldCheck, FlaskConical, Trophy,
 } from 'lucide-react'
 
@@ -25,6 +25,38 @@ const labelStyle = { color: 'rgba(255,255,255,0.5)' }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return <label className="block text-xs mb-1.5" style={labelStyle}>{children}</label>
+}
+
+// Swaps an item with its neighbour, persists the new order via the given
+// reorder endpoint. Mirrors the categories/products up/down reordering pattern.
+async function moveItem<T extends { id: string }>(
+  items: T[], index: number, direction: -1 | 1, endpoint: string, setItems: (items: T[]) => void,
+) {
+  const target = index + direction
+  if (target < 0 || target >= items.length) return
+  const reordered = [...items]
+  ;[reordered[index], reordered[target]] = [reordered[target], reordered[index]]
+  setItems(reordered)
+  await fetch(endpoint, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ orderedIds: reordered.map(i => i.id) }),
+  })
+}
+
+function MoveButtons({ index, count, onMove }: { index: number; count: number; onMove: (dir: -1 | 1) => void }) {
+  return (
+    <div className="flex flex-col gap-0.5 shrink-0">
+      <button type="button" onClick={() => onMove(-1)} disabled={index === 0}
+        className="disabled:opacity-20" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <ChevronUp size={14} />
+      </button>
+      <button type="button" onClick={() => onMove(1)} disabled={index === count - 1}
+        className="disabled:opacity-20" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <ChevronDown size={14} />
+      </button>
+    </div>
+  )
 }
 
 function FormShell({
@@ -126,7 +158,7 @@ interface Publication {
   id: string; title: string; authors: string | null; journal: string | null
   year: number | null; doi: string | null; sort_order: number
 }
-const EMPTY_PUB = { title: '', authors: '', journal: '', year: '', doi: '', sort_order: 0 }
+const EMPTY_PUB = { title: '', authors: '', journal: '', year: '', doi: '' }
 
 function PublicationsTab() {
   const [items, setItems] = useState<Publication[]>([])
@@ -145,7 +177,7 @@ function PublicationsTab() {
 
   const startEdit = (p: Publication) => {
     setEditing(p)
-    setForm({ title: p.title, authors: p.authors ?? '', journal: p.journal ?? '', year: p.year ? String(p.year) : '', doi: p.doi ?? '', sort_order: p.sort_order })
+    setForm({ title: p.title, authors: p.authors ?? '', journal: p.journal ?? '', year: p.year ? String(p.year) : '', doi: p.doi ?? '' })
     setError('')
   }
   const cancelEdit = () => { setEditing(null); setForm(EMPTY_PUB); setError('') }
@@ -155,7 +187,7 @@ function PublicationsTab() {
     if (!form.title.trim()) { setError('Введите название публикации'); return }
     setSaving(true); setError('')
     try {
-      const payload = { title: form.title.trim(), authors: form.authors || null, journal: form.journal || null, year: form.year || null, doi: form.doi || null, sort_order: Number(form.sort_order) || 0 }
+      const payload = { title: form.title.trim(), authors: form.authors || null, journal: form.journal || null, year: form.year || null, doi: form.doi || null }
       const res = await fetch(editing ? `/api/admin/science/publications/${editing.id}` : '/api/admin/science/publications', {
         method: editing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -196,15 +228,9 @@ function PublicationsTab() {
           <FieldLabel>Авторы</FieldLabel>
           <input className="steel-input w-full" value={form.authors} onChange={e => setForm(f => ({ ...f, authors: e.target.value }))} placeholder="Abdisattar A., Yeleuov M., ..." />
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <FieldLabel>DOI</FieldLabel>
-            <input className="steel-input w-full" value={form.doi} onChange={e => setForm(f => ({ ...f, doi: e.target.value }))} placeholder="10.1016/j.elecom.2022.107373" />
-          </div>
-          <div>
-            <FieldLabel>Порядок сортировки</FieldLabel>
-            <input type="number" className="steel-input w-full" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: Number(e.target.value) }))} />
-          </div>
+        <div>
+          <FieldLabel>DOI</FieldLabel>
+          <input className="steel-input w-full" value={form.doi} onChange={e => setForm(f => ({ ...f, doi: e.target.value }))} placeholder="10.1016/j.elecom.2022.107373" />
         </div>
       </FormShell>
 
@@ -214,8 +240,9 @@ function PublicationsTab() {
         <div className="text-center py-12" style={{ color: 'rgba(255,255,255,0.3)' }}><p className="text-sm">Публикации ещё не добавлены</p></div>
       ) : (
         <div className="space-y-2">
-          {items.map(p => (
+          {items.map((p, i) => (
             <div key={p.id} className="flex items-start gap-4 px-4 py-3 rounded-xl" style={rowStyle}>
+              <MoveButtons index={i} count={items.length} onMove={dir => moveItem(items, i, dir, '/api/admin/science/publications/reorder', setItems)} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white">{p.title}</p>
                 <div className="flex flex-wrap items-center gap-2 mt-1.5">
@@ -224,7 +251,6 @@ function PublicationsTab() {
                 </div>
                 {p.authors && <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>{p.authors}</p>}
               </div>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded shrink-0" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)' }}>#{p.sort_order}</span>
               {p.doi && (
                 <a href={`https://doi.org/${p.doi}`} target="_blank" rel="noopener noreferrer" style={{ color: 'rgba(255,255,255,0.3)' }} className="shrink-0"><ExternalLink size={14} /></a>
               )}
@@ -243,7 +269,7 @@ function PublicationsTab() {
 // ────────────────────────────────────────────────────────────────
 
 interface Patent { id: string; title: string; patent_number: string | null; badge_label: string; sort_order: number }
-const EMPTY_PATENT = { title: '', patent_number: '', badge_label: 'Патент', sort_order: 0 }
+const EMPTY_PATENT = { title: '', patent_number: '', badge_label: 'Патент' }
 
 function PatentsTab() {
   const [items, setItems] = useState<Patent[]>([])
@@ -262,7 +288,7 @@ function PatentsTab() {
 
   const startEdit = (p: Patent) => {
     setEditing(p)
-    setForm({ title: p.title, patent_number: p.patent_number ?? '', badge_label: p.badge_label, sort_order: p.sort_order })
+    setForm({ title: p.title, patent_number: p.patent_number ?? '', badge_label: p.badge_label })
     setError('')
   }
   const cancelEdit = () => { setEditing(null); setForm(EMPTY_PATENT); setError('') }
@@ -272,7 +298,7 @@ function PatentsTab() {
     if (!form.title.trim()) { setError('Введите название патента'); return }
     setSaving(true); setError('')
     try {
-      const payload = { title: form.title.trim(), patent_number: form.patent_number || null, badge_label: form.badge_label || 'Патент', sort_order: Number(form.sort_order) || 0 }
+      const payload = { title: form.title.trim(), patent_number: form.patent_number || null, badge_label: form.badge_label || 'Патент' }
       const res = await fetch(editing ? `/api/admin/science/patents/${editing.id}` : '/api/admin/science/patents', {
         method: editing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -299,18 +325,14 @@ function PatentsTab() {
           <FieldLabel>Название *</FieldLabel>
           <input className="steel-input w-full" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Способ получения керамического анодного материала" />
         </div>
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <div>
             <FieldLabel>Номер патента</FieldLabel>
-            <input className="steel-input w-full" value={form.patent_number} onChange={e => setForm(f => ({ ...f, patent_number: e.target.value }))} placeholder="Патент РФ № 378990" />
+            <input className="steel-input w-full" value={form.patent_number} onChange={e => setForm(f => ({ ...f, patent_number: e.target.value }))} placeholder="№ 378990" />
           </div>
           <div>
             <FieldLabel>Метка</FieldLabel>
             <input className="steel-input w-full" value={form.badge_label} onChange={e => setForm(f => ({ ...f, badge_label: e.target.value }))} placeholder="Патент" />
-          </div>
-          <div>
-            <FieldLabel>Порядок сортировки</FieldLabel>
-            <input type="number" className="steel-input w-full" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: Number(e.target.value) }))} />
           </div>
         </div>
       </FormShell>
@@ -321,14 +343,14 @@ function PatentsTab() {
         <div className="text-center py-12" style={{ color: 'rgba(255,255,255,0.3)' }}><p className="text-sm">Патенты ещё не добавлены</p></div>
       ) : (
         <div className="space-y-2">
-          {items.map(p => (
+          {items.map((p, i) => (
             <div key={p.id} className="flex items-center gap-4 px-4 py-3 rounded-xl" style={rowStyle}>
+              <MoveButtons index={i} count={items.length} onMove={dir => moveItem(items, i, dir, '/api/admin/science/patents/reorder', setItems)} />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white truncate">{p.title}</p>
                 {p.patent_number && <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>{p.patent_number}</p>}
               </div>
               <span className="text-[10px] font-bold px-2 py-1 rounded-full shrink-0" style={{ background: 'rgba(16,185,129,0.12)', color: '#34D399' }}>{p.badge_label}</span>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded shrink-0" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)' }}>#{p.sort_order}</span>
               <button onClick={() => startEdit(p)} style={{ color: '#60A5FA' }} className="shrink-0"><Edit2 size={14} /></button>
               <button onClick={() => handleDelete(p.id)} style={{ color: '#F87171' }} className="shrink-0"><Trash2 size={14} /></button>
             </div>
@@ -347,7 +369,7 @@ interface Project {
   id: string; title_ru: string; title_kk: string | null; title_en: string | null
   period: string | null; tags: string | null; image_url: string | null; sort_order: number
 }
-const EMPTY_PROJECT = { title_ru: '', title_kk: '', title_en: '', period: '', tags: '', image_url: '', sort_order: 0 }
+const EMPTY_PROJECT = { title_ru: '', title_kk: '', title_en: '', period: '', tags: '', image_url: '' }
 
 function ProjectsTab() {
   const [items, setItems] = useState<Project[]>([])
@@ -366,7 +388,7 @@ function ProjectsTab() {
 
   const startEdit = (p: Project) => {
     setEditing(p)
-    setForm({ title_ru: p.title_ru, title_kk: p.title_kk ?? '', title_en: p.title_en ?? '', period: p.period ?? '', tags: p.tags ?? '', image_url: p.image_url ?? '', sort_order: p.sort_order })
+    setForm({ title_ru: p.title_ru, title_kk: p.title_kk ?? '', title_en: p.title_en ?? '', period: p.period ?? '', tags: p.tags ?? '', image_url: p.image_url ?? '' })
     setError('')
   }
   const cancelEdit = () => { setEditing(null); setForm(EMPTY_PROJECT); setError('') }
@@ -379,7 +401,6 @@ function ProjectsTab() {
       const payload = {
         title_ru: form.title_ru.trim(), title_kk: form.title_kk || null, title_en: form.title_en || null,
         period: form.period || null, tags: form.tags || null, image_url: form.image_url || null,
-        sort_order: Number(form.sort_order) || 0,
       }
       const res = await fetch(editing ? `/api/admin/science/projects/${editing.id}` : '/api/admin/science/projects', {
         method: editing ? 'PUT' : 'POST',
@@ -428,10 +449,6 @@ function ProjectsTab() {
           </div>
         </div>
         <ImagePicker url={form.image_url} onChange={url => setForm(f => ({ ...f, image_url: url }))} uploadUrl="/api/admin/science/upload" label="Фото проекта" />
-        <div>
-          <FieldLabel>Порядок сортировки</FieldLabel>
-          <input type="number" className="steel-input w-24" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: Number(e.target.value) }))} />
-        </div>
       </FormShell>
 
       {loading ? (
@@ -440,8 +457,9 @@ function ProjectsTab() {
         <div className="text-center py-12" style={{ color: 'rgba(255,255,255,0.3)' }}><p className="text-sm">Проекты ещё не добавлены</p></div>
       ) : (
         <div className="space-y-2">
-          {items.map(p => (
+          {items.map((p, i) => (
             <div key={p.id} className="flex items-center gap-4 px-4 py-3 rounded-xl" style={rowStyle}>
+              <MoveButtons index={i} count={items.length} onMove={dir => moveItem(items, i, dir, '/api/admin/science/projects/reorder', setItems)} />
               <div className="w-14 h-14 rounded-lg flex items-center justify-center overflow-hidden shrink-0" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                 {p.image_url ? <img src={p.image_url} alt="" className="w-full h-full object-cover" /> : <FlaskConical size={18} style={{ color: 'rgba(255,255,255,0.2)' }} />}
               </div>
@@ -452,7 +470,6 @@ function ProjectsTab() {
                   {p.tags && <span className="text-[11px]" style={{ color: '#60A5FA' }}>{p.tags}</span>}
                 </div>
               </div>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded shrink-0" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)' }}>#{p.sort_order}</span>
               <button onClick={() => startEdit(p)} style={{ color: '#60A5FA' }} className="shrink-0"><Edit2 size={14} /></button>
               <button onClick={() => handleDelete(p.id)} style={{ color: '#F87171' }} className="shrink-0"><Trash2 size={14} /></button>
             </div>
@@ -471,7 +488,7 @@ interface Achievement {
   id: string; full_name: string; award_name: string; year: number | null
   organization: string | null; certificate_url: string | null; sort_order: number
 }
-const EMPTY_ACH = { full_name: '', award_name: '', year: '', organization: '', certificate_url: '', sort_order: 0 }
+const EMPTY_ACH = { full_name: '', award_name: '', year: '', organization: '', certificate_url: '' }
 
 function AchievementsTab() {
   const [items, setItems] = useState<Achievement[]>([])
@@ -490,7 +507,7 @@ function AchievementsTab() {
 
   const startEdit = (a: Achievement) => {
     setEditing(a)
-    setForm({ full_name: a.full_name, award_name: a.award_name, year: a.year ? String(a.year) : '', organization: a.organization ?? '', certificate_url: a.certificate_url ?? '', sort_order: a.sort_order })
+    setForm({ full_name: a.full_name, award_name: a.award_name, year: a.year ? String(a.year) : '', organization: a.organization ?? '', certificate_url: a.certificate_url ?? '' })
     setError('')
   }
   const cancelEdit = () => { setEditing(null); setForm(EMPTY_ACH); setError('') }
@@ -503,7 +520,6 @@ function AchievementsTab() {
       const payload = {
         full_name: form.full_name.trim(), award_name: form.award_name.trim(), year: form.year || null,
         organization: form.organization || null, certificate_url: form.certificate_url || null,
-        sort_order: Number(form.sort_order) || 0,
       }
       const res = await fetch(editing ? `/api/admin/science/achievements/${editing.id}` : '/api/admin/science/achievements', {
         method: editing ? 'PUT' : 'POST',
@@ -548,10 +564,6 @@ function AchievementsTab() {
           </div>
         </div>
         <ImagePicker url={form.certificate_url} onChange={url => setForm(f => ({ ...f, certificate_url: url }))} uploadUrl="/api/admin/science/upload" label="Скан диплома / награды" />
-        <div>
-          <FieldLabel>Порядок сортировки</FieldLabel>
-          <input type="number" className="steel-input w-24" value={form.sort_order} onChange={e => setForm(f => ({ ...f, sort_order: Number(e.target.value) }))} />
-        </div>
       </FormShell>
 
       {loading ? (
@@ -560,8 +572,9 @@ function AchievementsTab() {
         <div className="text-center py-12" style={{ color: 'rgba(255,255,255,0.3)' }}><p className="text-sm">Достижения ещё не добавлены</p></div>
       ) : (
         <div className="space-y-2">
-          {items.map(a => (
+          {items.map((a, i) => (
             <div key={a.id} className="flex items-center gap-4 px-4 py-3 rounded-xl" style={rowStyle}>
+              <MoveButtons index={i} count={items.length} onMove={dir => moveItem(items, i, dir, '/api/admin/science/achievements/reorder', setItems)} />
               <div className="w-14 h-14 rounded-lg flex items-center justify-center overflow-hidden shrink-0" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                 {a.certificate_url ? <img src={a.certificate_url} alt="" className="w-full h-full object-cover" /> : <Trophy size={18} style={{ color: 'rgba(255,255,255,0.2)' }} />}
               </div>
@@ -573,7 +586,6 @@ function AchievementsTab() {
                   {a.organization && <span className="text-[11px]" style={{ color: '#60A5FA' }}>{a.organization}</span>}
                 </div>
               </div>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded shrink-0" style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)' }}>#{a.sort_order}</span>
               <button onClick={() => startEdit(a)} style={{ color: '#60A5FA' }} className="shrink-0"><Edit2 size={14} /></button>
               <button onClick={() => handleDelete(a.id)} style={{ color: '#F87171' }} className="shrink-0"><Trash2 size={14} /></button>
             </div>

@@ -14,13 +14,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
     const { id } = await params
-    const { title, patent_number, badge_label, sort_order } = await request.json()
+    const { title, patent_number, badge_label } = await request.json()
     if (!title?.trim()) return NextResponse.json({ error: 'Укажите название патента' }, { status: 400 })
 
     const row = await queryOne(
-      `UPDATE science_patents SET title=$1, patent_number=$2, badge_label=$3, sort_order=$4
-       WHERE id=$5 RETURNING *`,
-      [title.trim(), patent_number || null, badge_label?.trim() || 'Патент', sort_order ?? 0, id],
+      `UPDATE science_patents SET title=$1, patent_number=$2, badge_label=$3
+       WHERE id=$4 RETURNING *`,
+      [title.trim(), patent_number || null, badge_label?.trim() || 'Патент', id],
     )
     if (!row) return NextResponse.json({ error: 'Не найдено' }, { status: 404 })
 

@@ -12,7 +12,7 @@ export async function GET() {
   if (!me || !can(me.role, 'content', 'read')) {
     return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
   }
-  const rows = await query(`SELECT * FROM science_publications ORDER BY sort_order ASC, year DESC, created_at ASC`)
+  const rows = await query(`SELECT * FROM science_publications ORDER BY sort_order ASC, created_at ASC`)
   return NextResponse.json(rows)
 }
 
@@ -22,13 +22,13 @@ export async function POST(request: Request) {
     if (!me || !can(me.role, 'content', 'create')) {
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
-    const { title, authors, journal, year, doi, sort_order } = await request.json()
+    const { title, authors, journal, year, doi } = await request.json()
     if (!title?.trim()) return NextResponse.json({ error: 'Укажите название публикации' }, { status: 400 })
 
     const row = await queryOne(
       `INSERT INTO science_publications (title, authors, journal, year, doi, sort_order)
-       VALUES ($1,$2,$3,$4,$5,$6) RETURNING *`,
-      [title.trim(), authors || null, journal || null, year ? Number(year) : null, doi || null, sort_order ?? 0],
+       VALUES ($1,$2,$3,$4,$5, (SELECT COALESCE(MAX(sort_order),0)+10 FROM science_publications)) RETURNING *`,
+      [title.trim(), authors || null, journal || null, year ? Number(year) : null, doi || null],
     )
 
     await logAction({

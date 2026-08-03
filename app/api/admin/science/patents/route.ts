@@ -22,13 +22,13 @@ export async function POST(request: Request) {
     if (!me || !can(me.role, 'content', 'create')) {
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
-    const { title, patent_number, badge_label, sort_order } = await request.json()
+    const { title, patent_number, badge_label } = await request.json()
     if (!title?.trim()) return NextResponse.json({ error: 'Укажите название патента' }, { status: 400 })
 
     const row = await queryOne(
       `INSERT INTO science_patents (title, patent_number, badge_label, sort_order)
-       VALUES ($1,$2,$3,$4) RETURNING *`,
-      [title.trim(), patent_number || null, badge_label?.trim() || 'Патент', sort_order ?? 0],
+       VALUES ($1,$2,$3, (SELECT COALESCE(MAX(sort_order),0)+10 FROM science_patents)) RETURNING *`,
+      [title.trim(), patent_number || null, badge_label?.trim() || 'Патент'],
     )
 
     await logAction({
