@@ -79,7 +79,19 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
         [...baseArgs.slice(0, 15), video_url ?? null, instagram_url ?? null, ...baseArgs.slice(15)],
       )
     } catch (e: unknown) {
-      if (e instanceof Error && e.message.includes('video_url')) {
+      if (e instanceof Error && e.message.includes('instagram_url')) {
+        product = await queryOne(
+          `UPDATE products SET
+             category_id = $1, name_ru = $2, name_kk = $3, name_en = $4, model = $5,
+             description_ru = $6, description_kk = $7, description_en = $8,
+             price = $9, price_with_discount = $10, bulk_threshold = $11, bulk_discount_percent = $12,
+             availability = $13, barcode = $14, images = $15, video_url = $16, specs = $17, product_type = $18,
+             classification_code = $19, compatible_with = $20, weight_kg = $21, unit = $22,
+             length_cm = $23, width_cm = $24, height_cm = $25
+           WHERE id = $26 RETURNING *`,
+          [...baseArgs.slice(0, 15), video_url ?? null, ...baseArgs.slice(15)],
+        )
+      } else if (e instanceof Error && e.message.includes('video_url')) {
         product = await queryOne(
           `UPDATE products SET
              category_id = $1, name_ru = $2, name_kk = $3, name_en = $4, model = $5,
