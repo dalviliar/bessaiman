@@ -249,9 +249,21 @@ export default function NaukaPage() {
               return (
                 <div key={a.id} className="flex items-center gap-4 p-4 rounded-xl"
                   style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                  <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0" style={{ background: `${medalColor}1A` }}>
-                    <Medal size={20} style={{ color: medalColor }} />
-                  </div>
+                  {a.certificate_url ? (
+                    <a href={a.certificate_url} target="_blank" rel="noopener noreferrer"
+                      className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 group"
+                      style={{ border: '1px solid #E2E8F0' }}>
+                      <img src={a.certificate_url} alt={a.award_name} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        style={{ background: 'rgba(15,23,42,0.45)' }}>
+                        <ExternalLink size={16} className="text-white" />
+                      </div>
+                    </a>
+                  ) : (
+                    <div className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${medalColor}1A` }}>
+                      <Medal size={22} style={{ color: medalColor }} />
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm truncate" style={{ color: '#0F172A' }}>{a.full_name}</p>
                     <p className="text-xs mt-0.5" style={{ color: '#64748B' }}>{a.award_name}</p>
@@ -260,11 +272,6 @@ export default function NaukaPage() {
                       {a.organization && <span className="text-[11px]" style={{ color: '#1565C0' }}>{a.organization}</span>}
                     </div>
                   </div>
-                  {a.certificate_url && (
-                    <a href={a.certificate_url} target="_blank" rel="noopener noreferrer" className="shrink-0" style={{ color: '#94A3B8' }}>
-                      <ExternalLink size={16} />
-                    </a>
-                  )}
                 </div>
               )
             })}
