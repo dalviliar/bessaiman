@@ -1,33 +1,35 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { FlaskConical, Microscope, Atom, Zap, BookOpen, Award, Trophy, ShieldCheck, ExternalLink, ChevronDown } from 'lucide-react'
+import { FlaskConical, Microscope, Atom, Zap, BookOpen, Award, Trophy, ShieldCheck, ExternalLink, ChevronDown, Calendar, Medal } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 
-const PUBLICATIONS = [
-  { title: 'Recent advances and challenges of current collectors for supercapacitors', doi: '10.1016/j.elecom.2022.107373', year: 2022, journal: 'Electrochemistry Communications', authors: 'Abdisattar A., Yeleuov M., Daulbayev Ch., Askaruly K., Taurbekov A., Prikhodko N.' },
-  { title: 'Enhancing supercapacitor performance through graphene flame synthesis on nickel current collectors and active carbon material from plant biomass', doi: '10.1016/j.est.2023.108853', year: 2023, journal: 'Journal of Energy Storage', authors: 'Prikhodko N., Yeleuov M., Abdisattar A., Askaruly K., Taurbekov A., Tolynbekov A., Rakhymzhan N., Daulbayev Ch.' },
-  { title: 'A facile synthesis of graphite-coated amorphous SiO₂ from biosources as anode material for LIBs', doi: '10.1016/j.mtcomm.2022.105136', year: 2023, journal: 'Materials Today Communications', authors: 'Askaruly K., Yeleuov M., Taurbekov A., Sarsembayeva B., Tolynbekov A., Zhylybayeva N., Azat S., Abdisattar A., Daulbayev Ch.' },
-  { title: 'Biomass Derived High Porous Carbon via CO₂ Activation for Supercapacitor Electrodes', doi: '10.3390/jcs7100444', year: 2023, journal: 'Journal of Composites Science (MDPI)', authors: 'Taurbekov A., Abdisattar A., Atamanov M., Yeleuov M., Daulbayev Ch., Askaruly K., Kaidar B. et al.' },
-  { title: 'Characterization of Activated Carbon from Rice Husk for Enhanced Energy Storage Devices', doi: '10.3390/molecules28155818', year: 2023, journal: 'Molecules (MDPI)', authors: 'Yerdauletov M., Nazarov K., Mukhametuly B., Yeleuov M., Daulbayev Ch., Abdulkarimova R. et al.' },
-  { title: 'Investigations of Activated Carbon from Different Natural Sources for Preparation of Binder-Free CNTs/Activated Carbon Electrodes', doi: '10.3390/jcs7110452', year: 2023, journal: 'Journal of Composites Science', authors: 'Taurbekov A., Abdisattar A., Atamanov M., Kaidar B., Yeleuov M., Joia R., Amrousse R., Atamanova T.' },
-  { title: 'The Impact of Biowaste Composition and Activated Carbon Structure on the Electrochemical Performance of Supercapacitors', doi: '10.3390/molecules29215029', year: 2024, journal: 'Molecules (MDPI)', authors: 'Yerdauletov M., Napolskiy F., Abdisattar A., Rudnykh A., Nazarov K., Kenessarin M., Yeleuov M. et al.' },
-  { title: 'Utilizing rice husk-derived Si/C composites to enhance energy capacity and cycle sustainability of lithium-ion batteries', doi: '10.1016/j.diamond.2024.111631', year: 2024, journal: 'Diamond and Related Materials', authors: 'Askaruly K., Idrissov N., Abdisattar A., Azat S., Kuli Zh., Yeleuov M., Malchik F., Daulbayev Ch. et al.' },
-  { title: 'Effective photocatalytic degradation of sulfamethoxazole using PAN/SrTiO₃ nanofibers', doi: '10.1016/j.jwpe.2024.106052', year: 2024, journal: 'Journal of Water Process Engineering', authors: 'Serik A., Kuspanov Zh., Bissenova M., Idrissov N., Yeleuov M., Umirzakov A., Daulbayev Ch.' },
-  { title: 'Efficient photocatalytic degradation of methylene blue via synergistic dual co-catalyst on SrTiO₃@Al under visible light', doi: '10.1016/j.jtice.2024.105806', year: 2025, journal: 'Taiwan Institute of Chemical Engineers', authors: 'Kuspanov Zh., Serik A., Matsko N., Bissenova M., Issadykov A., Yeleuov M., Daulbayev Ch.' },
-  { title: 'MXene-Integrated Porous Carbon–Silicon Composite as a Stable and High-Capacity Anode for Lithium-Ion Batteries', doi: '10.30919/es1804', year: 2025, journal: 'Engineered Science Publisher', authors: 'Saitova N., Askaruly K., Idrissov N., Kuli Zh., Shakenov K., Azat S., Sultakhan Sh.' },
-  { title: 'Cost-effective strategies and technologies for green hydrogen production', doi: '10.1016/j.rser.2025.116242', year: 2026, journal: 'Renewable and Sustainable Energy Reviews', authors: 'Serik A., Kuspanov Zh., Daulbayev Ch.' },
-  { title: 'Biomass-derived activated carbon/MXene composites as supercapacitor electrodes', doi: '10.1016/j.elecom.2026.108166', year: 2026, journal: 'Electrochemistry Communications', authors: 'Liu J., Kuli Zh., Toshtay K., Lee J., Askaruly K., Azat S.' },
-]
+interface Publication { id: string; title: string; authors: string | null; journal: string | null; year: number | null; doi: string | null }
+interface Patent { id: string; title: string; patent_number: string | null; badge_label: string }
+interface Project { id: string; title_ru: string; title_kk: string | null; title_en: string | null; period: string | null; tags: string | null; image_url: string | null }
+interface Achievement { id: string; full_name: string; award_name: string; year: number | null; organization: string | null; certificate_url: string | null }
 
 export default function NaukaPage() {
-  const { tr } = useLang()
+  const { tr, lang } = useLang()
   const [partners, setPartners] = useState<{ id: string; name: string; logo_url: string | null; website_url: string | null }[]>([])
   const [pubOpen, setPubOpen] = useState(false)
+  const [patentsOpen, setPatentsOpen] = useState(false)
+  const [publications, setPublications] = useState<Publication[]>([])
+  const [patents, setPatents] = useState<Patent[]>([])
+  const [projects, setProjects] = useState<Project[]>([])
+  const [achievements, setAchievements] = useState<Achievement[]>([])
 
   useEffect(() => {
     fetch('/api/partners').then(r => r.json()).then(d => setPartners(Array.isArray(d) ? d : [])).catch(() => {})
+    fetch('/api/science').then(r => r.json()).then(d => {
+      setPublications(Array.isArray(d?.publications) ? d.publications : [])
+      setPatents(Array.isArray(d?.patents) ? d.patents : [])
+      setProjects(Array.isArray(d?.projects) ? d.projects : [])
+      setAchievements(Array.isArray(d?.achievements) ? d.achievements : [])
+    }).catch(() => {})
   }, [])
+
+  const projectTitle = (p: Project) => (lang === 'kk' ? p.title_kk : lang === 'en' ? p.title_en : p.title_ru) || p.title_ru
 
   const directions = [
     { icon: <FlaskConical size={24} />, title: tr.nauka.d1Title, desc: tr.nauka.d1Desc },
@@ -70,7 +72,44 @@ export default function NaukaPage() {
         ))}
       </div>
 
+      {/* ══ Scientific projects & custom developments ══ */}
+      {projects.length > 0 && (
+        <div className="mb-16">
+          <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.projectsTitle}</h2>
+          <p className="text-sm mb-6" style={{ color: '#64748B' }}>{tr.nauka.projectsIntro}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {projects.map((p) => (
+              <div key={p.id} className="rounded-xl overflow-hidden"
+                style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                <div className="aspect-[4/3] flex items-center justify-center" style={{ background: '#F1F5F9' }}>
+                  {p.image_url
+                    ? <img src={p.image_url} alt={projectTitle(p)} className="w-full h-full object-cover" />
+                    : <FlaskConical size={28} style={{ color: '#CBD5E1' }} />}
+                </div>
+                <div className="p-4">
+                  <h3 className="font-bold text-sm mb-2 leading-snug" style={{ color: '#0F172A' }}>{projectTitle(p)}</h3>
+                  {p.period && (
+                    <div className="flex items-center gap-1.5 text-xs mb-1.5" style={{ color: '#64748B' }}>
+                      <Calendar size={12} />{p.period}
+                    </div>
+                  )}
+                  {p.tags && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {p.tags.split(',').map(t => t.trim()).filter(Boolean).map(t => (
+                        <span key={t} className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+                          style={{ background: '#EFF6FF', color: '#1565C0' }}>{t}</span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ══ Publications accordion ══ */}
+      {publications.length > 0 && (
       <div className="mb-14">
         {/* Header row — always visible */}
         <button
@@ -95,7 +134,7 @@ export default function NaukaPage() {
           <div className="flex items-center gap-3 shrink-0 ml-4">
             <span className="font-black text-lg px-3 py-1 rounded-lg"
               style={{ background: '#EFF6FF', color: '#1565C0' }}>
-              {PUBLICATIONS.length}
+              {publications.length}
             </span>
             <ChevronDown
               size={18}
@@ -113,34 +152,125 @@ export default function NaukaPage() {
           <div className="mt-3 rounded-2xl overflow-hidden"
             style={{ border: '1.5px solid #E2E8F0', background: 'white' }}>
             <div className="divide-y" style={{ borderColor: '#F1F5F9' }}>
-              {PUBLICATIONS.map((pub, i) => (
-                <div key={pub.doi} className="flex items-start gap-3 px-6 py-4">
+              {publications.map((pub, i) => (
+                <div key={pub.id} className="flex items-start gap-3 px-6 py-4">
                   <span className="shrink-0 mt-0.5 w-6 text-[11px] font-black text-right"
                     style={{ color: '#CBD5E1' }}>{i + 1}.</span>
                   <div className="flex-1 min-w-0">
-                    <a href={`https://doi.org/${pub.doi}`} target="_blank" rel="noopener noreferrer"
-                      className="text-sm font-semibold leading-snug hover:underline"
-                      style={{ color: '#0F172A' }}>
-                      {pub.title}
-                    </a>
+                    {pub.doi ? (
+                      <a href={`https://doi.org/${pub.doi}`} target="_blank" rel="noopener noreferrer"
+                        className="text-sm font-semibold leading-snug hover:underline"
+                        style={{ color: '#0F172A' }}>
+                        {pub.title}
+                      </a>
+                    ) : (
+                      <span className="text-sm font-semibold leading-snug" style={{ color: '#0F172A' }}>{pub.title}</span>
+                    )}
                     <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                        style={{ background: '#F1F5F9', color: '#475569' }}>{pub.year}</span>
-                      <span className="text-[11px]" style={{ color: '#1565C0' }}>{pub.journal}</span>
+                      {pub.year && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                        style={{ background: '#F1F5F9', color: '#475569' }}>{pub.year}</span>}
+                      {pub.journal && <span className="text-[11px]" style={{ color: '#1565C0' }}>{pub.journal}</span>}
                     </div>
-                    <p className="text-[11px] mt-1" style={{ color: '#94A3B8' }}>{pub.authors}</p>
+                    {pub.authors && <p className="text-[11px] mt-1" style={{ color: '#94A3B8' }}>{pub.authors}</p>}
                   </div>
-                  <a href={`https://doi.org/${pub.doi}`} target="_blank" rel="noopener noreferrer"
-                    className="shrink-0 flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-all hover:opacity-80"
-                    style={{ background: '#EFF6FF', color: '#1565C0' }}>
-                    <ExternalLink size={10} />DOI
-                  </a>
+                  {pub.doi && (
+                    <a href={`https://doi.org/${pub.doi}`} target="_blank" rel="noopener noreferrer"
+                      className="shrink-0 flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-all hover:opacity-80"
+                      style={{ background: '#EFF6FF', color: '#1565C0' }}>
+                      <ExternalLink size={10} />DOI
+                    </a>
+                  )}
                 </div>
               ))}
             </div>
           </div>
         )}
       </div>
+      )}
+
+      {/* ══ Patents accordion ══ */}
+      {patents.length > 0 && (
+      <div className="mb-14">
+        <button
+          onClick={() => setPatentsOpen(v => !v)}
+          className="w-full flex items-center justify-between p-5 rounded-2xl transition-all"
+          style={{
+            background: 'white',
+            border: `1.5px solid ${patentsOpen ? '#1565C0' : '#E2E8F0'}`,
+            boxShadow: patentsOpen ? '0 4px 20px rgba(21,101,192,0.1)' : '0 1px 4px rgba(0,0,0,0.04)',
+          }}
+        >
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+              style={{ background: patentsOpen ? '#1565C0' : '#EFF6FF' }}>
+              <ShieldCheck size={20} style={{ color: patentsOpen ? 'white' : '#1565C0' }} />
+            </div>
+            <div className="text-left">
+              <div className="font-bold text-sm" style={{ color: '#0F172A' }}>{tr.nauka.patentsTitle}</div>
+              <div className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>{tr.nauka.patentsIntro.slice(0, 80)}…</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 shrink-0 ml-4">
+            <span className="font-black text-lg px-3 py-1 rounded-lg"
+              style={{ background: '#EFF6FF', color: '#1565C0' }}>
+              {patents.length}
+            </span>
+            <ChevronDown size={18} style={{ color: '#94A3B8', transform: patentsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s' }} />
+          </div>
+        </button>
+
+        {patentsOpen && (
+          <div className="mt-3 rounded-2xl overflow-hidden" style={{ border: '1.5px solid #E2E8F0', background: 'white' }}>
+            <div className="divide-y" style={{ borderColor: '#F1F5F9' }}>
+              {patents.map((p, i) => (
+                <div key={p.id} className="flex items-center gap-3 px-6 py-4">
+                  <span className="shrink-0 w-6 text-[11px] font-black text-right" style={{ color: '#CBD5E1' }}>{i + 1}.</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>{p.title}</p>
+                    {p.patent_number && <p className="text-[11px] mt-1" style={{ color: '#94A3B8' }}>{p.patent_number}</p>}
+                  </div>
+                  <span className="shrink-0 text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: '#ECFDF5', color: '#059669' }}>{p.badge_label}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      )}
+
+      {/* ══ Employee achievements ══ */}
+      {achievements.length > 0 && (
+        <div className="mb-14">
+          <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.empAchievTitle}</h2>
+          <p className="text-sm mb-6" style={{ color: '#64748B' }}>{tr.nauka.empAchievIntro}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {achievements.map((a, i) => {
+              const medalColor = i === 0 ? '#F59E0B' : i === 1 ? '#94A3B8' : i === 2 ? '#B45309' : '#64748B'
+              return (
+                <div key={a.id} className="flex items-center gap-4 p-4 rounded-xl"
+                  style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                  <div className="w-11 h-11 rounded-full flex items-center justify-center shrink-0" style={{ background: `${medalColor}1A` }}>
+                    <Medal size={20} style={{ color: medalColor }} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm truncate" style={{ color: '#0F172A' }}>{a.full_name}</p>
+                    <p className="text-xs mt-0.5" style={{ color: '#64748B' }}>{a.award_name}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      {a.year && <span className="text-[11px]" style={{ color: '#94A3B8' }}>{a.year}</span>}
+                      {a.organization && <span className="text-[11px]" style={{ color: '#1565C0' }}>{a.organization}</span>}
+                    </div>
+                  </div>
+                  {a.certificate_url && (
+                    <a href={a.certificate_url} target="_blank" rel="noopener noreferrer" className="shrink-0" style={{ color: '#94A3B8' }}>
+                      <ExternalLink size={16} />
+                    </a>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ══ Certificates row ══ */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-14">

@@ -1,6 +1,8 @@
 import { query } from './db'
 
 export type AuditEntity = 'product' | 'user' | 'role' | 'category'
+  | 'news' | 'partner'
+  | 'science_publication' | 'science_patent' | 'science_project' | 'science_achievement'
 export type AuditAction = 'create' | 'update' | 'delete'
 
 export async function logAction(params: {

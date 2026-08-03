@@ -37,7 +37,7 @@ export async function POST(request: Request) {
 
     await logAction({
       adminId: me.id, adminEmail: me.email, action: 'create',
-      entityType: 'news' as 'role', entityId: post.id, entityLabel: post.title_ru,
+      entityType: 'news', entityId: post.id, entityLabel: post.title_ru,
     })
 
     return NextResponse.json(post)
