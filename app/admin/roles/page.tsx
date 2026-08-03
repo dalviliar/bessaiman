@@ -8,7 +8,7 @@ import { Shield, Lock, Plus, Check, X, Loader2 } from 'lucide-react'
 const PERM_SECTIONS = [
   { key: 'products',    label: 'Товары',               actions: ['create','read','update','delete'] },
   { key: 'categories',  label: 'Категории',            actions: ['create','read','update','delete'] },
-  { key: 'content',     label: 'Новости/уведомления',  actions: ['create','read','update','delete'] },
+  { key: 'content',     label: 'Новости, партнёры, наука', actions: ['create','read','update','delete'] },
   { key: 'warehouse',   label: 'Склад',                actions: ['read','write'] },
   { key: 'kp_requests', label: 'Запросы КП',           actions: ['read','delete'] },
   { key: 'users',       label: 'Пользователи',         actions: ['create','read','update','delete'] },

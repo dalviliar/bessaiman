@@ -13,7 +13,7 @@ const PERM_SECTIONS = [
   { key: 'products',    label: 'Управление товарами',         actions: ['create', 'read', 'update', 'delete'] },
   { key: 'categories',  label: 'Категории и классификаторы',  actions: ['create', 'read', 'update', 'delete'] },
   { key: 'kp_requests', label: 'Заявки КП, обращения, аналитика', actions: ['read', 'delete'] },
-  { key: 'content',     label: 'Новости и партнёры',          actions: ['create', 'read', 'update', 'delete'] },
+  { key: 'content',     label: 'Новости, партнёры и наука',   actions: ['create', 'read', 'update', 'delete'] },
 ] as const
 
 const ACTION_LABELS: Record<string, string> = {
