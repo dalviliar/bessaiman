@@ -502,7 +502,7 @@ export default function ProductForm({ product }: { product?: Product }) {
             />
           </Field>
           <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
-            На странице товара появится отдельная кнопка «Смотреть в Instagram» — ссылку на видео с YouTube сюда вставлять не нужно
+            Вставьте ссылку от Instagram
           </p>
         </div>
       </Section>
