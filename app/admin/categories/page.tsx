@@ -129,6 +129,7 @@ export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading]       = useState(true)
   const [editingId, setEditingId]   = useState<string | null>(null)
+  const [editName, setEditName]     = useState('')
   const [editCode, setEditCode]     = useState('')
   const [editDesc, setEditDesc]     = useState('')
   const [saving, setSaving]         = useState(false)
@@ -143,17 +144,20 @@ export default function AdminCategoriesPage() {
 
   const startEdit = (cat: Category) => {
     setEditingId(cat.id)
+    setEditName(cat.name_ru)
     setEditCode(cat.classification_code ?? '')
     setEditDesc(cat.description_ru ?? CLASS_HINT[cat.classification_code ?? ''] ?? '')
   }
 
   const saveEdit = async (cat: Category) => {
+    if (!editName.trim()) return
     setSaving(true)
     const res = await fetch(`/api/admin/categories/${cat.id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...cat,
+        name_ru: editName.trim(),
         classification_code: editCode.toUpperCase().trim() || null,
         description_ru: editDesc.trim() || null,
       }),
@@ -252,7 +256,19 @@ export default function AdminCategoriesPage() {
                       </div>
                     )}
                   </td>
-                  <td className="px-5 py-3 text-white text-xs font-medium">{cat.name_ru}</td>
+                  <td className="px-5 py-3 text-white text-xs font-medium">
+                    {editingId === cat.id ? (
+                      <input
+                        className="steel-input w-full text-xs"
+                        value={editName}
+                        onChange={e => setEditName(e.target.value)}
+                        placeholder="Название категории"
+                        onKeyDown={e => { if (e.key === 'Enter') saveEdit(cat); if (e.key === 'Escape') setEditingId(null) }}
+                      />
+                    ) : (
+                      cat.name_ru
+                    )}
+                  </td>
                   <td className="px-5 py-3">
                     {editingId === cat.id ? (
                       <input
@@ -331,7 +347,7 @@ export default function AdminCategoriesPage() {
           <li>• При добавлении товара выберите категорию — код классификации подставится автоматически</li>
           <li>• Код можно вручную изменить в форме товара, если нужен уточнённый вариант (напр. SFTH вместо SFT)</li>
           <li>• По коду работает поиск совместимых аксессуаров и группировка в каталоге</li>
-          <li>• Нажмите карандаш чтобы отредактировать код для конкретной категории</li>
+          <li>• Нажмите карандаш чтобы отредактировать название, код или расшифровку категории</li>
         </ul>
       </div>
 
