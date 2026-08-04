@@ -44,6 +44,9 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--steel-border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--steel-silver); }
 
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+
 /* Steel card component */
 @layer components {
   .steel-card {

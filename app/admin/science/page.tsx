@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   Plus, Trash2, Upload, Edit2, X, Loader2, ExternalLink, ChevronUp, ChevronDown,
-  BookOpen, ShieldCheck, FlaskConical, Trophy,
+  BookOpen, ShieldCheck, FlaskConical, Trophy, FileSignature,
 } from 'lucide-react'
 
 // ────────────────────────────────────────────────────────────────
@@ -11,10 +11,11 @@ import {
 // ────────────────────────────────────────────────────────────────
 
 const TABS = [
-  { key: 'publications', label: 'Публикации',            icon: BookOpen },
-  { key: 'patents',      label: 'Патенты',                icon: ShieldCheck },
-  { key: 'projects',     label: 'Проекты и разработки',   icon: FlaskConical },
-  { key: 'achievements', label: 'Достижения сотрудников', icon: Trophy },
+  { key: 'publications', label: 'Публикации',                        icon: BookOpen },
+  { key: 'patents',      label: 'Патенты и авторские свидетельства', icon: ShieldCheck },
+  { key: 'projects',     label: 'Проекты и разработки',              icon: FlaskConical },
+  { key: 'contracts',    label: 'Хоздоговоры',                       icon: FileSignature },
+  { key: 'achievements', label: 'Достижения сотрудников',            icon: Trophy },
 ] as const
 
 type TabKey = typeof TABS[number]['key']
@@ -327,12 +328,15 @@ function PatentsTab() {
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <FieldLabel>Номер патента</FieldLabel>
+            <FieldLabel>Номер</FieldLabel>
             <input className="steel-input w-full" value={form.patent_number} onChange={e => setForm(f => ({ ...f, patent_number: e.target.value }))} placeholder="№ 378990" />
           </div>
           <div>
-            <FieldLabel>Метка</FieldLabel>
-            <input className="steel-input w-full" value={form.badge_label} onChange={e => setForm(f => ({ ...f, badge_label: e.target.value }))} placeholder="Патент" />
+            <FieldLabel>Тип</FieldLabel>
+            <select className="steel-input w-full" value={form.badge_label} onChange={e => setForm(f => ({ ...f, badge_label: e.target.value }))}>
+              <option value="Патент">Патент</option>
+              <option value="Авторское свидетельство">Авторское свидетельство</option>
+            </select>
           </div>
         </div>
       </FormShell>
@@ -367,13 +371,22 @@ function PatentsTab() {
 
 interface Project {
   id: string; title_ru: string; title_kk: string | null; title_en: string | null
-  period: string | null; tags: string | null; image_url: string | null; sort_order: number
+  description_ru: string | null; description_kk: string | null; description_en: string | null
+  period: string | null; tags: string | null; image_url: string | null; kind: string; sort_order: number
 }
-const EMPTY_PROJECT = { title_ru: '', title_kk: '', title_en: '', period: '', tags: '', image_url: '' }
+const EMPTY_PROJECT = {
+  title_ru: '', title_kk: '', title_en: '', description_ru: '', description_kk: '', description_en: '',
+  period: '', tags: '', image_url: '', kind: 'individual' as 'individual' | 'project',
+}
+const PROJECT_KINDS = [
+  { key: 'individual', label: 'Индивидуальные разработки' },
+  { key: 'project',    label: 'Проекты' },
+] as const
 
 function ProjectsTab() {
   const [items, setItems] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState<'individual' | 'project'>('individual')
   const [form, setForm] = useState(EMPTY_PROJECT)
   const [editing, setEditing] = useState<Project | null>(null)
   const [saving, setSaving] = useState(false)
@@ -388,10 +401,14 @@ function ProjectsTab() {
 
   const startEdit = (p: Project) => {
     setEditing(p)
-    setForm({ title_ru: p.title_ru, title_kk: p.title_kk ?? '', title_en: p.title_en ?? '', period: p.period ?? '', tags: p.tags ?? '', image_url: p.image_url ?? '' })
+    setForm({
+      title_ru: p.title_ru, title_kk: p.title_kk ?? '', title_en: p.title_en ?? '',
+      description_ru: p.description_ru ?? '', description_kk: p.description_kk ?? '', description_en: p.description_en ?? '',
+      period: p.period ?? '', tags: p.tags ?? '', image_url: p.image_url ?? '', kind: p.kind === 'project' ? 'project' : 'individual',
+    })
     setError('')
   }
-  const cancelEdit = () => { setEditing(null); setForm(EMPTY_PROJECT); setError('') }
+  const cancelEdit = () => { setEditing(null); setForm({ ...EMPTY_PROJECT, kind: filter }); setError('') }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -400,7 +417,8 @@ function ProjectsTab() {
     try {
       const payload = {
         title_ru: form.title_ru.trim(), title_kk: form.title_kk || null, title_en: form.title_en || null,
-        period: form.period || null, tags: form.tags || null, image_url: form.image_url || null,
+        description_ru: form.description_ru || null, description_kk: form.description_kk || null, description_en: form.description_en || null,
+        period: form.period || null, tags: form.tags || null, image_url: form.image_url || null, kind: form.kind,
       }
       const res = await fetch(editing ? `/api/admin/science/projects/${editing.id}` : '/api/admin/science/projects', {
         method: editing ? 'PUT' : 'POST',
@@ -421,9 +439,37 @@ function ProjectsTab() {
     load()
   }
 
+  const filtered = items.filter(p => (p.kind === 'project' ? 'project' : 'individual') === filter)
+
   return (
     <>
-      <FormShell title={editing ? 'Редактирование проекта' : 'Добавить проект'} editing={!!editing} onCancel={cancelEdit} error={error} saving={saving} onSubmit={handleSubmit}>
+      <div className="flex gap-2 mb-5">
+        {PROJECT_KINDS.map(k => (
+          <button key={k.key} onClick={() => { setFilter(k.key); if (!editing) setForm(f => ({ ...f, kind: k.key })) }}
+            className="px-3.5 py-2 rounded-lg text-xs font-semibold transition-all"
+            style={filter === k.key
+              ? { background: 'rgba(59,130,246,0.15)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.3)' }
+              : { background: 'transparent', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            {k.label}
+          </button>
+        ))}
+      </div>
+
+      <FormShell title={editing ? 'Редактирование записи' : `Добавить: ${PROJECT_KINDS.find(k => k.key === form.kind)?.label}`} editing={!!editing} onCancel={cancelEdit} error={error} saving={saving} onSubmit={handleSubmit}>
+        <div>
+          <FieldLabel>Раздел</FieldLabel>
+          <div className="flex gap-2">
+            {PROJECT_KINDS.map(k => (
+              <button key={k.key} type="button" onClick={() => setForm(f => ({ ...f, kind: k.key }))}
+                className="px-3.5 py-2 rounded-lg text-xs font-semibold transition-all"
+                style={form.kind === k.key
+                  ? { background: 'linear-gradient(135deg,#1D4ED8,#3B82F6)', color: 'white' }
+                  : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                {k.label}
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="grid grid-cols-3 gap-4">
           <div>
             <FieldLabel>Название (рус) *</FieldLabel>
@@ -448,18 +494,37 @@ function ProjectsTab() {
             <input className="steel-input w-full" value={form.tags} onChange={e => setForm(f => ({ ...f, tags: e.target.value }))} placeholder="Материалы, Энергия" />
           </div>
         </div>
-        <ImagePicker url={form.image_url} onChange={url => setForm(f => ({ ...f, image_url: url }))} uploadUrl="/api/admin/science/upload" label="Фото проекта" />
+        <div>
+          <FieldLabel>Полное описание (рус) — показывается по клику на карточку</FieldLabel>
+          <textarea className="steel-input w-full" rows={4} value={form.description_ru} onChange={e => setForm(f => ({ ...f, description_ru: e.target.value }))} placeholder="Подробности разработки: задача, решение, характеристики..." />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <FieldLabel>Полное описание (қаз)</FieldLabel>
+            <textarea className="steel-input w-full" rows={3} value={form.description_kk} onChange={e => setForm(f => ({ ...f, description_kk: e.target.value }))} />
+          </div>
+          <div>
+            <FieldLabel>Полное описание (eng)</FieldLabel>
+            <textarea className="steel-input w-full" rows={3} value={form.description_en} onChange={e => setForm(f => ({ ...f, description_en: e.target.value }))} />
+          </div>
+        </div>
+        <ImagePicker url={form.image_url} onChange={url => setForm(f => ({ ...f, image_url: url }))} uploadUrl="/api/admin/science/upload" label="Схема / фото разработки" />
       </FormShell>
 
       {loading ? (
         <div className="flex justify-center py-12"><Loader2 size={20} className="animate-spin" style={{ color: '#3B82F6' }} /></div>
-      ) : items.length === 0 ? (
-        <div className="text-center py-12" style={{ color: 'rgba(255,255,255,0.3)' }}><p className="text-sm">Проекты ещё не добавлены</p></div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-12" style={{ color: 'rgba(255,255,255,0.3)' }}><p className="text-sm">Записей ещё нет</p></div>
       ) : (
         <div className="space-y-2">
-          {items.map((p, i) => (
+          {filtered.map((p, i) => (
             <div key={p.id} className="flex items-center gap-4 px-4 py-3 rounded-xl" style={rowStyle}>
-              <MoveButtons index={i} count={items.length} onMove={dir => moveItem(items, i, dir, '/api/admin/science/projects/reorder', setItems)} />
+              <MoveButtons index={i} count={filtered.length} onMove={dir => moveItem(filtered, i, dir, '/api/admin/science/projects/reorder', reordered => {
+                setItems(prev => {
+                  const others = prev.filter(x => !filtered.some(f => f.id === x.id))
+                  return [...others, ...reordered]
+                })
+              })} />
               <div className="w-14 h-14 rounded-lg flex items-center justify-center overflow-hidden shrink-0" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                 {p.image_url ? <img src={p.image_url} alt="" className="w-full h-full object-cover" /> : <FlaskConical size={18} style={{ color: 'rgba(255,255,255,0.2)' }} />}
               </div>
@@ -472,6 +537,109 @@ function ProjectsTab() {
               </div>
               <button onClick={() => startEdit(p)} style={{ color: '#60A5FA' }} className="shrink-0"><Edit2 size={14} /></button>
               <button onClick={() => handleDelete(p.id)} style={{ color: '#F87171' }} className="shrink-0"><Trash2 size={14} /></button>
+            </div>
+          ))}
+        </div>
+      )}
+    </>
+  )
+}
+
+// ────────────────────────────────────────────────────────────────
+// Contracts (Хоздоговоры)
+// ────────────────────────────────────────────────────────────────
+
+interface Contract { id: string; title: string; customer: string | null; year: number | null; description: string | null; sort_order: number }
+const EMPTY_CONTRACT = { title: '', customer: '', year: '', description: '' }
+
+function ContractsTab() {
+  const [items, setItems] = useState<Contract[]>([])
+  const [loading, setLoading] = useState(true)
+  const [form, setForm] = useState(EMPTY_CONTRACT)
+  const [editing, setEditing] = useState<Contract | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const load = () => {
+    setLoading(true)
+    fetch('/api/admin/science/contracts').then(r => r.json())
+      .then(d => setItems(Array.isArray(d) ? d : [])).finally(() => setLoading(false))
+  }
+  useEffect(() => { load() }, [])
+
+  const startEdit = (c: Contract) => {
+    setEditing(c)
+    setForm({ title: c.title, customer: c.customer ?? '', year: c.year ? String(c.year) : '', description: c.description ?? '' })
+    setError('')
+  }
+  const cancelEdit = () => { setEditing(null); setForm(EMPTY_CONTRACT); setError('') }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!form.title.trim()) { setError('Введите тему договора'); return }
+    setSaving(true); setError('')
+    try {
+      const payload = { title: form.title.trim(), customer: form.customer || null, year: form.year || null, description: form.description || null }
+      const res = await fetch(editing ? `/api/admin/science/contracts/${editing.id}` : '/api/admin/science/contracts', {
+        method: editing ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      load(); cancelEdit()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка сохранения')
+    } finally { setSaving(false) }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Удалить договор?')) return
+    await fetch(`/api/admin/science/contracts/${id}`, { method: 'DELETE' })
+    load()
+  }
+
+  return (
+    <>
+      <FormShell title={editing ? 'Редактирование договора' : 'Добавить хоздоговор'} editing={!!editing} onCancel={cancelEdit} error={error} saving={saving} onSubmit={handleSubmit}>
+        <div>
+          <FieldLabel>Тема договора *</FieldLabel>
+          <input className="steel-input w-full" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Разработка установки для синтеза наноматериалов" />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <FieldLabel>Заказчик</FieldLabel>
+            <input className="steel-input w-full" value={form.customer} onChange={e => setForm(f => ({ ...f, customer: e.target.value }))} placeholder="КазНИТУ им. К.И. Сатпаева" />
+          </div>
+          <div>
+            <FieldLabel>Год</FieldLabel>
+            <input type="number" className="steel-input w-full" value={form.year} onChange={e => setForm(f => ({ ...f, year: e.target.value }))} placeholder="2025" />
+          </div>
+        </div>
+        <div>
+          <FieldLabel>Краткое описание</FieldLabel>
+          <textarea className="steel-input w-full" rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
+        </div>
+      </FormShell>
+
+      {loading ? (
+        <div className="flex justify-center py-12"><Loader2 size={20} className="animate-spin" style={{ color: '#3B82F6' }} /></div>
+      ) : items.length === 0 ? (
+        <div className="text-center py-12" style={{ color: 'rgba(255,255,255,0.3)' }}><p className="text-sm">Договоры ещё не добавлены</p></div>
+      ) : (
+        <div className="space-y-2">
+          {items.map((c, i) => (
+            <div key={c.id} className="flex items-start gap-4 px-4 py-3 rounded-xl" style={rowStyle}>
+              <MoveButtons index={i} count={items.length} onMove={dir => moveItem(items, i, dir, '/api/admin/science/contracts/reorder', setItems)} />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-white">{c.title}</p>
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  {c.year && <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{c.year}</span>}
+                  {c.customer && <span className="text-[11px]" style={{ color: '#60A5FA' }}>{c.customer}</span>}
+                </div>
+              </div>
+              <button onClick={() => startEdit(c)} style={{ color: '#60A5FA' }} className="shrink-0"><Edit2 size={14} /></button>
+              <button onClick={() => handleDelete(c.id)} style={{ color: '#F87171' }} className="shrink-0"><Trash2 size={14} /></button>
             </div>
           ))}
         </div>
@@ -632,6 +800,7 @@ export default function ScienceAdminPage() {
       {tab === 'publications' && <PublicationsTab />}
       {tab === 'patents' && <PatentsTab />}
       {tab === 'projects' && <ProjectsTab />}
+      {tab === 'contracts' && <ContractsTab />}
       {tab === 'achievements' && <AchievementsTab />}
     </div>
   )

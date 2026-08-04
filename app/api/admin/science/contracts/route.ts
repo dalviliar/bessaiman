@@ -12,7 +12,7 @@ export async function GET() {
   if (!me || !can(me.role, 'content', 'read')) {
     return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
   }
-  const rows = await query(`SELECT * FROM science_projects ORDER BY sort_order ASC, created_at ASC`)
+  const rows = await query(`SELECT * FROM science_contracts ORDER BY sort_order ASC, created_at ASC`)
   return NextResponse.json(rows)
 }
 
@@ -22,18 +22,18 @@ export async function POST(request: Request) {
     if (!me || !can(me.role, 'content', 'create')) {
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
-    const { title_ru, title_kk, title_en, description_ru, description_kk, description_en, period, tags, image_url, kind } = await request.json()
-    if (!title_ru?.trim()) return NextResponse.json({ error: 'Укажите название проекта' }, { status: 400 })
+    const { title, customer, year, description } = await request.json()
+    if (!title?.trim()) return NextResponse.json({ error: 'Укажите тему договора' }, { status: 400 })
 
     const row = await queryOne(
-      `INSERT INTO science_projects (title_ru, title_kk, title_en, description_ru, description_kk, description_en, period, tags, image_url, kind, sort_order)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, (SELECT COALESCE(MAX(sort_order),0)+10 FROM science_projects)) RETURNING *`,
-      [title_ru.trim(), title_kk || null, title_en || null, description_ru || null, description_kk || null, description_en || null, period || null, tags || null, image_url || null, kind === 'project' ? 'project' : 'individual'],
+      `INSERT INTO science_contracts (title, customer, year, description, sort_order)
+       VALUES ($1,$2,$3,$4, (SELECT COALESCE(MAX(sort_order),0)+10 FROM science_contracts)) RETURNING *`,
+      [title.trim(), customer || null, year ? Number(year) : null, description || null],
     )
 
     await logAction({
       adminId: me.id, adminEmail: me.email, action: 'create',
-      entityType: 'science_project', entityId: row.id, entityLabel: row.title_ru,
+      entityType: 'science_contract', entityId: row.id, entityLabel: row.title,
     })
 
     return NextResponse.json(row)
