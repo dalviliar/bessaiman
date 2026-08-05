@@ -380,7 +380,7 @@ interface Project {
 }
 const EMPTY_PROJECT = {
   title_ru: '', title_kk: '', title_en: '', description_ru: '', description_kk: '', description_en: '',
-  period: '', tags: '', image_url: '', kind: 'individual' as 'individual' | 'project',
+  period: '', tags: '', image_url: '',
 }
 const PROJECT_KINDS = [
   { key: 'individual', label: 'Индивидуальные разработки' },
@@ -408,11 +408,11 @@ function ProjectsTab() {
     setForm({
       title_ru: p.title_ru, title_kk: p.title_kk ?? '', title_en: p.title_en ?? '',
       description_ru: p.description_ru ?? '', description_kk: p.description_kk ?? '', description_en: p.description_en ?? '',
-      period: p.period ?? '', tags: p.tags ?? '', image_url: p.image_url ?? '', kind: p.kind === 'project' ? 'project' : 'individual',
+      period: p.period ?? '', tags: p.tags ?? '', image_url: p.image_url ?? '',
     })
     setError('')
   }
-  const cancelEdit = () => { setEditing(null); setForm({ ...EMPTY_PROJECT, kind: filter }); setError('') }
+  const cancelEdit = () => { setEditing(null); setForm(EMPTY_PROJECT); setError('') }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -422,7 +422,8 @@ function ProjectsTab() {
       const payload = {
         title_ru: form.title_ru.trim(), title_kk: form.title_kk || null, title_en: form.title_en || null,
         description_ru: form.description_ru || null, description_kk: form.description_kk || null, description_en: form.description_en || null,
-        period: form.period || null, tags: form.tags || null, image_url: form.image_url || null, kind: form.kind,
+        period: form.period || null, tags: form.tags || null, image_url: form.image_url || null,
+        kind: editing ? editing.kind : filter,
       }
       const res = await fetch(editing ? `/api/admin/science/projects/${editing.id}` : '/api/admin/science/projects', {
         method: editing ? 'PUT' : 'POST',
@@ -449,7 +450,7 @@ function ProjectsTab() {
     <>
       <div className="flex gap-2 mb-5">
         {PROJECT_KINDS.map(k => (
-          <button key={k.key} onClick={() => { setFilter(k.key); if (!editing) setForm(f => ({ ...f, kind: k.key })) }}
+          <button key={k.key} onClick={() => { setFilter(k.key); cancelEdit() }}
             className="px-3.5 py-2 rounded-lg text-xs font-semibold transition-all"
             style={filter === k.key
               ? { background: 'rgba(59,130,246,0.15)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.3)' }
@@ -459,21 +460,7 @@ function ProjectsTab() {
         ))}
       </div>
 
-      <FormShell title={editing ? 'Редактирование записи' : `Добавить: ${PROJECT_KINDS.find(k => k.key === form.kind)?.label}`} editing={!!editing} onCancel={cancelEdit} error={error} saving={saving} onSubmit={handleSubmit}>
-        <div>
-          <FieldLabel>Раздел</FieldLabel>
-          <div className="flex gap-2">
-            {PROJECT_KINDS.map(k => (
-              <button key={k.key} type="button" onClick={() => setForm(f => ({ ...f, kind: k.key }))}
-                className="px-3.5 py-2 rounded-lg text-xs font-semibold transition-all"
-                style={form.kind === k.key
-                  ? { background: 'linear-gradient(135deg,#1D4ED8,#3B82F6)', color: 'white' }
-                  : { background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.4)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                {k.label}
-              </button>
-            ))}
-          </div>
-        </div>
+      <FormShell title={editing ? 'Редактирование записи' : `Добавить: ${PROJECT_KINDS.find(k => k.key === filter)?.label}`} editing={!!editing} onCancel={cancelEdit} error={error} saving={saving} onSubmit={handleSubmit}>
         <div className="grid grid-cols-3 gap-4">
           <div>
             <FieldLabel>Название (рус) *</FieldLabel>
