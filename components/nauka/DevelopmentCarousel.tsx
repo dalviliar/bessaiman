@@ -128,7 +128,7 @@ export function DevelopmentCarousel({ items }: { items: DevItem[] }) {
         ))}
       </div>
 
-      <ZoomPreviewOverlay preview={preview} />
+      <ZoomPreviewOverlay preview={preview} scale={1.25} maxHeight="45vh" />
 
       {active && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { BookOpen, Trophy, ShieldCheck, ExternalLink, ChevronDown, Medal, FileSignature } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 import { DevelopmentCarousel, type DevItem } from '@/components/nauka/DevelopmentCarousel'
+import { useZoomPreview, ZoomPreviewOverlay } from '@/components/HoverZoomPreview'
 
 interface Publication { id: string; title: string; authors: string | null; journal: string | null; year: number | null; doi: string | null }
 interface Patent { id: string; title: string; patent_number: string | null; badge_label: string }
@@ -25,6 +26,7 @@ export default function NaukaPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [contracts, setContracts] = useState<Contract[]>([])
+  const { preview: achievPreview, show: showAchievPreview, hide: hideAchievPreview } = useZoomPreview()
 
   useEffect(() => {
     fetch('/api/partners').then(r => r.json()).then(d => setPartners(Array.isArray(d) ? d : [])).catch(() => {})
@@ -234,6 +236,46 @@ export default function NaukaPage() {
         </div>
       )}
 
+      {/* ══ Employee achievements ══ */}
+      {achievements.length > 0 && (
+        <div className="mb-16">
+          <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.empAchievTitle}</h2>
+          <p className="text-sm mb-6" style={{ color: '#64748B' }}>{tr.nauka.empAchievIntro}</p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+            {achievements.map((a, i) => {
+              const medalColor = i === 0 ? '#F59E0B' : i === 1 ? '#94A3B8' : i === 2 ? '#B45309' : '#64748B'
+              return (
+                <div key={a.id}
+                  onMouseEnter={e => { if (a.certificate_url) showAchievPreview(a.certificate_url, e.currentTarget, a.id) }}
+                  onMouseLeave={() => hideAchievPreview(a.id)}
+                  className="group rounded-xl overflow-hidden cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                  style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                  <div className="aspect-[4/3] overflow-hidden" style={{ background: '#F1F5F9' }}>
+                    {a.certificate_url ? (
+                      <img src={a.certificate_url} alt={a.award_name} draggable={false}
+                        className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center" style={{ background: `${medalColor}1A` }}>
+                        <Medal size={28} style={{ color: medalColor }} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3.5">
+                    <p className="font-bold text-sm truncate" style={{ color: '#0F172A' }}>{a.full_name}</p>
+                    <p className="text-xs mt-0.5 truncate" style={{ color: '#64748B' }}>{a.award_name}</p>
+                    <div className="flex items-center gap-2 mt-1.5">
+                      {a.year && <span className="text-[11px]" style={{ color: '#94A3B8' }}>{a.year}</span>}
+                      {a.organization && <span className="text-[11px] truncate" style={{ color: '#1565C0' }}>{a.organization}</span>}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          <ZoomPreviewOverlay preview={achievPreview} scale={1.25} maxHeight="45vh" />
+        </div>
+      )}
+
       {/* ══ Certificates row ══ */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-14">
 
@@ -309,47 +351,6 @@ export default function NaukaPage() {
           </div>
         </div>
       </div>
-
-      {/* ══ Employee achievements ══ */}
-      {achievements.length > 0 && (
-        <div className="mb-14">
-          <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.empAchievTitle}</h2>
-          <p className="text-sm mb-6" style={{ color: '#64748B' }}>{tr.nauka.empAchievIntro}</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {achievements.map((a, i) => {
-              const medalColor = i === 0 ? '#F59E0B' : i === 1 ? '#94A3B8' : i === 2 ? '#B45309' : '#64748B'
-              return (
-                <div key={a.id} className="flex items-center gap-4 p-4 rounded-xl"
-                  style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                  {a.certificate_url ? (
-                    <a href={a.certificate_url} target="_blank" rel="noopener noreferrer"
-                      className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 group"
-                      style={{ border: '1px solid #E2E8F0' }}>
-                      <img src={a.certificate_url} alt={a.award_name} className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                        style={{ background: 'rgba(15,23,42,0.45)' }}>
-                        <ExternalLink size={16} className="text-white" />
-                      </div>
-                    </a>
-                  ) : (
-                    <div className="w-16 h-16 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${medalColor}1A` }}>
-                      <Medal size={22} style={{ color: medalColor }} />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm truncate" style={{ color: '#0F172A' }}>{a.full_name}</p>
-                    <p className="text-xs mt-0.5" style={{ color: '#64748B' }}>{a.award_name}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      {a.year && <span className="text-[11px]" style={{ color: '#94A3B8' }}>{a.year}</span>}
-                      {a.organization && <span className="text-[11px]" style={{ color: '#1565C0' }}>{a.organization}</span>}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
 
       {/* ══ Partners ══ */}
       {partners.length > 0 && (
