@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -65,10 +65,16 @@ function AvailabilityBadge({ status }: { status: Product['availability'] }) {
   return <span className={cls}>{label}</span>
 }
 
+const ZOOM_FACTOR = 2.6
+const ZOOM_LENS_PCT = 100 / ZOOM_FACTOR // lens covers exactly what the panel shows
+const ZOOM_PANEL_SIZE = 440
+
 function ImageGallery({ images, name, videoUrl }: { images: string[]; name: string; videoUrl?: string | null }) {
   const [current, setCurrent] = useState(0)
   const [showVideo, setShowVideo] = useState(false)
-  const [mainHovered, setMainHovered] = useState(false)
+  const [zoomPos, setZoomPos] = useState<{ x: number; y: number } | null>(null)
+  const [panelPos, setPanelPos] = useState<{ left: number; top: number } | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const videoId = videoUrl?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1] ?? null
   const totalCount = images.length + (videoId ? 1 : 0)
@@ -81,14 +87,35 @@ function ImageGallery({ images, name, videoUrl }: { images: string[]; name: stri
     )
   }
 
+  const onMouseMove = (e: React.MouseEvent) => {
+    const rect = containerRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const x = Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100))
+    const y = Math.min(100, Math.max(0, ((e.clientY - rect.top) / rect.height) * 100))
+    setZoomPos({ x, y })
+
+    const gap = 16
+    const fitsRight = rect.right + gap + ZOOM_PANEL_SIZE <= window.innerWidth
+    const left = fitsRight ? rect.right + gap : Math.max(gap, rect.left - gap - ZOOM_PANEL_SIZE)
+    const top = Math.min(Math.max(rect.top, gap), window.innerHeight - ZOOM_PANEL_SIZE - gap)
+    setPanelPos({ left, top })
+  }
+
+  const lensX = zoomPos ? Math.min(Math.max(zoomPos.x - ZOOM_LENS_PCT / 2, 0), 100 - ZOOM_LENS_PCT) : 0
+  const lensY = zoomPos ? Math.min(Math.max(zoomPos.y - ZOOM_LENS_PCT / 2, 0), 100 - ZOOM_LENS_PCT) : 0
+  const bgX = (lensX / (100 - ZOOM_LENS_PCT)) * 100
+  const bgY = (lensY / (100 - ZOOM_LENS_PCT)) * 100
+  const showMagnifier = !showVideo && !!zoomPos && images.length > 0
+
   return (
     <div>
       {/* Main area */}
       <div
+        ref={containerRef}
         className="steel-card relative overflow-hidden rounded-2xl"
         style={{ aspectRatio: showVideo ? '16/9' : '1/1', cursor: showVideo ? 'default' : 'zoom-in', transition: 'aspect-ratio 0.3s ease' }}
-        onMouseEnter={() => setMainHovered(true)}
-        onMouseLeave={() => setMainHovered(false)}
+        onMouseMove={!showVideo ? onMouseMove : undefined}
+        onMouseLeave={() => setZoomPos(null)}
       >
         {showVideo && videoId ? (
           <iframe
@@ -107,10 +134,6 @@ function ImageGallery({ images, name, videoUrl }: { images: string[]; name: stri
                 alt={name}
                 fill
                 className="object-contain p-6"
-                style={{
-                  transform: mainHovered ? 'scale(1.09)' : 'scale(1)',
-                  transition: 'transform 0.35s ease',
-                }}
               />
             )}
             {totalCount > 1 && (
@@ -125,9 +148,32 @@ function ImageGallery({ images, name, videoUrl }: { images: string[]; name: stri
                 {current + 1} / {totalCount}
               </div>
             )}
+            {/* Lens — shows which part of the photo the side panel is magnifying */}
+            {showMagnifier && (
+              <div className="hidden lg:block absolute pointer-events-none rounded"
+                style={{
+                  left: `${lensX}%`, top: `${lensY}%`, width: `${ZOOM_LENS_PCT}%`, height: `${ZOOM_LENS_PCT}%`,
+                  background: 'rgba(21,101,192,0.12)', border: '1.5px solid rgba(21,101,192,0.55)',
+                }} />
+            )}
           </>
         )}
       </div>
+
+      {/* Magnified panel — fixed to the viewport, next to the photo, fixed size so it never balloons */}
+      {showMagnifier && panelPos && (
+        <div
+          className="hidden lg:block fixed z-40 rounded-2xl pointer-events-none"
+          style={{
+            left: panelPos.left, top: panelPos.top, width: ZOOM_PANEL_SIZE, height: ZOOM_PANEL_SIZE,
+            background: `white url(${images[current]}) no-repeat`,
+            backgroundSize: `${ZOOM_FACTOR * 100}%`,
+            backgroundPosition: `${bgX}% ${bgY}%`,
+            border: '1px solid #E2E8F0',
+            boxShadow: '0 20px 50px -10px rgba(15,23,42,0.35)',
+          }}
+        />
+      )}
 
       {/* Thumbnail strip */}
       {totalCount > 1 && (
