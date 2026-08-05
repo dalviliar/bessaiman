@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   Plus, Trash2, Upload, Edit2, X, Loader2, ExternalLink, ChevronUp, ChevronDown,
-  BookOpen, ShieldCheck, FlaskConical, Trophy, FileSignature,
+  BookOpen, ShieldCheck, FlaskConical, Trophy, FileSignature, Award,
 } from 'lucide-react'
 
 // ────────────────────────────────────────────────────────────────
@@ -16,6 +16,7 @@ const TABS = [
   { key: 'projects',     label: 'Проекты и разработки',              icon: FlaskConical },
   { key: 'contracts',    label: 'Хоздоговоры',                       icon: FileSignature },
   { key: 'achievements', label: 'Достижения сотрудников',            icon: Trophy },
+  { key: 'recognition',  label: 'Диплом и аккредитация',             icon: Award },
 ] as const
 
 type TabKey = typeof TABS[number]['key']
@@ -756,6 +757,73 @@ function AchievementsTab() {
 }
 
 // ────────────────────────────────────────────────────────────────
+// Recognition (company achievement diploma + accreditation photos)
+// ────────────────────────────────────────────────────────────────
+
+const RECOGNITION_ITEMS = [
+  { kind: 'company_achievement', label: 'Достижения компании', hint: 'Фото/скан диплома «Лучший инженер года»' },
+  { kind: 'accreditation',       label: 'Аккредитация',        hint: 'Фото/скан свидетельства об аккредитации' },
+] as const
+
+function RecognitionCard({ kind, label, hint }: { kind: string; label: string; hint: string }) {
+  const [url, setUrl] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    fetch('/api/admin/science/recognition').then(r => r.json())
+      .then(d => {
+        const row = Array.isArray(d) ? d.find((r: { kind: string }) => r.kind === kind) : null
+        setUrl(row?.image_url ?? '')
+      })
+      .finally(() => setLoading(false))
+  }, [kind])
+
+  const save = async (newUrl: string) => {
+    setSaving(true); setError('')
+    try {
+      const res = await fetch('/api/admin/science/recognition', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kind, image_url: newUrl || null }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setUrl(newUrl)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка сохранения')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="p-5 rounded-xl" style={cardStyle}>
+      <h3 className="text-sm font-bold text-white mb-1">{label}</h3>
+      <p className="text-xs mb-4" style={labelStyle}>{hint}</p>
+      {loading ? (
+        <Loader2 size={16} className="animate-spin" style={{ color: '#3B82F6' }} />
+      ) : (
+        <ImagePicker url={url} onChange={save} uploadUrl="/api/admin/science/upload" label="Фото" />
+      )}
+      {saving && <p className="text-xs mt-2" style={{ color: 'rgba(255,255,255,0.4)' }}>Сохранение...</p>}
+      {error && <p className="text-xs mt-2" style={{ color: '#F87171' }}>{error}</p>}
+    </div>
+  )
+}
+
+function RecognitionTab() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {RECOGNITION_ITEMS.map(item => (
+        <RecognitionCard key={item.kind} kind={item.kind} label={item.label} hint={item.hint} />
+      ))}
+    </div>
+  )
+}
+
+// ────────────────────────────────────────────────────────────────
 // Page
 // ────────────────────────────────────────────────────────────────
 
@@ -793,6 +861,7 @@ export default function ScienceAdminPage() {
       {tab === 'projects' && <ProjectsTab />}
       {tab === 'contracts' && <ContractsTab />}
       {tab === 'achievements' && <AchievementsTab />}
+      {tab === 'recognition' && <RecognitionTab />}
     </div>
   )
 }

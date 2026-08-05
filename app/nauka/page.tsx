@@ -1,10 +1,9 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { BookOpen, Trophy, ShieldCheck, ExternalLink, ChevronDown, Medal, FileSignature } from 'lucide-react'
+import { BookOpen, Trophy, ShieldCheck, ExternalLink, ChevronDown, Medal, FileSignature, X } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 import { DevelopmentCarousel, type DevItem } from '@/components/nauka/DevelopmentCarousel'
-import { useZoomPreview, ZoomPreviewOverlay } from '@/components/HoverZoomPreview'
 
 interface Publication { id: string; title: string; authors: string | null; journal: string | null; year: number | null; doi: string | null }
 interface Patent { id: string; title: string; patent_number: string | null; badge_label: string }
@@ -15,6 +14,7 @@ interface Project {
 }
 interface Achievement { id: string; full_name: string; award_name: string; year: number | null; organization: string | null; certificate_url: string | null }
 interface Contract { id: string; title: string; customer: string | null; year: number | null; description: string | null }
+interface AchievModalData { image: string | null; meta?: string; title: string; subtitle?: string; body: string[]; link?: { href: string; label: string } }
 
 export default function NaukaPage() {
   const { tr, lang } = useLang()
@@ -26,7 +26,8 @@ export default function NaukaPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [contracts, setContracts] = useState<Contract[]>([])
-  const { preview: achievPreview, show: showAchievPreview, hide: hideAchievPreview } = useZoomPreview()
+  const [recognition, setRecognition] = useState<Record<string, string | null>>({})
+  const [achievModal, setAchievModal] = useState<AchievModalData | null>(null)
 
   useEffect(() => {
     fetch('/api/partners').then(r => r.json()).then(d => setPartners(Array.isArray(d) ? d : [])).catch(() => {})
@@ -36,8 +37,17 @@ export default function NaukaPage() {
       setProjects(Array.isArray(d?.projects) ? d.projects : [])
       setAchievements(Array.isArray(d?.achievements) ? d.achievements : [])
       setContracts(Array.isArray(d?.contracts) ? d.contracts : [])
+      setRecognition(d?.recognition && typeof d.recognition === 'object' ? d.recognition : {})
     }).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    if (!achievModal) return
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setAchievModal(null) }
+    window.addEventListener('keydown', onKey)
+    return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey) }
+  }, [achievModal])
 
   const toDevItem = (p: Project): DevItem => ({
     id: p.id,
@@ -236,82 +246,73 @@ export default function NaukaPage() {
         </div>
       )}
 
-      {/* ══ Achievements — company diploma + employee gallery together ══ */}
+      {/* ══ Achievements — company diploma + employees in one row ══ */}
       <div className="mb-16">
         <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.achievementsTitle}</h2>
         <p className="text-sm mb-6" style={{ color: '#64748B' }}>{tr.nauka.achievementsIntro}</p>
 
-        {/* Company achievement — featured banner */}
-        <div className="rounded-2xl overflow-hidden mb-6" style={{ border: '1px solid #E2E8F0', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
-          <div className="grid grid-cols-1 sm:grid-cols-[220px_1fr]">
-            <div className="flex items-center justify-center p-8 sm:p-6" style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)' }}>
-              <Trophy size={44} style={{ color: 'white' }} />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {/* Company achievement — first card, same style as the rest */}
+          <button type="button" onClick={() => setAchievModal({
+            image: recognition.company_achievement ?? null,
+            meta: 'НИНЖ РК · 2025',
+            title: tr.nauka.achievTitle,
+            body: [tr.nauka.achievDesc1, tr.nauka.achievDesc2],
+            link: { href: '/docs/diplom-luchshiy-inzhener-2025.pdf', label: tr.nauka.achievViewDoc },
+          })}
+            className="group text-left rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+            style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            <div className="aspect-[4/3] overflow-hidden" style={{ background: recognition.company_achievement ? '#F1F5F9' : 'linear-gradient(135deg,#1565C0,#0284C7)' }}>
+              {recognition.company_achievement ? (
+                <img src={recognition.company_achievement} alt={tr.nauka.achievTitle} draggable={false}
+                  className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Trophy size={28} style={{ color: 'white' }} />
+                </div>
+              )}
             </div>
-            <div className="p-6">
-              <div className="text-[10px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>
-                НИНЖ РК · 2025
-              </div>
-              <h3 className="font-black text-lg leading-tight mb-3" style={{ color: '#0F172A' }}>
-                {tr.nauka.achievTitle}
-              </h3>
-              <p className="text-sm leading-relaxed mb-2" style={{ color: '#334155' }}>
-                {tr.nauka.achievDesc1}
-              </p>
-              <p className="text-sm leading-relaxed mb-4" style={{ color: '#64748B' }}>
-                {tr.nauka.achievDesc2}
-              </p>
-              <a href="/docs/diplom-luchshiy-inzhener-2025.pdf" target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all hover:-translate-y-0.5"
-                style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', color: 'white', boxShadow: '0 4px 12px rgba(21,101,192,0.25)' }}>
-                <ExternalLink size={13} />
-                {tr.nauka.achievViewDoc}
-              </a>
+            <div className="p-3.5">
+              <p className="font-bold text-sm truncate" style={{ color: '#0F172A' }}>{tr.nauka.achievTitle}</p>
+              <p className="text-xs mt-0.5 truncate" style={{ color: '#64748B' }}>НИНЖ РК · 2025</p>
             </div>
-          </div>
-        </div>
+          </button>
 
-        {/* Employee achievements — same section, right below */}
-        {achievements.length > 0 && (
-          <>
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-px flex-1" style={{ background: '#E2E8F0' }} />
-              <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#94A3B8' }}>{tr.nauka.empAchievLabel}</span>
-              <div className="h-px flex-1" style={{ background: '#E2E8F0' }} />
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-              {achievements.map((a, i) => {
-                const medalColor = i === 0 ? '#F59E0B' : i === 1 ? '#94A3B8' : i === 2 ? '#B45309' : '#64748B'
-                return (
-                  <div key={a.id}
-                    onMouseEnter={e => { if (a.certificate_url) showAchievPreview(a.certificate_url, e.currentTarget, a.id) }}
-                    onMouseLeave={() => hideAchievPreview(a.id)}
-                    className="group rounded-xl overflow-hidden cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-                    style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                    <div className="aspect-[4/3] overflow-hidden" style={{ background: '#F1F5F9' }}>
-                      {a.certificate_url ? (
-                        <img src={a.certificate_url} alt={a.award_name} draggable={false}
-                          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center" style={{ background: `${medalColor}1A` }}>
-                          <Medal size={28} style={{ color: medalColor }} />
-                        </div>
-                      )}
-                    </div>
-                    <div className="p-3.5">
-                      <p className="font-bold text-sm truncate" style={{ color: '#0F172A' }}>{a.full_name}</p>
-                      <p className="text-xs mt-0.5 truncate" style={{ color: '#64748B' }}>{a.award_name}</p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        {a.year && <span className="text-[11px]" style={{ color: '#94A3B8' }}>{a.year}</span>}
-                        {a.organization && <span className="text-[11px] truncate" style={{ color: '#1565C0' }}>{a.organization}</span>}
-                      </div>
-                    </div>
-                  </div>
-                )
+          {/* Employee achievements — same row */}
+          {achievements.map((a, i) => {
+            const medalColor = i === 0 ? '#F59E0B' : i === 1 ? '#94A3B8' : i === 2 ? '#B45309' : '#64748B'
+            return (
+              <button key={a.id} type="button" onClick={() => setAchievModal({
+                image: a.certificate_url,
+                meta: [a.organization, a.year ? String(a.year) : null].filter(Boolean).join(' · ') || undefined,
+                title: a.full_name,
+                subtitle: a.award_name,
+                body: [],
               })}
-            </div>
-            <ZoomPreviewOverlay preview={achievPreview} scale={1.25} maxHeight="45vh" />
-          </>
-        )}
+                className="group text-left rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                <div className="aspect-[4/3] overflow-hidden" style={{ background: '#F1F5F9' }}>
+                  {a.certificate_url ? (
+                    <img src={a.certificate_url} alt={a.award_name} draggable={false}
+                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center" style={{ background: `${medalColor}1A` }}>
+                      <Medal size={28} style={{ color: medalColor }} />
+                    </div>
+                  )}
+                </div>
+                <div className="p-3.5">
+                  <p className="font-bold text-sm truncate" style={{ color: '#0F172A' }}>{a.full_name}</p>
+                  <p className="text-xs mt-0.5 truncate" style={{ color: '#64748B' }}>{a.award_name}</p>
+                  <div className="flex items-center gap-2 mt-1.5">
+                    {a.year && <span className="text-[11px]" style={{ color: '#94A3B8' }}>{a.year}</span>}
+                    {a.organization && <span className="text-[11px] truncate" style={{ color: '#1565C0' }}>{a.organization}</span>}
+                  </div>
+                </div>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
       {/* ══ Accreditation — separate section ══ */}
@@ -319,8 +320,14 @@ export default function NaukaPage() {
         <h2 className="text-xl font-bold mb-4" style={{ color: '#0F172A' }}>{tr.nauka.accSectionTitle}</h2>
         <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E2E8F0', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
           <div className="grid grid-cols-1 sm:grid-cols-[220px_1fr]">
-            <div className="flex items-center justify-center p-8 sm:p-6" style={{ background: 'linear-gradient(135deg,#0284C7,#0EA5E9)' }}>
-              <ShieldCheck size={44} style={{ color: 'white' }} />
+            <div className="overflow-hidden" style={{ background: recognition.accreditation ? '#F1F5F9' : 'linear-gradient(135deg,#0284C7,#0EA5E9)' }}>
+              {recognition.accreditation ? (
+                <img src={recognition.accreditation} alt={tr.nauka.accTitle} className="w-full h-full object-cover" style={{ minHeight: 160 }} />
+              ) : (
+                <div className="flex items-center justify-center p-8 sm:p-6 h-full">
+                  <ShieldCheck size={44} style={{ color: 'white' }} />
+                </div>
+              )}
             </div>
             <div className="p-6">
               <div className="text-[10px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>
@@ -351,6 +358,50 @@ export default function NaukaPage() {
           </div>
         </div>
       </div>
+
+      {/* ══ Achievement detail modal (company or employee) ══ */}
+      {achievModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(15,23,42,0.6)' }} onClick={() => setAchievModal(null)}>
+          <div className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl"
+            style={{ background: 'white' }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setAchievModal(null)} aria-label="Закрыть"
+              className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center z-10 transition-colors hover:opacity-80"
+              style={{ background: 'rgba(15,23,42,0.06)' }}>
+              <X size={16} style={{ color: '#0F172A' }} />
+            </button>
+            <div className="w-full aspect-[4/3]" style={{ background: '#F1F5F9' }}>
+              {achievModal.image ? (
+                <img src={achievModal.image} alt={achievModal.title} className="w-full h-full object-contain" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)' }}>
+                  <Trophy size={48} style={{ color: 'white' }} />
+                </div>
+              )}
+            </div>
+            <div className="p-6">
+              {achievModal.meta && (
+                <div className="text-[10px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>{achievModal.meta}</div>
+              )}
+              <h3 className="text-xl font-black mb-1 leading-tight" style={{ color: '#0F172A' }}>{achievModal.title}</h3>
+              {achievModal.subtitle && (
+                <p className="text-sm font-semibold mb-3" style={{ color: '#1565C0' }}>{achievModal.subtitle}</p>
+              )}
+              {achievModal.body.map((p, i) => (
+                <p key={i} className="text-sm leading-relaxed mb-2" style={{ color: i === 0 ? '#334155' : '#64748B' }}>{p}</p>
+              ))}
+              {achievModal.link && (
+                <a href={achievModal.link.href} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 mt-3 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all hover:-translate-y-0.5"
+                  style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', color: 'white', boxShadow: '0 4px 12px rgba(21,101,192,0.25)' }}>
+                  <ExternalLink size={13} />
+                  {achievModal.link.label}
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ══ Partners ══ */}
       {partners.length > 0 && (
