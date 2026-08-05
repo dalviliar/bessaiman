@@ -236,117 +236,117 @@ export default function NaukaPage() {
         </div>
       )}
 
-      {/* ══ Employee achievements ══ */}
-      {achievements.length > 0 && (
-        <div className="mb-16">
-          <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.empAchievTitle}</h2>
-          <p className="text-sm mb-6" style={{ color: '#64748B' }}>{tr.nauka.empAchievIntro}</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            {achievements.map((a, i) => {
-              const medalColor = i === 0 ? '#F59E0B' : i === 1 ? '#94A3B8' : i === 2 ? '#B45309' : '#64748B'
-              return (
-                <div key={a.id}
-                  onMouseEnter={e => { if (a.certificate_url) showAchievPreview(a.certificate_url, e.currentTarget, a.id) }}
-                  onMouseLeave={() => hideAchievPreview(a.id)}
-                  className="group rounded-xl overflow-hidden cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-                  style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                  <div className="aspect-[4/3] overflow-hidden" style={{ background: '#F1F5F9' }}>
-                    {a.certificate_url ? (
-                      <img src={a.certificate_url} alt={a.award_name} draggable={false}
-                        className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center" style={{ background: `${medalColor}1A` }}>
-                        <Medal size={28} style={{ color: medalColor }} />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-3.5">
-                    <p className="font-bold text-sm truncate" style={{ color: '#0F172A' }}>{a.full_name}</p>
-                    <p className="text-xs mt-0.5 truncate" style={{ color: '#64748B' }}>{a.award_name}</p>
-                    <div className="flex items-center gap-2 mt-1.5">
-                      {a.year && <span className="text-[11px]" style={{ color: '#94A3B8' }}>{a.year}</span>}
-                      {a.organization && <span className="text-[11px] truncate" style={{ color: '#1565C0' }}>{a.organization}</span>}
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-          <ZoomPreviewOverlay preview={achievPreview} scale={1.25} maxHeight="45vh" />
-        </div>
-      )}
+      {/* ══ Achievements — company diploma + employee gallery together ══ */}
+      <div className="mb-16">
+        <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.achievementsTitle}</h2>
+        <p className="text-sm mb-6" style={{ color: '#64748B' }}>{tr.nauka.achievementsIntro}</p>
 
-      {/* ══ Certificates row ══ */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-14">
-
-        {/* Diploma */}
-        <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E2E8F0', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
-          <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg,#1565C0,#0EA5E9)' }} />
-          <div className="p-6">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                style={{ background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
-                <Trophy size={22} style={{ color: '#1565C0' }} />
-              </div>
-              <div>
-                <div className="text-[10px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>
-                  НИНЖ РК · 2025
-                </div>
-                <h3 className="font-black text-base leading-tight" style={{ color: '#0F172A' }}>
-                  {tr.nauka.achievTitle}
-                </h3>
-              </div>
+        {/* Company achievement — featured banner */}
+        <div className="rounded-2xl overflow-hidden mb-6" style={{ border: '1px solid #E2E8F0', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-[220px_1fr]">
+            <div className="flex items-center justify-center p-8 sm:p-6" style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)' }}>
+              <Trophy size={44} style={{ color: 'white' }} />
             </div>
-            <p className="text-sm leading-relaxed mb-2" style={{ color: '#334155' }}>
-              {tr.nauka.achievDesc1}
-            </p>
-            <p className="text-sm leading-relaxed mb-5" style={{ color: '#64748B' }}>
-              {tr.nauka.achievDesc2}
-            </p>
-            <a href="/docs/diplom-luchshiy-inzhener-2025.pdf" target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all hover:-translate-y-0.5"
-              style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', color: 'white', boxShadow: '0 4px 12px rgba(21,101,192,0.25)' }}>
-              <ExternalLink size={13} />
-              {tr.nauka.achievViewDoc}
-            </a>
-          </div>
-        </div>
-
-        {/* Accreditation */}
-        <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E2E8F0', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
-          <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg,#0284C7,#0EA5E9)' }} />
-          <div className="p-6">
-            <div className="flex items-start gap-4 mb-4">
-              <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0"
-                style={{ background: '#EFF6FF', border: '1px solid #BFDBFE' }}>
-                <ShieldCheck size={22} style={{ color: '#1565C0' }} />
+            <div className="p-6">
+              <div className="text-[10px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>
+                НИНЖ РК · 2025
               </div>
-              <div>
-                <div className="text-[10px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>
-                  МОН РК · до 09.02.2029
-                </div>
-                <h3 className="font-black text-base leading-tight" style={{ color: '#0F172A' }}>
-                  {tr.nauka.accTitle}
-                </h3>
-              </div>
-            </div>
-            <p className="text-sm leading-relaxed mb-2" style={{ color: '#334155' }}>
-              {tr.nauka.accDesc1}
-            </p>
-            <p className="text-sm leading-relaxed mb-2" style={{ color: '#64748B' }}>
-              {tr.nauka.accDesc2}
-            </p>
-            <p className="text-xs font-semibold mb-5 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
-              style={{ background: '#EFF6FF', color: '#1565C0' }}>
-              📅 {tr.nauka.accDesc3}
-            </p>
-            <div>
-              <a href="/docs/svidetelstvo-akkreditacii.pdf" target="_blank" rel="noopener noreferrer"
+              <h3 className="font-black text-lg leading-tight mb-3" style={{ color: '#0F172A' }}>
+                {tr.nauka.achievTitle}
+              </h3>
+              <p className="text-sm leading-relaxed mb-2" style={{ color: '#334155' }}>
+                {tr.nauka.achievDesc1}
+              </p>
+              <p className="text-sm leading-relaxed mb-4" style={{ color: '#64748B' }}>
+                {tr.nauka.achievDesc2}
+              </p>
+              <a href="/docs/diplom-luchshiy-inzhener-2025.pdf" target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all hover:-translate-y-0.5"
                 style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', color: 'white', boxShadow: '0 4px 12px rgba(21,101,192,0.25)' }}>
                 <ExternalLink size={13} />
-                {tr.nauka.accViewDoc}
+                {tr.nauka.achievViewDoc}
               </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Employee achievements — same section, right below */}
+        {achievements.length > 0 && (
+          <>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="h-px flex-1" style={{ background: '#E2E8F0' }} />
+              <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: '#94A3B8' }}>{tr.nauka.empAchievLabel}</span>
+              <div className="h-px flex-1" style={{ background: '#E2E8F0' }} />
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+              {achievements.map((a, i) => {
+                const medalColor = i === 0 ? '#F59E0B' : i === 1 ? '#94A3B8' : i === 2 ? '#B45309' : '#64748B'
+                return (
+                  <div key={a.id}
+                    onMouseEnter={e => { if (a.certificate_url) showAchievPreview(a.certificate_url, e.currentTarget, a.id) }}
+                    onMouseLeave={() => hideAchievPreview(a.id)}
+                    className="group rounded-xl overflow-hidden cursor-default transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                    style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                    <div className="aspect-[4/3] overflow-hidden" style={{ background: '#F1F5F9' }}>
+                      {a.certificate_url ? (
+                        <img src={a.certificate_url} alt={a.award_name} draggable={false}
+                          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center" style={{ background: `${medalColor}1A` }}>
+                          <Medal size={28} style={{ color: medalColor }} />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-3.5">
+                      <p className="font-bold text-sm truncate" style={{ color: '#0F172A' }}>{a.full_name}</p>
+                      <p className="text-xs mt-0.5 truncate" style={{ color: '#64748B' }}>{a.award_name}</p>
+                      <div className="flex items-center gap-2 mt-1.5">
+                        {a.year && <span className="text-[11px]" style={{ color: '#94A3B8' }}>{a.year}</span>}
+                        {a.organization && <span className="text-[11px] truncate" style={{ color: '#1565C0' }}>{a.organization}</span>}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+            <ZoomPreviewOverlay preview={achievPreview} scale={1.25} maxHeight="45vh" />
+          </>
+        )}
+      </div>
+
+      {/* ══ Accreditation — separate section ══ */}
+      <div className="mb-14">
+        <h2 className="text-xl font-bold mb-4" style={{ color: '#0F172A' }}>{tr.nauka.accSectionTitle}</h2>
+        <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E2E8F0', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-[220px_1fr]">
+            <div className="flex items-center justify-center p-8 sm:p-6" style={{ background: 'linear-gradient(135deg,#0284C7,#0EA5E9)' }}>
+              <ShieldCheck size={44} style={{ color: 'white' }} />
+            </div>
+            <div className="p-6">
+              <div className="text-[10px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>
+                МОН РК · до 09.02.2029
+              </div>
+              <h3 className="font-black text-lg leading-tight mb-3" style={{ color: '#0F172A' }}>
+                {tr.nauka.accTitle}
+              </h3>
+              <p className="text-sm leading-relaxed mb-2" style={{ color: '#334155' }}>
+                {tr.nauka.accDesc1}
+              </p>
+              <p className="text-sm leading-relaxed mb-2" style={{ color: '#64748B' }}>
+                {tr.nauka.accDesc2}
+              </p>
+              <p className="text-xs font-semibold mb-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
+                style={{ background: '#EFF6FF', color: '#1565C0' }}>
+                📅 {tr.nauka.accDesc3}
+              </p>
+              <div>
+                <a href="/docs/svidetelstvo-akkreditacii.pdf" target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all hover:-translate-y-0.5"
+                  style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', color: 'white', boxShadow: '0 4px 12px rgba(21,101,192,0.25)' }}>
+                  <ExternalLink size={13} />
+                  {tr.nauka.accViewDoc}
+                </a>
+              </div>
             </div>
           </div>
         </div>
