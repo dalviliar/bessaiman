@@ -16,6 +16,12 @@ interface Achievement { id: string; full_name: string; award_name: string; year:
 interface Contract { id: string; title: string; customer: string | null; year: number | null; description: string | null }
 interface AchievModalData { image: string | null; meta?: string; title: string; subtitle?: string; body: string[]; link?: { href: string; label: string } }
 
+// Rendered once from the first page of the source PDFs (scripts used to
+// generate these are throwaway - see the diploma/accreditation PDFs in
+// public/docs) so staff don't have to upload the same document twice.
+const COMPANY_DIPLOMA_IMAGE = '/docs/diplom-luchshiy-inzhener-2025-preview.jpg'
+const ACCREDITATION_IMAGE = '/docs/svidetelstvo-akkreditacii-preview.jpg'
+
 export default function NaukaPage() {
   const { tr, lang } = useLang()
   const [partners, setPartners] = useState<{ id: string; name: string; logo_url: string | null; website_url: string | null }[]>([])
@@ -26,7 +32,6 @@ export default function NaukaPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [contracts, setContracts] = useState<Contract[]>([])
-  const [recognition, setRecognition] = useState<Record<string, string | null>>({})
   const [achievModal, setAchievModal] = useState<AchievModalData | null>(null)
 
   useEffect(() => {
@@ -37,7 +42,6 @@ export default function NaukaPage() {
       setProjects(Array.isArray(d?.projects) ? d.projects : [])
       setAchievements(Array.isArray(d?.achievements) ? d.achievements : [])
       setContracts(Array.isArray(d?.contracts) ? d.contracts : [])
-      setRecognition(d?.recognition && typeof d.recognition === 'object' ? d.recognition : {})
     }).catch(() => {})
   }, [])
 
@@ -254,7 +258,7 @@ export default function NaukaPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {/* Company achievement — first card, same style as the rest */}
           <button type="button" onClick={() => setAchievModal({
-            image: recognition.company_achievement ?? null,
+            image: COMPANY_DIPLOMA_IMAGE,
             meta: 'НИНЖ РК · 2025',
             title: tr.nauka.achievTitle,
             body: [tr.nauka.achievDesc1, tr.nauka.achievDesc2],
@@ -262,15 +266,9 @@ export default function NaukaPage() {
           })}
             className="group text-left rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
             style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div className="aspect-[4/3] overflow-hidden" style={{ background: recognition.company_achievement ? '#F1F5F9' : 'linear-gradient(135deg,#1565C0,#0284C7)' }}>
-              {recognition.company_achievement ? (
-                <img src={recognition.company_achievement} alt={tr.nauka.achievTitle} draggable={false}
-                  className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Trophy size={28} style={{ color: 'white' }} />
-                </div>
-              )}
+            <div className="aspect-[4/3] overflow-hidden" style={{ background: '#F1F5F9' }}>
+              <img src={COMPANY_DIPLOMA_IMAGE} alt={tr.nauka.achievTitle} draggable={false}
+                className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
             </div>
             <div className="p-3.5">
               <p className="font-bold text-sm truncate" style={{ color: '#0F172A' }}>{tr.nauka.achievTitle}</p>
@@ -320,14 +318,8 @@ export default function NaukaPage() {
         <h2 className="text-xl font-bold mb-4" style={{ color: '#0F172A' }}>{tr.nauka.accSectionTitle}</h2>
         <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E2E8F0', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
           <div className="grid grid-cols-1 sm:grid-cols-[220px_1fr]">
-            <div className="overflow-hidden" style={{ background: recognition.accreditation ? '#F1F5F9' : 'linear-gradient(135deg,#0284C7,#0EA5E9)' }}>
-              {recognition.accreditation ? (
-                <img src={recognition.accreditation} alt={tr.nauka.accTitle} className="w-full h-full object-cover" style={{ minHeight: 160 }} />
-              ) : (
-                <div className="flex items-center justify-center p-8 sm:p-6 h-full">
-                  <ShieldCheck size={44} style={{ color: 'white' }} />
-                </div>
-              )}
+            <div className="overflow-hidden" style={{ background: '#F1F5F9' }}>
+              <img src={ACCREDITATION_IMAGE} alt={tr.nauka.accTitle} className="w-full h-full object-cover" style={{ minHeight: 160 }} />
             </div>
             <div className="p-6">
               <div className="text-[10px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>
