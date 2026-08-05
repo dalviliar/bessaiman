@@ -47,6 +47,11 @@ body {
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
+@keyframes devPreviewIn {
+  from { opacity: 0; transform: translate(-50%, -8%) scale(0.94); }
+  to   { opacity: 1; transform: translate(-50%, -14%) scale(1); }
+}
+
 /* Steel card component */
 @layer components {
   .steel-card {
