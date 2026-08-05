@@ -105,11 +105,12 @@ function ImagePicker({
   label: string
 }) {
   const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
   const fileRef = useRef<HTMLInputElement>(null)
 
   const handleUpload = async (files: FileList | null) => {
     if (!files?.length) return
-    setUploading(true)
+    setUploading(true); setError('')
     try {
       const fd = new FormData()
       fd.append('file', files[0])
@@ -117,6 +118,8 @@ function ImagePicker({
       const data = await res.json()
       if (!res.ok) throw new Error(data.error)
       onChange(data.url)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка загрузки')
     } finally {
       setUploading(false)
     }
@@ -145,6 +148,7 @@ function ImagePicker({
           </button>
         )}
       </div>
+      {error && <p className="text-xs mt-1.5" style={{ color: '#F87171' }}>{error}</p>}
       <input ref={fileRef} type="file" accept="image/*" className="hidden"
         onChange={e => handleUpload(e.target.files)} />
     </div>
