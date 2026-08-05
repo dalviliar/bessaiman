@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ChevronLeft, ChevronRight, X, Calendar, FlaskConical } from 'lucide-react'
+import { useZoomPreview, ZoomPreviewOverlay } from '@/components/HoverZoomPreview'
 
 export interface DevItem {
   id: string
@@ -24,13 +25,11 @@ function TagRow({ tags, size = 'sm' }: { tags: string | null; size?: 'sm' | 'md'
   )
 }
 
-interface HoverPreview { item: DevItem; rect: DOMRect }
-
 export function DevelopmentCarousel({ items }: { items: DevItem[] }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const drag = useRef({ down: false, startX: 0, scrollStart: 0, moved: false })
   const [active, setActive] = useState<DevItem | null>(null)
-  const [preview, setPreview] = useState<HoverPreview | null>(null)
+  const { preview, show: showPreview, hide: hidePreview } = useZoomPreview()
 
   useEffect(() => {
     if (!active) return
@@ -47,7 +46,7 @@ export function DevelopmentCarousel({ items }: { items: DevItem[] }) {
     if (!track) return
     drag.current = { down: true, startX: e.pageX, scrollStart: track.scrollLeft, moved: false }
     track.style.cursor = 'grabbing'
-    setPreview(null)
+    hidePreview()
   }
   const onMouseMove = (e: React.MouseEvent) => {
     const track = trackRef.current
@@ -101,8 +100,8 @@ export function DevelopmentCarousel({ items }: { items: DevItem[] }) {
         {items.map(item => (
           <div key={item.id} data-card
             onClick={() => openCard(item)}
-            onMouseEnter={e => { if (!drag.current.down && item.image_url) setPreview({ item, rect: e.currentTarget.getBoundingClientRect() }) }}
-            onMouseLeave={() => setPreview(p => (p?.item.id === item.id ? null : p))}
+            onMouseEnter={e => { if (!drag.current.down && item.image_url) showPreview(item.image_url, e.currentTarget, item.id) }}
+            onMouseLeave={() => hidePreview(item.id)}
             className="group flex-none w-[85%] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.667rem)] rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
             style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', scrollSnapAlign: 'start' }}
           >
@@ -129,28 +128,7 @@ export function DevelopmentCarousel({ items }: { items: DevItem[] }) {
         ))}
       </div>
 
-      {/* Enlarged hover preview — rendered fixed to the viewport so it floats
-          above the whole page, not clipped by the carousel's scroll container. */}
-      {preview?.item.image_url && (
-        <div
-          className="hidden md:block fixed z-[90] pointer-events-none animate-[devPreviewIn_0.18s_ease-out]"
-          style={{
-            left: preview.rect.left + preview.rect.width / 2,
-            top: Math.max(preview.rect.top, 16),
-            width: preview.rect.width * 1.7,
-            transform: 'translate(-50%, -14%)',
-          }}
-        >
-          <img src={preview.item.image_url} alt="" draggable={false}
-            className="w-full rounded-2xl"
-            style={{
-              border: '5px solid white',
-              boxShadow: '0 25px 60px -10px rgba(15,23,42,0.45), 0 0 0 1px rgba(0,0,0,0.05)',
-              maxHeight: '65vh',
-              objectFit: 'cover',
-            }} />
-        </div>
-      )}
+      <ZoomPreviewOverlay preview={preview} />
 
       {active && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"

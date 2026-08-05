@@ -9,6 +9,7 @@ import { useLang } from '@/context/LanguageContext'
 import PriceCalculator from '@/components/PriceCalculator'
 import ProductCard from '@/components/ProductCard'
 import KPModal from '@/components/KPModal'
+import { useZoomPreview, ZoomPreviewOverlay } from '@/components/HoverZoomPreview'
 import { getProductBySlug } from '@/lib/supabase'
 import type { Product } from '@/types'
 
@@ -69,6 +70,7 @@ function ImageGallery({ images, name, videoUrl }: { images: string[]; name: stri
   const [current, setCurrent] = useState(0)
   const [showVideo, setShowVideo] = useState(false)
   const [mainHovered, setMainHovered] = useState(false)
+  const { preview, show: showPreview, hide: hidePreview } = useZoomPreview()
 
   const videoId = videoUrl?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1] ?? null
   const totalCount = images.length + (videoId ? 1 : 0)
@@ -87,8 +89,8 @@ function ImageGallery({ images, name, videoUrl }: { images: string[]; name: stri
       <div
         className="steel-card relative overflow-hidden rounded-2xl"
         style={{ aspectRatio: showVideo ? '16/9' : '1/1', cursor: showVideo ? 'default' : 'zoom-in', transition: 'aspect-ratio 0.3s ease' }}
-        onMouseEnter={() => setMainHovered(true)}
-        onMouseLeave={() => setMainHovered(false)}
+        onMouseEnter={e => { setMainHovered(true); if (!showVideo && images[current]) showPreview(images[current], e.currentTarget) }}
+        onMouseLeave={() => { setMainHovered(false); hidePreview() }}
       >
         {showVideo && videoId ? (
           <iframe
@@ -184,6 +186,8 @@ function ImageGallery({ images, name, videoUrl }: { images: string[]; name: stri
           )}
         </div>
       )}
+
+      <ZoomPreviewOverlay preview={preview} maxHeight="70vh" />
     </div>
   )
 }

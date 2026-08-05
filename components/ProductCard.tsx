@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowRight, Package, Zap, ShoppingCart, Check } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 import { useCart } from '@/context/CartContext'
+import { useZoomPreview, ZoomPreviewOverlay } from '@/components/HoverZoomPreview'
 import type { Product } from '@/types'
 
 const TYPE_META = {
@@ -58,6 +59,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const availMeta = AVAIL_META[product.availability]
   const keySpecs = getKeySpecs(product.specs, product.classification_code)
   const inCart = isInCart(product.id)
+  const { preview, show: showPreview, hide: hidePreview } = useZoomPreview()
 
   return (
     <div
@@ -71,7 +73,10 @@ export default function ProductCard({ product }: { product: Product }) {
     >
       {/* ── Image area (link to product page) ── */}
       <Link href={`/catalog/${product.slug}`} className="block">
-        <div className="relative overflow-hidden" style={{ aspectRatio: '4/3', background: '#F8FAFC' }}>
+        <div className="relative overflow-hidden" style={{ aspectRatio: '4/3', background: '#F8FAFC' }}
+          onMouseEnter={e => { if (image) showPreview(image, e.currentTarget) }}
+          onMouseLeave={() => hidePreview()}
+        >
           {image ? (
             <Image
               src={image} alt={name} fill
@@ -173,6 +178,8 @@ export default function ProductCard({ product }: { product: Product }) {
           }
         </button>
       </div>
+
+      <ZoomPreviewOverlay preview={preview} />
     </div>
   )
 }
