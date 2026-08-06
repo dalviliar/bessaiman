@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, FileText, Package } from 'lucide-react'
+import { ArrowLeft, FileText, Package, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 import PriceCalculator from '@/components/PriceCalculator'
 import ProductCard from '@/components/ProductCard'
@@ -65,19 +65,25 @@ function AvailabilityBadge({ status }: { status: Product['availability'] }) {
   return <span className={cls}>{label}</span>
 }
 
-const ZOOM_FACTOR = 2.6
-const ZOOM_LENS_PCT = 100 / ZOOM_FACTOR // lens covers exactly what the panel shows
-const ZOOM_PANEL_SIZE = 440
-
 function ImageGallery({ images, name, videoUrl }: { images: string[]; name: string; videoUrl?: string | null }) {
   const [current, setCurrent] = useState(0)
   const [showVideo, setShowVideo] = useState(false)
-  const [zoomPos, setZoomPos] = useState<{ x: number; y: number } | null>(null)
-  const [panelPos, setPanelPos] = useState<{ left: number; top: number } | null>(null)
-  const containerRef = useRef<HTMLDivElement>(null)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
   const videoId = videoUrl?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1] ?? null
   const totalCount = images.length + (videoId ? 1 : 0)
+
+  useEffect(() => {
+    if (!lightboxOpen) return
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setLightboxOpen(false)
+      if (e.key === 'ArrowRight') setCurrent(i => (i + 1) % images.length)
+      if (e.key === 'ArrowLeft') setCurrent(i => (i - 1 + images.length) % images.length)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey) }
+  }, [lightboxOpen, images.length])
 
   if (!images.length && !videoId) {
     return (
@@ -87,35 +93,13 @@ function ImageGallery({ images, name, videoUrl }: { images: string[]; name: stri
     )
   }
 
-  const onMouseMove = (e: React.MouseEvent) => {
-    const rect = containerRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const x = Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100))
-    const y = Math.min(100, Math.max(0, ((e.clientY - rect.top) / rect.height) * 100))
-    setZoomPos({ x, y })
-
-    const gap = 16
-    const fitsRight = rect.right + gap + ZOOM_PANEL_SIZE <= window.innerWidth
-    const left = fitsRight ? rect.right + gap : Math.max(gap, rect.left - gap - ZOOM_PANEL_SIZE)
-    const top = Math.min(Math.max(rect.top, gap), window.innerHeight - ZOOM_PANEL_SIZE - gap)
-    setPanelPos({ left, top })
-  }
-
-  const lensX = zoomPos ? Math.min(Math.max(zoomPos.x - ZOOM_LENS_PCT / 2, 0), 100 - ZOOM_LENS_PCT) : 0
-  const lensY = zoomPos ? Math.min(Math.max(zoomPos.y - ZOOM_LENS_PCT / 2, 0), 100 - ZOOM_LENS_PCT) : 0
-  const bgX = (lensX / (100 - ZOOM_LENS_PCT)) * 100
-  const bgY = (lensY / (100 - ZOOM_LENS_PCT)) * 100
-  const showMagnifier = !showVideo && !!zoomPos && images.length > 0
-
   return (
     <div>
       {/* Main area */}
       <div
-        ref={containerRef}
-        className="steel-card relative overflow-hidden rounded-2xl"
+        className="group steel-card relative overflow-hidden rounded-2xl"
         style={{ aspectRatio: showVideo ? '16/9' : '1/1', cursor: showVideo ? 'default' : 'zoom-in', transition: 'aspect-ratio 0.3s ease' }}
-        onMouseMove={!showVideo ? onMouseMove : undefined}
-        onMouseLeave={() => setZoomPos(null)}
+        onClick={() => { if (!showVideo && images.length > 0) setLightboxOpen(true) }}
       >
         {showVideo && videoId ? (
           <iframe
@@ -133,7 +117,7 @@ function ImageGallery({ images, name, videoUrl }: { images: string[]; name: stri
                 src={images[current]}
                 alt={name}
                 fill
-                className="object-contain p-6"
+                className="object-contain p-6 transition-transform duration-300 group-hover:scale-105"
               />
             )}
             {totalCount > 1 && (
@@ -148,31 +132,45 @@ function ImageGallery({ images, name, videoUrl }: { images: string[]; name: stri
                 {current + 1} / {totalCount}
               </div>
             )}
-            {/* Lens — shows which part of the photo the side panel is magnifying */}
-            {showMagnifier && (
-              <div className="hidden lg:block absolute pointer-events-none rounded"
-                style={{
-                  left: `${lensX}%`, top: `${lensY}%`, width: `${ZOOM_LENS_PCT}%`, height: `${ZOOM_LENS_PCT}%`,
-                  background: 'rgba(21,101,192,0.12)', border: '1.5px solid rgba(21,101,192,0.55)',
-                }} />
-            )}
           </>
         )}
       </div>
 
-      {/* Magnified panel — fixed to the viewport, next to the photo, fixed size so it never balloons */}
-      {showMagnifier && panelPos && (
-        <div
-          className="hidden lg:block fixed z-40 rounded-2xl pointer-events-none"
-          style={{
-            left: panelPos.left, top: panelPos.top, width: ZOOM_PANEL_SIZE, height: ZOOM_PANEL_SIZE,
-            background: `white url(${images[current]}) no-repeat`,
-            backgroundSize: `${ZOOM_FACTOR * 100}%`,
-            backgroundPosition: `${bgX}% ${bgY}%`,
-            border: '1px solid #E2E8F0',
-            boxShadow: '0 20px 50px -10px rgba(15,23,42,0.35)',
-          }}
-        />
+      {/* Lightbox — click the photo to see it enlarged, same pattern as the science page cards */}
+      {lightboxOpen && images.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(15,23,42,0.75)' }} onClick={() => setLightboxOpen(false)}>
+          <button onClick={() => setLightboxOpen(false)} aria-label="Закрыть"
+            className="absolute top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center z-10 transition-colors hover:opacity-80"
+            style={{ background: 'rgba(255,255,255,0.12)' }}>
+            <X size={18} color="white" />
+          </button>
+          {images.length > 1 && (
+            <>
+              <button onClick={e => { e.stopPropagation(); setCurrent(i => (i - 1 + images.length) % images.length) }}
+                aria-label="Предыдущее фото"
+                className="hidden sm:flex absolute left-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full items-center justify-center transition-colors hover:opacity-80"
+                style={{ background: 'rgba(255,255,255,0.12)' }}>
+                <ChevronLeft size={20} color="white" />
+              </button>
+              <button onClick={e => { e.stopPropagation(); setCurrent(i => (i + 1) % images.length) }}
+                aria-label="Следующее фото"
+                className="hidden sm:flex absolute right-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full items-center justify-center transition-colors hover:opacity-80"
+                style={{ background: 'rgba(255,255,255,0.12)' }}>
+                <ChevronRight size={20} color="white" />
+              </button>
+            </>
+          )}
+          <div className="relative w-full max-w-3xl" style={{ aspectRatio: '1/1', maxHeight: '85vh' }} onClick={e => e.stopPropagation()}>
+            <Image src={images[current]} alt={name} fill className="object-contain" />
+          </div>
+          {images.length > 1 && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-sm font-semibold px-3 py-1 rounded-full"
+              style={{ background: 'rgba(255,255,255,0.12)', color: 'white' }}>
+              {current + 1} / {images.length}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Thumbnail strip */}
