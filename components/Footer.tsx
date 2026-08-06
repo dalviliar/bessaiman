@@ -94,6 +94,11 @@ export default function Footer() {
         <div className="mt-10 pt-6 border-t border-steel-border/30 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-steel-silver/60 text-xs">
             © {new Date().getFullYear()} Bes Saiman Group. All rights reserved.
+            <span className="mx-1.5 text-steel-silver/30">·</span>
+            <a href="https://wa.me/77470636611" target="_blank" rel="noopener noreferrer"
+              className="text-steel-silver/60 hover:text-steel-silver/90 transition-colors">
+              Веб-студия Рауза
+            </a>
           </p>
           <div className="flex items-center gap-3">
             <a
