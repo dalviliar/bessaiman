@@ -25,7 +25,7 @@ export function useZoomPreview() {
   return { preview, show, hide }
 }
 
-export function ZoomPreviewOverlay({ preview, maxHeight = '65vh', scale = 1.7 }: { preview: ZoomPreview | null; maxHeight?: string; scale?: number }) {
+export function ZoomPreviewOverlay({ preview, maxHeight = '65vh', scale = 1.7, objectFit = 'cover' }: { preview: ZoomPreview | null; maxHeight?: string; scale?: number; objectFit?: 'cover' | 'contain' }) {
   if (!preview?.src || typeof document === 'undefined') return null
   // Portaled to <body> so a transformed ancestor (e.g. a card's hover:-translate-y-1)
   // can't turn this fixed-position element into one positioned relative to itself
@@ -46,7 +46,8 @@ export function ZoomPreviewOverlay({ preview, maxHeight = '65vh', scale = 1.7 }:
           border: '5px solid white',
           boxShadow: '0 25px 60px -10px rgba(15,23,42,0.45), 0 0 0 1px rgba(0,0,0,0.05)',
           maxHeight,
-          objectFit: 'cover',
+          objectFit,
+          background: 'white',
         }} />
     </div>,
     document.body,
