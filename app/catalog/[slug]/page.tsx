@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, FileText, Package, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowLeft, FileText, Package } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 import PriceCalculator from '@/components/PriceCalculator'
 import ProductCard from '@/components/ProductCard'
 import KPModal from '@/components/KPModal'
+import { useZoomPreview, ZoomPreviewOverlay } from '@/components/HoverZoomPreview'
 import { getProductBySlug } from '@/lib/supabase'
 import type { Product } from '@/types'
 
@@ -68,22 +69,10 @@ function AvailabilityBadge({ status }: { status: Product['availability'] }) {
 function ImageGallery({ images, name, videoUrl }: { images: string[]; name: string; videoUrl?: string | null }) {
   const [current, setCurrent] = useState(0)
   const [showVideo, setShowVideo] = useState(false)
-  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const { preview, show: showPreview, hide: hidePreview } = useZoomPreview()
 
   const videoId = videoUrl?.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/)?.[1] ?? null
   const totalCount = images.length + (videoId ? 1 : 0)
-
-  useEffect(() => {
-    if (!lightboxOpen) return
-    document.body.style.overflow = 'hidden'
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setLightboxOpen(false)
-      if (e.key === 'ArrowRight') setCurrent(i => (i + 1) % images.length)
-      if (e.key === 'ArrowLeft') setCurrent(i => (i - 1 + images.length) % images.length)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey) }
-  }, [lightboxOpen, images.length])
 
   if (!images.length && !videoId) {
     return (
@@ -98,8 +87,9 @@ function ImageGallery({ images, name, videoUrl }: { images: string[]; name: stri
       {/* Main area */}
       <div
         className="group steel-card relative overflow-hidden rounded-2xl"
-        style={{ aspectRatio: showVideo ? '16/9' : '1/1', cursor: showVideo ? 'default' : 'zoom-in', transition: 'aspect-ratio 0.3s ease' }}
-        onClick={() => { if (!showVideo && images.length > 0) setLightboxOpen(true) }}
+        style={{ aspectRatio: showVideo ? '16/9' : '1/1', transition: 'aspect-ratio 0.3s ease' }}
+        onMouseEnter={e => { if (!showVideo && images[current]) showPreview(images[current], e.currentTarget) }}
+        onMouseLeave={() => hidePreview()}
       >
         {showVideo && videoId ? (
           <iframe
@@ -136,42 +126,7 @@ function ImageGallery({ images, name, videoUrl }: { images: string[]; name: stri
         )}
       </div>
 
-      {/* Lightbox — click the photo to see it enlarged, same pattern as the science page cards */}
-      {lightboxOpen && images.length > 0 && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(15,23,42,0.75)' }} onClick={() => setLightboxOpen(false)}>
-          <button onClick={() => setLightboxOpen(false)} aria-label="Закрыть"
-            className="absolute top-5 right-5 w-10 h-10 rounded-full flex items-center justify-center z-10 transition-colors hover:opacity-80"
-            style={{ background: 'rgba(255,255,255,0.12)' }}>
-            <X size={18} color="white" />
-          </button>
-          {images.length > 1 && (
-            <>
-              <button onClick={e => { e.stopPropagation(); setCurrent(i => (i - 1 + images.length) % images.length) }}
-                aria-label="Предыдущее фото"
-                className="hidden sm:flex absolute left-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full items-center justify-center transition-colors hover:opacity-80"
-                style={{ background: 'rgba(255,255,255,0.12)' }}>
-                <ChevronLeft size={20} color="white" />
-              </button>
-              <button onClick={e => { e.stopPropagation(); setCurrent(i => (i + 1) % images.length) }}
-                aria-label="Следующее фото"
-                className="hidden sm:flex absolute right-5 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full items-center justify-center transition-colors hover:opacity-80"
-                style={{ background: 'rgba(255,255,255,0.12)' }}>
-                <ChevronRight size={20} color="white" />
-              </button>
-            </>
-          )}
-          <div className="relative w-full max-w-3xl" style={{ aspectRatio: '1/1', maxHeight: '85vh' }} onClick={e => e.stopPropagation()}>
-            <Image src={images[current]} alt={name} fill className="object-contain" />
-          </div>
-          {images.length > 1 && (
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-sm font-semibold px-3 py-1 rounded-full"
-              style={{ background: 'rgba(255,255,255,0.12)', color: 'white' }}>
-              {current + 1} / {images.length}
-            </div>
-          )}
-        </div>
-      )}
+      <ZoomPreviewOverlay preview={preview} scale={1.25} maxHeight="45vh" />
 
       {/* Thumbnail strip */}
       {totalCount > 1 && (
