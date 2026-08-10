@@ -6,10 +6,10 @@ import Link from 'next/link'
 import type { NewsPost } from '@/types'
 import { useLang } from '@/context/LanguageContext'
 
-const AssemblyMachine3D = dynamic(() => import('@/components/AssemblyMachine3D'), {
+const TubeFurnaceRig3D = dynamic(() => import('@/components/TubeFurnaceRig3D'), {
   ssr: false,
   loading: () => (
-    <div style={{ width: '100%', height: 520, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ width: '100%', height: 620, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ width: 48, height: 48, border: '3px solid #E2E8F0', borderTopColor: '#1565C0', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
     </div>
   ),
@@ -277,11 +277,27 @@ export default function TestAssemblyPage() {
             </div>
           </div>
 
-          {/* Right — 3D model */}
-          <div className="flex justify-center items-center" style={{ animation: 'fade-up 0.5s 0.12s ease both' }}>
-            <div style={{ width: '100%', maxWidth: 520 }}>
-              <AssemblyMachine3D />
-            </div>
+          {/* Right — compact spec block, the rig gets its own full-width stage below */}
+          <div className="hidden md:flex flex-col gap-3 justify-center" style={{ animation: 'fade-up 0.5s 0.12s ease both' }}>
+            {[
+              ['Рабочая зона', '1200 мм · 3 зоны нагрева'],
+              ['Температура', 'до 1200 °C · ±1 °C'],
+              ['Труба', 'кварц Ø60–100 мм, вращение'],
+              ['Атмосфера', 'Ar / N₂ / H₂ · вакуум до 10⁻² Па'],
+            ].map(([k, v]) => (
+              <div key={k} className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl"
+                style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
+                <span className="text-[11px] font-mono tracking-wider" style={{ color: '#94A3B8' }}>{k}</span>
+                <span className="text-xs font-semibold" style={{ color: '#0F172A' }}>{v}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Full-width 3D stage */}
+        <div style={{ borderTop: '1px solid #E2E8F0', background: 'linear-gradient(180deg,#FFFFFF 0%,#F4F8FB 100%)' }}>
+          <div className="max-w-[1600px] mx-auto px-2 sm:px-6" style={{ animation: 'fade-up 0.5s 0.12s ease both' }}>
+            <TubeFurnaceRig3D height={620} />
           </div>
         </div>
       </section>
