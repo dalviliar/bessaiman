@@ -60,32 +60,36 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       // The rig is wide and flat, so the camera distance is derived from the
       // canvas aspect — it frames correctly both in a narrow hero column and
       // on a full-width stage.
-      const RIG_HALF_W = 7.8
-      const RIG_HALF_H = 2.35
+      const RIG_HALF_W = 7.35
+      const RIG_HALF_H = 2.2
       const TARGET = new THREE.Vector3(0.15, -0.25, 0)
       const VIEW_DIR = new THREE.Vector3(0.26, 0.19, 1).normalize()
 
+      let baseDist = 1
       const fitCamera = () => {
         const aspect = camera.aspect
         const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)
-        const dist = 1.05 * Math.max(RIG_HALF_W / (tan * aspect), RIG_HALF_H / tan)
-        camera.position.copy(TARGET).addScaledVector(VIEW_DIR, dist)
+        baseDist = Math.max(RIG_HALF_W / (tan * aspect), RIG_HALF_H / tan)
+        camera.position.copy(TARGET).addScaledVector(VIEW_DIR, baseDist)
         camera.lookAt(TARGET)
       }
       fitCamera()
 
-      renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true })
+      renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true, powerPreference: 'high-performance' })
       renderer.setSize(w, h)
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2.5))
       renderer.shadowMap.enabled = true
       renderer.shadowMap.type = THREE.PCFSoftShadowMap
+      renderer.toneMapping = THREE.ACESFilmicToneMapping
+      renderer.toneMappingExposure = 1.15
 
       // ── Lights ──────────────────────────────────────────────────
-      scene.add(new THREE.AmbientLight(0xffffff, 1.35))
-      const key = new THREE.DirectionalLight(0xffffff, 2.6)
+      scene.add(new THREE.AmbientLight(0xffffff, 0.95))
+      const key = new THREE.DirectionalLight(0xffffff, 3.4)
       key.position.set(6, 12, 8)
       key.castShadow = true
       key.shadow.mapSize.set(2048, 2048)
+      key.shadow.bias = -0.0005
       key.shadow.camera.left = -12
       key.shadow.camera.right = 12
       key.shadow.camera.top = 10
@@ -135,27 +139,37 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
 
       // ── Geometry helpers ────────────────────────────────────────
       const Box  = (x: number, y: number, z: number) => new THREE.BoxGeometry(x, y, z)
-      const Cyl  = (rT: number, rB: number, hh: number, seg = 28) => new THREE.CylinderGeometry(rT, rB, hh, seg)
-      const Tor  = (r: number, tube: number, seg = 40) => new THREE.TorusGeometry(r, tube, 8, seg)
-      const Sph  = (r: number) => new THREE.SphereGeometry(r, 14, 14)
+      const Cyl  = (rT: number, rB: number, hh: number, seg = 40) => new THREE.CylinderGeometry(rT, rB, hh, seg)
+      const Tor  = (r: number, tube: number, seg = 52) => new THREE.TorusGeometry(r, tube, 10, seg)
+      const Sph  = (r: number) => new THREE.SphereGeometry(r, 20, 20)
 
       const rig = new THREE.Group()
       scene.add(rig)
 
       const parts: FlyPart[] = []
 
+      // The authored start only sets the direction a part comes from; the
+      // travel distance is uniform so nothing flies in from off-screen.
+      const APPROACH = 2.4
+
       const spawn = (
         end: [number, number, number], start: [number, number, number],
         delay: number, duration = 0.85,
         endRot: [number, number, number] = [0, 0, 0], startRot: [number, number, number] = [0, 0, 0],
       ) => {
+        const endV = new THREE.Vector3(...end)
+        const dir = new THREE.Vector3(...start).sub(endV)
+        if (dir.lengthSq() < 1e-6) dir.set(0, 1, 0)
+        const startV = endV.clone().addScaledVector(dir.normalize(), APPROACH)
+
         const g = new THREE.Group()
-        g.position.set(...start)
+        g.position.copy(startV)
         g.rotation.set(...startRot)
+        g.visible = false
         rig.add(g)
         parts.push({
           group: g,
-          start: new THREE.Vector3(...start), end: new THREE.Vector3(...end),
+          start: startV, end: endV,
           startRot: new THREE.Euler(...startRot), endRot: new THREE.Euler(...endRot),
           delay, duration,
         })
@@ -507,10 +521,24 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       shadowPlane.receiveShadow = true
       scene.add(shadowPlane)
 
-      // Authored delays/durations are stretched by TIME_SCALE so each piece
-      // is readable as it travels and settles.
-      const TIME_SCALE = 1.9
-      const ASSEMBLY_END = 8.6 * TIME_SCALE   // everything has landed → power-on
+      // Re-time everything into a strict queue: parts authored at roughly the
+      // same moment form one step (a bolt ring goes in together) and each step
+      // waits for the previous one, so only one thing is ever in flight.
+      const STEP = 0.68
+      const FLIGHT = 0.6
+      {
+        const ordered = [...parts].sort((a, b) => a.delay - b.delay)
+        let step = -1
+        let lastKey = Number.NEGATIVE_INFINITY
+        for (const p of ordered) {
+          const key = Math.round(p.delay / 0.25)
+          if (key !== lastKey) { step++; lastKey = key }
+          p.delay = step * STEP
+          p.duration = FLIGHT
+        }
+      }
+      const TIME_SCALE = 1
+      const ASSEMBLY_END = Math.max(...parts.map(p => p.delay + p.duration)) + 0.3
 
       // ── Animate ─────────────────────────────────────────────────
       const clock = new THREE.Clock()
@@ -525,6 +553,12 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
         for (const p of parts) {
           const delay = p.delay * TIME_SCALE
           const duration = p.duration * TIME_SCALE
+          // stays hidden until it launches, so nothing clutters the frame
+          if (t < delay) {
+            p.group.visible = false
+            continue
+          }
+          p.group.visible = true
           const raw = THREE.MathUtils.clamp((t - delay) / duration, 0, 1)
           const e = easeOutCubic(raw)
           p.group.position.lerpVectors(p.start, p.end, e)
@@ -533,7 +567,9 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
           p.group.rotation.z = lerp(p.startRot.z, p.endRot.z, e)
           if (raw >= 1) {
             const since = t - (delay + duration)
-            p.group.scale.setScalar(since < 0.35 ? 1 + 0.09 * (1 - since / 0.35) : 1)
+            p.group.scale.setScalar(since < 0.35 ? 1 + 0.07 * (1 - since / 0.35) : 1)
+          } else {
+            p.group.scale.setScalar(0.94 + 0.06 * e)   // eases in instead of popping
           }
         }
 
@@ -566,6 +602,11 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
         gaugeNeedles.forEach((n, i) => {
           n.rotation.z = -0.8 + power * (1.1 + Math.sin(t * 1.4 + i) * 0.28)
         })
+
+        // slow push-in once assembled, so the detailing is readable
+        const push = easeOutCubic(THREE.MathUtils.clamp((t - ASSEMBLY_END) / 4, 0, 1))
+        camera.position.copy(TARGET).addScaledVector(VIEW_DIR, baseDist * (1 - 0.1 * push))
+        camera.lookAt(TARGET)
 
         // gentle showcase sway — keeps the wide rig readable head-on
         rig.rotation.y = Math.sin(t * 0.16) * 0.19 - 0.05
