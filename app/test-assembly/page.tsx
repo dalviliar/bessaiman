@@ -215,7 +215,7 @@ export default function TestAssemblyPage() {
 
       {/* ══ HERO ══ */}
       <section style={{ borderBottom: '1px solid #E2E8F0', background: 'white' }}>
-        <div className="w-full max-w-7xl mx-auto px-6 lg:px-8 grid md:grid-cols-2 gap-6 items-center py-14 md:py-20">
+        <div className="w-full max-w-7xl mx-auto px-6 lg:px-8 grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] gap-6 items-center py-14 md:py-20">
 
           {/* Left */}
           <div className="flex flex-col gap-6" style={{ animation: 'fade-up 0.6s ease both' }}>
@@ -277,27 +277,11 @@ export default function TestAssemblyPage() {
             </div>
           </div>
 
-          {/* Right — compact spec block, the rig gets its own full-width stage below */}
-          <div className="hidden md:flex flex-col gap-3 justify-center" style={{ animation: 'fade-up 0.5s 0.12s ease both' }}>
-            {[
-              ['Рабочая зона', '1200 мм · 3 зоны нагрева'],
-              ['Температура', 'до 1200 °C · ±1 °C'],
-              ['Труба', 'кварц Ø60–100 мм, вращение'],
-              ['Атмосфера', 'Ar / N₂ / H₂ · вакуум до 10⁻² Па'],
-            ].map(([k, v]) => (
-              <div key={k} className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl"
-                style={{ background: '#F8FAFC', border: '1px solid #E2E8F0' }}>
-                <span className="text-[11px] font-mono tracking-wider" style={{ color: '#94A3B8' }}>{k}</span>
-                <span className="text-xs font-semibold" style={{ color: '#0F172A' }}>{v}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Full-width 3D stage */}
-        <div style={{ borderTop: '1px solid #E2E8F0', background: 'linear-gradient(180deg,#FFFFFF 0%,#F4F8FB 100%)' }}>
-          <div className="max-w-[1600px] mx-auto px-2 sm:px-6" style={{ animation: 'fade-up 0.5s 0.12s ease both' }}>
-            <TubeFurnaceRig3D height={620} />
+          {/* Right — 3D rig, in the same slot the old model occupied */}
+          <div className="flex justify-center items-center" style={{ animation: 'fade-up 0.5s 0.12s ease both' }}>
+            <div style={{ width: '100%' }}>
+              <TubeFurnaceRig3D height={430} />
+            </div>
           </div>
         </div>
       </section>

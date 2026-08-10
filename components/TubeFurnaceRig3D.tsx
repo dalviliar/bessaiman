@@ -56,8 +56,23 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       const w = canvas.clientWidth || 1000
       const h = canvas.clientHeight || height
       const camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 200)
-      camera.position.set(2.9, 2.0, 11.2)
-      camera.lookAt(0.15, -0.12, 0)
+
+      // The rig is wide and flat, so the camera distance is derived from the
+      // canvas aspect — it frames correctly both in a narrow hero column and
+      // on a full-width stage.
+      const RIG_HALF_W = 7.8
+      const RIG_HALF_H = 2.35
+      const TARGET = new THREE.Vector3(0.15, -0.25, 0)
+      const VIEW_DIR = new THREE.Vector3(0.26, 0.19, 1).normalize()
+
+      const fitCamera = () => {
+        const aspect = camera.aspect
+        const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)
+        const dist = 1.05 * Math.max(RIG_HALF_W / (tan * aspect), RIG_HALF_H / tan)
+        camera.position.copy(TARGET).addScaledVector(VIEW_DIR, dist)
+        camera.lookAt(TARGET)
+      }
+      fitCamera()
 
       renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true })
       renderer.setSize(w, h)
@@ -492,7 +507,10 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       shadowPlane.receiveShadow = true
       scene.add(shadowPlane)
 
-      const ASSEMBLY_END = 8.6   // everything has landed by then → power-on
+      // Authored delays/durations are stretched by TIME_SCALE so each piece
+      // is readable as it travels and settles.
+      const TIME_SCALE = 1.9
+      const ASSEMBLY_END = 8.6 * TIME_SCALE   // everything has landed → power-on
 
       // ── Animate ─────────────────────────────────────────────────
       const clock = new THREE.Clock()
@@ -505,15 +523,17 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
         const t = elapsed
 
         for (const p of parts) {
-          const raw = THREE.MathUtils.clamp((t - p.delay) / p.duration, 0, 1)
+          const delay = p.delay * TIME_SCALE
+          const duration = p.duration * TIME_SCALE
+          const raw = THREE.MathUtils.clamp((t - delay) / duration, 0, 1)
           const e = easeOutCubic(raw)
           p.group.position.lerpVectors(p.start, p.end, e)
           p.group.rotation.x = lerp(p.startRot.x, p.endRot.x, e)
           p.group.rotation.y = lerp(p.startRot.y, p.endRot.y, e)
           p.group.rotation.z = lerp(p.startRot.z, p.endRot.z, e)
           if (raw >= 1) {
-            const since = t - (p.delay + p.duration)
-            p.group.scale.setScalar(since < 0.24 ? 1 + 0.09 * (1 - since / 0.24) : 1)
+            const since = t - (delay + duration)
+            p.group.scale.setScalar(since < 0.35 ? 1 + 0.09 * (1 - since / 0.35) : 1)
           }
         }
 
@@ -561,6 +581,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
         const ch = canvas.clientHeight
         camera.aspect = cw / ch
         camera.updateProjectionMatrix()
+        fitCamera()
         renderer!.setSize(cw, ch)
       }
       window.addEventListener('resize', onResize)
