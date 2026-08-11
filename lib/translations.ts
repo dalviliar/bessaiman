@@ -22,7 +22,6 @@ const translations = {
       statPartners: 'партнёров',
     },
     home: {
-      specStrip: 'КАТАЛОГ ПРОДУКЦИИ',
       newsLabel: 'АКТУАЛЬНО',
       newsTitle: 'Новости и акции',
       allPosts: 'Все публикации →',
@@ -36,7 +35,6 @@ const translations = {
       viewAll: 'Весь каталог →',
       viewCatalog: 'Смотреть каталог',
       clientsTitle: 'Наши клиенты',
-      footerOnline: 'ОНЛАЙН',
       instagramBtn: 'Посмотреть в Instagram',
       closeBtn: 'Закрыть',
       cat_sfm_title: 'Муфельные печи',
@@ -254,7 +252,6 @@ const translations = {
       statPartners: 'серіктес',
     },
     home: {
-      specStrip: 'ӨНІМДЕР КАТАЛОГЫ',
       newsLabel: 'ӨЗЕКТІ',
       newsTitle: 'Жаңалықтар мен акциялар',
       allPosts: 'Барлық жарияланымдар →',
@@ -268,7 +265,6 @@ const translations = {
       viewAll: 'Барлық каталог →',
       viewCatalog: 'Каталогты қарау',
       clientsTitle: 'Біздің клиенттер',
-      footerOnline: 'ОНЛАЙН',
       instagramBtn: 'Instagram-да қарау',
       closeBtn: 'Жабу',
       cat_sfm_title: 'Муфельді пештер',
@@ -486,7 +482,6 @@ const translations = {
       statPartners: 'partners',
     },
     home: {
-      specStrip: 'PRODUCT CATALOG',
       newsLabel: 'LATEST',
       newsTitle: 'News & Promotions',
       allPosts: 'All publications →',
@@ -500,7 +495,6 @@ const translations = {
       viewAll: 'Full catalog →',
       viewCatalog: 'View catalog',
       clientsTitle: 'Our Clients',
-      footerOnline: 'ONLINE',
       instagramBtn: 'View on Instagram',
       closeBtn: 'Close',
       cat_sfm_title: 'Muffle Furnaces',

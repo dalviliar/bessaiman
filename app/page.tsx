@@ -282,19 +282,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ══ SPEC STRIP ══ */}
-      <div style={{ background: '#F1F5F9', borderBottom: '1px solid #E2E8F0' }}>
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-3 flex items-center justify-between flex-wrap gap-3">
-          <span className="text-[11px] font-mono tracking-[0.2em] font-bold" style={{ color: '#94A3B8' }}>
-            {tr.home.specStrip}
-          </span>
-          <div style={{ flex: 1, height: 1, background: '#E2E8F0', margin: '0 12px' }} />
-          {['T: 25°C — 1800°C', '±0.001 MM', 'KAZAKHSTAN · ALMATY', 'ISO 9001'].map(t => (
-            <span key={t} className="text-[11px] font-mono tracking-widest" style={{ color: '#94A3B8' }}>{t}</span>
-          ))}
-        </div>
-      </div>
-
       {/* ══ НОВОСТИ & УВЕДОМЛЕНИЯ ══ */}
       {news.length > 0 && (
         <section style={{ background: '#F1F5F9', borderTop: '1px solid #E2E8F0', padding: '56px 0' }}>
@@ -511,20 +498,6 @@ export default function HomePage() {
 
       {/* ══ CLIENTS ══ */}
       <ClientsSection />
-
-      {/* ══ FOOTER ══ */}
-      <footer style={{ borderTop: '1px solid #E2E8F0', background: 'white' }}>
-        <div className="max-w-7xl mx-auto px-6 lg:px-8 py-5 flex items-center justify-between flex-wrap gap-3">
-          <div className="flex items-center gap-2">
-            <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
-            <span className="font-mono text-[11px] tracking-widest" style={{ color: '#94A3B8' }}>{tr.home.footerOnline}</span>
-          </div>
-          <span className="font-black text-base tracking-widest" style={{ color: '#CBD5E1' }}>BES SAIMAN GROUP</span>
-          <span className="text-[12px] font-mono" style={{ color: '#94A3B8' }}>
-            © 2026 · Kazakhstan · bessaimangroup1@gmail.com
-          </span>
-        </div>
-      </footer>
     </div>
   )
 }
