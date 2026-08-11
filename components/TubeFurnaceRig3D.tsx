@@ -126,7 +126,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       const key = new THREE.DirectionalLight(0xffffff, 2.4)
       key.position.set(6, 12, 8)
       key.castShadow = true
-      key.shadow.mapSize.set(2048, 2048)
+      key.shadow.mapSize.set(3072, 3072)
       key.shadow.bias = -0.0005
       key.shadow.camera.left = -12
       key.shadow.camera.right = 12
@@ -224,9 +224,9 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
           ? new RoundedBoxGeometry(x, y, z, 2, r)
           : new THREE.BoxGeometry(x, y, z)
       }
-      const Cyl  = (rT: number, rB: number, hh: number, seg = 40) => new THREE.CylinderGeometry(rT, rB, hh, seg)
+      const Cyl  = (rT: number, rB: number, hh: number, seg = 56) => new THREE.CylinderGeometry(rT, rB, hh, seg)
       const Tor  = (r: number, tube: number, seg = 52) => new THREE.TorusGeometry(r, tube, 10, seg)
-      const Sph  = (r: number) => new THREE.SphereGeometry(r, 20, 20)
+      const Sph  = (r: number) => new THREE.SphereGeometry(r, 28, 28)
 
       const rig = new THREE.Group()
       scene.add(rig)
@@ -300,7 +300,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       // lower half — matching half-cylinder shell on a cradle
       const furnLo = spawn([0, 0.02, 0], [0, -6, 0], 1.4, 0.95)
       const hoodLo = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.96, 0.96, 3.5, 34, 1, false, Math.PI, Math.PI),
+        new THREE.CylinderGeometry(0.96, 0.96, 3.5, 72, 1, false, Math.PI, Math.PI),
         shellM,
       )
       hoodLo.rotation.set(0, 0, Math.PI / 2)
@@ -308,7 +308,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       hoodLo.receiveShadow = true
       furnLo.add(hoodLo)
       ;[-1.75, 1.75].forEach(x => {
-        const disc = new THREE.Mesh(new THREE.CircleGeometry(0.96, 34, Math.PI, Math.PI), darkM)
+        const disc = new THREE.Mesh(new THREE.CircleGeometry(0.96, 72, Math.PI, Math.PI), darkM)
         disc.position.set(x, 0, 0)
         disc.rotation.set(0, x < 0 ? -Math.PI / 2 : Math.PI / 2, x < 0 ? Math.PI : 0)
         furnLo.add(disc)
@@ -322,7 +322,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       // upper half — half-cylinder clamshell hood
       const furnHi = spawn([0, 0.02, 0], [0, 6.5, 0], 2.0, 1.0)
       const hood = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.96, 0.96, 3.5, 34, 1, false, 0, Math.PI),
+        new THREE.CylinderGeometry(0.96, 0.96, 3.5, 72, 1, false, 0, Math.PI),
         shellTopM,
       )
       hood.rotation.set(0, 0, Math.PI / 2)
@@ -331,7 +331,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       furnHi.add(hood)
       // hood rim + end discs
       ;[-1.75, 1.75].forEach(x => {
-        const disc = new THREE.Mesh(new THREE.CircleGeometry(0.96, 34, 0, Math.PI), darkM)
+        const disc = new THREE.Mesh(new THREE.CircleGeometry(0.96, 72, 0, Math.PI), darkM)
         disc.position.set(x, 0, 0)
         disc.rotation.set(0, x < 0 ? -Math.PI / 2 : Math.PI / 2, x < 0 ? Math.PI : 0)
         furnHi.add(disc)
