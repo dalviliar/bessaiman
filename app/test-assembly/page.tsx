@@ -277,8 +277,10 @@ export default function TestAssemblyPage() {
             </div>
           </div>
 
-          {/* Right — 3D rig, in the same slot the old model occupied */}
-          <div className="flex justify-center items-center" style={{ animation: 'fade-up 0.5s 0.12s ease both' }}>
+          {/* Right — 3D rig, in the same slot the old model occupied, nudged
+              toward the text so it doesn't sit off on its own */}
+          <div className="flex justify-center items-center md:-translate-x-10 lg:-translate-x-16"
+            style={{ animation: 'fade-up 0.5s 0.12s ease both' }}>
             <div style={{ width: '100%' }}>
               <TubeFurnaceRig3D height={430} />
             </div>
