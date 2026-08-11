@@ -149,8 +149,8 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       const P = (color: number, roughness = 0.42, clearcoat = 0.55) =>
         new THREE.MeshPhysicalMaterial({ color, metalness: 0.0, roughness, clearcoat, clearcoatRoughness: 0.18 })
 
-      const shellM   = P(0xEDF1F4, 0.34)          // painted furnace body
-      const shellTopM= P(0xE2E8ED, 0.36)
+      const shellM   = P(0x1565C0, 0.32)          // furnace body in the brand blue
+      const shellTopM= P(0x1B72CD, 0.34)
       const steelM   = M(0xC2CDD6, 1.0, 0.24)     // brushed stainless
       const darkM    = M(0x2F3B47, 0.88, 0.42)    // dark structural steel
       const baseM    = M(0x1F2932, 0.8, 0.52)
@@ -171,6 +171,31 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       const gaugeFaceM = new THREE.MeshStandardMaterial({
         color: 0xF6F9FC, metalness: 0.02, roughness: 0.06, transparent: true, opacity: 0.97,
       })
+      // Company mark, applied as a decal on the furnace hood and the cabinet.
+      const logoTex = new THREE.TextureLoader().load('/logo-full-white.png')
+      logoTex.colorSpace = THREE.SRGBColorSpace
+      logoTex.anisotropy = 8
+      const logoM = new THREE.MeshStandardMaterial({
+        map: logoTex, transparent: true, metalness: 0, roughness: 0.45,
+        emissive: 0xffffff, emissiveMap: logoTex, emissiveIntensity: 0.3,
+        depthWrite: false, side: THREE.DoubleSide,
+      })
+
+      // A plane bent around the X axis, so the decal hugs the round hood while
+      // keeping ordinary plane UVs — a cylinder sector would map the logo
+      // around the circumference instead of along the furnace.
+      const curvedDecal = (width: number, radius: number) => {
+        const g = new THREE.PlaneGeometry(width, width / 4.04, 1, 24)
+        const p = g.attributes.position
+        for (let i = 0; i < p.count; i++) {
+          const a = -p.getY(i) / radius
+          p.setY(i, radius * Math.cos(a))
+          p.setZ(i, radius * Math.sin(a))
+        }
+        g.computeVertexNormals()
+        return g
+      }
+
       const heatM = new THREE.MeshStandardMaterial({
         color: 0x8a4b22, emissive: 0xff5a12, emissiveIntensity: 0, metalness: 0.3, roughness: 0.6,
       })
@@ -302,7 +327,12 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
         furnHi.add(disc)
       })
       mesh(furnHi, Box(3.6, 0.06, 0.06), steelM, 0, 0.94, 0)       // spine rail
-      mesh(furnHi, Box(1.1, 0.16, 0.02), M(0x1565C0, 0.3, 0.5), -0.05, 0.5, 0.86)  // brand strip
+      // brand decal, curved onto the hood
+      {
+        const decal = new THREE.Mesh(curvedDecal(2.1, 0.975), logoM)
+        decal.rotation.set(0.72, 0, 0)
+        furnHi.add(decal)
+      }
       // top vent stack + fan
       mesh(furnHi, Cyl(0.19, 0.19, 0.3, 20), steelM, 0.95, 1.02, 0)
       const ventFan = new THREE.Group()
@@ -472,11 +502,12 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       const cab = spawn([6.55, -0.42, -0.35], [12.5, -0.42, -0.35], 6.9, 0.95)
       mesh(cab, Box(1.5, 2.0, 0.9), panelM)
       mesh(cab, Box(1.56, 0.09, 0.96), steelM, 0, 1.02, 0)
+      mesh(cab, new THREE.PlaneGeometry(0.77, 0.19), logoM, 0, 0.89, 0.47)
       mesh(cab, Box(1.56, 0.09, 0.96), darkM, 0, -1.0, 0)
       ;[-0.62, 0.62].forEach(x => [-0.34, 0.34].forEach(z => mesh(cab, Cyl(0.07, 0.07, 0.1, 12), rubberM, x, -1.08, z)))
       // front panel faces the viewer (+Z), flush on the cabinet front
       const cabFace = spawn([6.55, -0.32, 0.12], [12.5, 3.4, 0.6], 7.2, 0.75)
-      mesh(cabFace, Box(1.24, 1.5, 0.05), M(0x1B242D, 0.4, 0.42))
+      mesh(cabFace, Box(1.24, 1.36, 0.05), M(0x1B242D, 0.4, 0.42))
       // PID display
       mesh(cabFace, Box(0.78, 0.32, 0.03), M(0x0C1218, 0.3, 0.4), 0, 0.46, 0.03)
       const displayBars: THREE.Mesh[] = []
@@ -513,11 +544,13 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       mesh(spawn([5.75, -0.95, -0.5], [10, -4, -3], 7.95, 0.6, [0, 0, 0.85], [1.2, 0, 0]), Cyl(0.04, 0.04, 1.7, 10), rubberM)
 
       // ══ 8. GAS CYLINDERS (left, standing on the floor) ══════════
+      // Kept clear of the bench footprint (x > -6.1) so nothing intersects the
+      // table top, and dropped onto the floor plane at y = -2.38.
       const cylColors = [0x2C6FB5, 0xC1352B, 0x3E8E5A]
+      const cylSpots: [number, number][] = [[-6.32, -0.78], [-6.92, -0.3], [-6.44, 0.2]]
       cylColors.forEach((c, i) => {
-        const bx = -6.55 + i * 0.62
-        const bz = -0.9 + i * 0.32
-        const gc = spawn([bx, -1.35, bz], [bx - 5, -1.35, bz], 4.4 + i * 0.12, 0.85)
+        const [bx, bz] = cylSpots[i]
+        const gc = spawn([bx, -1.5, bz], [bx - 5, -1.5, bz], 4.4 + i * 0.12, 0.85)
         mesh(gc, Cyl(0.26, 0.26, 1.65, 24), M(c, 0.5, 0.38))
         mesh(gc, Cyl(0.26, 0.2, 0.22, 24), M(c, 0.5, 0.38), 0, 0.92, 0)     // shoulder
         mesh(gc, Cyl(0.075, 0.075, 0.2, 14), brassM, 0, 1.1, 0)             // valve neck
@@ -526,10 +559,10 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
         mesh(gc, Cyl(0.05, 0.05, 0.14, 12), knobRedM, -0.14, 1.24, 0, 0, 0, Math.PI / 2)
         mesh(gc, Cyl(0.28, 0.28, 0.06, 24), darkM, 0, -0.85, 0)             // foot ring
         // hose up to the gas panel
-        mesh(gc, Cyl(0.03, 0.03, 1.5, 10), rubberM, 0.55 + i * 0.05, 1.0, 0.3, 0, 0, -1.15)
+        mesh(gc, Cyl(0.03, 0.03, 1.9, 10), rubberM, 0.72 + i * 0.05, 1.02, 0.3, 0, 0, -1.15)
       })
       // safety chain rail behind the cylinders
-      mesh(spawn([-5.95, -0.72, -0.55], [-12, -0.72, -0.55], 4.9, 0.6), Box(2.1, 0.05, 0.05), steelM)
+      mesh(spawn([-6.6, -0.72, -0.62], [-12, -0.72, -0.62], 4.9, 0.6), Box(1.5, 0.05, 0.05), steelM)
 
       // ══ 9. CHILLER UNDER THE BENCH ══════════════════════════════
       const chiller = spawn([-2.6, -1.65, -0.1], [-2.6, -7, -0.1], 5.0, 0.8)
