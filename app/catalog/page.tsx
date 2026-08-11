@@ -265,23 +265,34 @@ function CatalogContent() {
   // ── UI ──────────────────────────────────────────────────────────
   return (
     <div style={{ minHeight: '100vh', background: '#F8FAFC' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* ── Заголовок ── */}
-        <div className="mb-7">
-          <p className="font-mono text-[12px] tracking-[0.25em] uppercase mb-1.5 font-bold" style={{ color: '#1565C0' }}>
+      {/* ── Заголовок ── */}
+      <section className="relative overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: 'url(/images/catalog-hero-lab.jpg)' }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(180deg, rgba(8,17,34,0.84) 0%, rgba(8,17,34,0.7) 45%, rgba(8,17,34,0.9) 100%)' }}
+          aria-hidden
+        />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6 text-[13px] font-mono tracking-[0.2em] font-bold"
+            style={{ background: 'rgba(255,255,255,0.12)', color: '#DBEAFE', border: '1px solid rgba(191,219,254,0.35)', backdropFilter: 'blur(4px)' }}>
             BES SAIMAN GROUP
-          </p>
-          <h1 className="text-3xl sm:text-4xl font-black mb-2" style={{ color: '#0F172A', letterSpacing: '-0.02em' }}>
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-black mb-4 text-white" style={{ letterSpacing: '-0.02em', textShadow: '0 2px 24px rgba(0,0,0,0.45)' }}>
             {tr.catalog.title}
           </h1>
-          <div className="flex items-center gap-3">
-            <div className="h-0.5 w-10 rounded-full" style={{ background: 'linear-gradient(90deg,#1565C0,#0284C7)' }} />
-            <p className="text-base" style={{ color: '#64748B' }}>
-              Высокоточное лабораторное оборудование казахстанского производства
-            </p>
-          </div>
+          <p className="text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: '#E2E8F0' }}>
+            Высокоточное лабораторное оборудование казахстанского производства
+          </p>
         </div>
+      </section>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* ═══ Уровень 1: Тип продукции ═══════════════════════════ */}
         <div className="mb-4">
