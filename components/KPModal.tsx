@@ -100,8 +100,8 @@ export default function KPModal({ product, onClose }: Props) {
               <FileText size={15} style={{ color: '#4A90D9' }} />
             </div>
             <div>
-              <p className="text-white font-semibold text-sm">Коммерческое предложение</p>
-              <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{product.model || product.name_ru}</p>
+              <p className="text-white font-semibold text-base">Коммерческое предложение</p>
+              <p className="text-[13px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{product.model || product.name_ru}</p>
             </div>
           </div>
           <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg transition-colors hover:bg-white/5">
@@ -116,19 +116,19 @@ export default function KPModal({ product, onClose }: Props) {
               <CheckCircle size={32} style={{ color: '#34d399' }} />
             </div>
             <p className="text-white font-semibold text-lg">КП сформировано!</p>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>PDF загружен на ваш компьютер</p>
+            <p className="text-base" style={{ color: 'rgba(255,255,255,0.45)' }}>PDF загружен на ваш компьютер</p>
             <button onClick={onClose} className="btn-primary mt-4">Закрыть</button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
 
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.45)' }}>
+            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
               КП с реквизитами Bes Saiman Group скачается в PDF. Данные компании — необязательно.
             </p>
 
             {/* Name */}
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
                 Ваше имя <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10 }}>(необязательно)</span>
               </label>
               <input
@@ -142,7 +142,7 @@ export default function KPModal({ product, onClose }: Props) {
 
             {/* Company */}
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Организация</label>
+              <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Организация</label>
               <input
                 type="text"
                 value={form.company}
@@ -155,7 +155,7 @@ export default function KPModal({ product, onClose }: Props) {
             {/* Phone + Email */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Телефон</label>
+                <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Телефон</label>
                 <input
                   type="tel"
                   value={form.phone}
@@ -165,7 +165,7 @@ export default function KPModal({ product, onClose }: Props) {
                 />
               </div>
               <div>
-                <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Email</label>
+                <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Email</label>
                 <input
                   type="email"
                   value={form.email}
@@ -178,7 +178,7 @@ export default function KPModal({ product, onClose }: Props) {
 
             {/* Quantity */}
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Количество (шт.)</label>
+              <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Количество (шт.)</label>
               <input
                 type="number"
                 min={1}
@@ -191,7 +191,7 @@ export default function KPModal({ product, onClose }: Props) {
 
             {/* Note */}
             <div>
-              <label className="block text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Примечание (необязательно)</label>
+              <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Примечание (необязательно)</label>
               <textarea
                 value={form.note}
                 onChange={set('note')}
@@ -202,7 +202,7 @@ export default function KPModal({ product, onClose }: Props) {
             </div>
 
             {status === 'error' && (
-              <p className="text-xs px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
+              <p className="text-sm px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
                 Ошибка генерации PDF. Попробуйте ещё раз.
               </p>
             )}

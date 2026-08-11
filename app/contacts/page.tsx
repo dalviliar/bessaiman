@@ -56,11 +56,11 @@ export default function ContactsPage() {
                 </div>
                 {item.href ? (
                   <a href={item.href}
-                    className="text-steel-silver-light hover:text-steel-accent transition-colors text-sm mt-2">
+                    className="text-steel-silver-light hover:text-steel-accent transition-colors text-base mt-2">
                     {item.value}
                   </a>
                 ) : (
-                  <span className="text-steel-silver-light text-sm mt-2">{item.value}</span>
+                  <span className="text-steel-silver-light text-base mt-2">{item.value}</span>
                 )}
               </div>
             ))}
@@ -78,7 +78,7 @@ export default function ContactsPage() {
             </div>
             <div>
               <div className="text-[#0F172A] font-semibold">WhatsApp</div>
-              <div className="text-emerald-600 text-sm">{tr.contacts.phone}</div>
+              <div className="text-emerald-600 text-base">{tr.contacts.phone}</div>
             </div>
           </a>
         </div>
@@ -95,13 +95,13 @@ export default function ContactsPage() {
               <CheckCircle size={48} className="text-emerald-400" />
               <div>
                 <div className="text-[#0F172A] font-semibold text-lg">{tr.contacts.messageSent}</div>
-                <div className="text-steel-silver text-sm mt-1">{tr.contacts.messageDelay}</div>
+                <div className="text-steel-silver text-base mt-1">{tr.contacts.messageDelay}</div>
               </div>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="text-steel-silver text-sm block mb-1.5">{tr.contacts.name}</label>
+                <label className="text-steel-silver text-base block mb-1.5">{tr.contacts.name}</label>
                 <input
                   type="text"
                   required
@@ -111,7 +111,7 @@ export default function ContactsPage() {
                 />
               </div>
               <div>
-                <label className="text-steel-silver text-sm block mb-1.5">Email</label>
+                <label className="text-steel-silver text-base block mb-1.5">Email</label>
                 <input
                   type="email"
                   required
@@ -121,7 +121,7 @@ export default function ContactsPage() {
                 />
               </div>
               <div>
-                <label className="text-steel-silver text-sm block mb-1.5">{tr.contacts.message}</label>
+                <label className="text-steel-silver text-base block mb-1.5">{tr.contacts.message}</label>
                 <textarea
                   required
                   rows={5}
@@ -131,7 +131,7 @@ export default function ContactsPage() {
                 />
               </div>
               {error && (
-                <p className="text-xs px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.15)' }}>
+                <p className="text-sm px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.15)' }}>
                   {error}
                 </p>
               )}
@@ -149,14 +149,14 @@ export default function ContactsPage() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Navigation size={15} style={{ color: '#1565C0' }} />
-            <span className="font-semibold text-sm" style={{ color: '#0F172A' }}>{tr.contacts.howToFind}</span>
+            <span className="font-semibold text-base" style={{ color: '#0F172A' }}>{tr.contacts.howToFind}</span>
           </div>
           <div className="flex items-center gap-2">
             <a
               href="https://go.2gis.com/Yczsc"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:opacity-80"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all hover:opacity-80"
               style={{ background: '#1BA557', color: 'white' }}
             >
               2ГИС
@@ -165,7 +165,7 @@ export default function ContactsPage() {
               href="https://www.google.com/maps/search/Тулебаева+38+Алматы+Казахстан"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:opacity-80"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all hover:opacity-80"
               style={{ background: '#1565C0', color: 'white' }}
             >
               Google Maps
@@ -195,7 +195,7 @@ export default function ContactsPage() {
             }}
           >
             <MapPin size={13} style={{ color: '#1565C0', flexShrink: 0 }} />
-            <span className="text-xs font-medium" style={{ color: '#0F172A' }}>{tr.contacts.mapAddress}</span>
+            <span className="text-sm font-medium" style={{ color: '#0F172A' }}>{tr.contacts.mapAddress}</span>
           </div>
         </div>
       </div>

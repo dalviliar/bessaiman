@@ -54,12 +54,12 @@ function NewsModal({ post, onClose, postTitle, postContent }: {
         )}
         <div className="p-7">
           <div className="flex items-center gap-2 mb-4">
-            <span className="text-[10px] font-black tracking-wide px-3 py-1 rounded-full"
+            <span className="text-[12px] font-black tracking-wide px-3 py-1 rounded-full"
               style={{ background: post.type === 'announcement' ? '#FEF3C7' : '#EFF6FF', color: post.type === 'announcement' ? '#B45309' : '#1D4ED8' }}>
               {post.type === 'announcement' ? `⚡ ${tr.home.tagAnnouncement.replace('● ', '')}` : tr.home.tagNews}
             </span>
             {post.published_at && (
-              <span className="text-[11px]" style={{ color: '#94A3B8' }}>
+              <span className="text-[13px]" style={{ color: '#94A3B8' }}>
                 {new Date(post.published_at).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })}
               </span>
             )}
@@ -68,13 +68,13 @@ function NewsModal({ post, onClose, postTitle, postContent }: {
             {postTitle(post)}
           </h2>
           {postContent(post) && (
-            <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: '#475569' }}>
+            <p className="text-base leading-relaxed whitespace-pre-line" style={{ color: '#475569' }}>
               {postContent(post)}
             </p>
           )}
           {post.instagram_url && (
             <a href={post.instagram_url} target="_blank" rel="noopener noreferrer"
-              className="mt-5 inline-flex items-center gap-2 text-sm font-semibold py-2.5 px-5 rounded-full"
+              className="mt-5 inline-flex items-center gap-2 text-base font-semibold py-2.5 px-5 rounded-full"
               style={{ background: 'linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888)', color: 'white' }}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
               {tr.home.instagramBtn}
@@ -82,7 +82,7 @@ function NewsModal({ post, onClose, postTitle, postContent }: {
           )}
           <div className="mt-6 flex justify-end">
             <button onClick={onClose}
-              className="px-5 py-2 rounded-lg text-sm font-semibold"
+              className="px-5 py-2 rounded-lg text-base font-semibold"
               style={{ border: '1.5px solid #E2E8F0', color: '#64748B' }}>
               {tr.home.closeBtn}
             </button>
@@ -142,10 +142,10 @@ function ClientsSection() {
               >
                 {p.logo_url
                   ? <img src={p.logo_url} alt={p.name} style={{ maxHeight: 56, maxWidth: 140, objectFit: 'contain' }} />
-                  : <span className="text-sm font-bold text-center leading-tight" style={{ color: '#1565C0' }}>{p.name}</span>
+                  : <span className="text-base font-bold text-center leading-tight" style={{ color: '#1565C0' }}>{p.name}</span>
                 }
                 {p.logo_url && (
-                  <span className="text-xs font-medium text-center" style={{ color: '#64748B' }}>{p.name}</span>
+                  <span className="text-sm font-medium text-center" style={{ color: '#64748B' }}>{p.name}</span>
                 )}
               </div>
             )
@@ -285,12 +285,12 @@ export default function HomePage() {
       {/* ══ SPEC STRIP ══ */}
       <div style={{ background: '#F1F5F9', borderBottom: '1px solid #E2E8F0' }}>
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-3 flex items-center justify-between flex-wrap gap-3">
-          <span className="text-[9px] font-mono tracking-[0.2em] font-bold" style={{ color: '#94A3B8' }}>
+          <span className="text-[11px] font-mono tracking-[0.2em] font-bold" style={{ color: '#94A3B8' }}>
             {tr.home.specStrip}
           </span>
           <div style={{ flex: 1, height: 1, background: '#E2E8F0', margin: '0 12px' }} />
           {['T: 25°C — 1800°C', '±0.001 MM', 'KAZAKHSTAN · ALMATY', 'ISO 9001'].map(t => (
-            <span key={t} className="text-[9px] font-mono tracking-widest" style={{ color: '#94A3B8' }}>{t}</span>
+            <span key={t} className="text-[11px] font-mono tracking-widest" style={{ color: '#94A3B8' }}>{t}</span>
           ))}
         </div>
       </div>
@@ -304,14 +304,14 @@ export default function HomePage() {
               <div>
                 <div className="flex items-center gap-2.5 mb-2">
                   <div style={{ width: 28, height: 2.5, background: 'linear-gradient(90deg,#1565C0,#0EA5E9)', borderRadius: 2 }} />
-                  <span className="text-[10px] font-mono tracking-[0.22em] font-bold" style={{ color: '#1565C0' }}>{tr.home.newsLabel}</span>
+                  <span className="text-[12px] font-mono tracking-[0.22em] font-bold" style={{ color: '#1565C0' }}>{tr.home.newsLabel}</span>
                 </div>
                 <h2 className="font-black leading-tight" style={{ fontSize: 'clamp(1.4rem,3vw,1.9rem)', color: '#0F172A' }}>
                   {tr.home.newsTitle}
                 </h2>
               </div>
               <Link href="/news"
-                className="flex items-center gap-2 text-xs font-semibold px-5 py-2.5 rounded-full transition-all hover:-translate-y-0.5"
+                className="flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-full transition-all hover:-translate-y-0.5"
                 style={{ background: 'white', color: '#1565C0', border: '1px solid #BFDBFE', boxShadow: '0 2px 8px rgba(21,101,192,0.08)' }}>
                 {tr.home.allPosts}
               </Link>
@@ -352,7 +352,7 @@ export default function HomePage() {
                       <div className="relative z-10 p-7">
                         <div className="inline-flex items-center gap-1.5 mb-3 px-3 py-1.5 rounded-full"
                           style={{ background: isAnn ? 'rgba(79,70,229,0.9)' : 'rgba(21,101,192,0.95)', backdropFilter: 'blur(8px)' }}>
-                          <span className="text-[10px] font-black tracking-widest text-white">
+                          <span className="text-[12px] font-black tracking-widest text-white">
                             {isAnn ? tr.home.tagAnnouncement : tr.home.tagNews}
                           </span>
                         </div>
@@ -361,18 +361,18 @@ export default function HomePage() {
                           {postTitle(post)}
                         </h3>
                         {postContent(post) && (
-                          <p className="text-sm leading-relaxed line-clamp-2 mb-4"
+                          <p className="text-base leading-relaxed line-clamp-2 mb-4"
                             style={{ color: 'rgba(255,255,255,0.75)' }}>
                             {postContent(post)}
                           </p>
                         )}
                         <div className="flex items-center gap-3">
-                          <span className="text-[11px] font-mono" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                          <span className="text-[13px] font-mono" style={{ color: 'rgba(255,255,255,0.45)' }}>
                             {post.published_at
                               ? new Date(post.published_at).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })
                               : ''}
                           </span>
-                          <span className="text-[11px] font-semibold px-3 py-1 rounded-full"
+                          <span className="text-[13px] font-semibold px-3 py-1 rounded-full"
                             style={{ background: 'rgba(255,255,255,0.15)', color: 'white', backdropFilter: 'blur(8px)' }}>
                             {tr.home.readMore}
                           </span>
@@ -402,21 +402,21 @@ export default function HomePage() {
                       )}
                       <div className="px-4 py-3.5 flex flex-col justify-center flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1.5">
-                          <span className="text-[9px] font-black tracking-wide px-2 py-0.5 rounded-full"
+                          <span className="text-[11px] font-black tracking-wide px-2 py-0.5 rounded-full"
                             style={{ background: isAnn ? '#EEF2FF' : '#EFF6FF', color: isAnn ? '#3730A3' : '#1D4ED8' }}>
                             {isAnn ? tr.home.tagImportant : tr.home.tagNews}
                           </span>
-                          <span className="text-[9px] font-mono" style={{ color: '#94A3B8' }}>
+                          <span className="text-[11px] font-mono" style={{ color: '#94A3B8' }}>
                             {post.published_at
                               ? new Date(post.published_at).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' })
                               : ''}
                           </span>
                         </div>
-                        <h4 className="font-bold text-xs leading-snug line-clamp-2 mb-1" style={{ color: '#0F172A' }}>
+                        <h4 className="font-bold text-sm leading-snug line-clamp-2 mb-1" style={{ color: '#0F172A' }}>
                           {postTitle(post)}
                         </h4>
                         {postContent(post) && (
-                          <p className="text-[11px] leading-relaxed line-clamp-2" style={{ color: '#64748B' }}>
+                          <p className="text-[13px] leading-relaxed line-clamp-2" style={{ color: '#64748B' }}>
                             {postContent(post)}
                           </p>
                         )}
@@ -428,8 +428,8 @@ export default function HomePage() {
                   className="flex items-center justify-between px-5 py-4 rounded-xl transition-all hover:-translate-y-0.5"
                   style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', boxShadow: '0 4px 16px rgba(21,101,192,0.25)' }}>
                   <div>
-                    <p className="text-xs font-black text-white mb-0.5">{tr.home.allPostsBtn}</p>
-                    <p className="text-[10px]" style={{ color: 'rgba(255,255,255,0.6)' }}>{tr.home.allPostsDesc}</p>
+                    <p className="text-sm font-black text-white mb-0.5">{tr.home.allPostsBtn}</p>
+                    <p className="text-[12px]" style={{ color: 'rgba(255,255,255,0.6)' }}>{tr.home.allPostsDesc}</p>
                   </div>
                   <span className="text-white text-lg font-black">→</span>
                 </Link>
@@ -445,11 +445,11 @@ export default function HomePage() {
 
           <div className="flex items-center gap-4 mb-8">
             <div style={{ width: 32, height: 2, background: 'linear-gradient(90deg,#1565C0,transparent)', borderRadius: 2 }} />
-            <span className="text-[10px] font-mono tracking-[0.22em] font-bold" style={{ color: '#1565C0' }}>
+            <span className="text-[12px] font-mono tracking-[0.22em] font-bold" style={{ color: '#1565C0' }}>
               {tr.home.productsLine}
             </span>
             <div style={{ flex: 1, height: 1, background: '#E2E8F0' }} />
-            <Link href="/catalog" className="text-[11px] font-semibold transition-colors hover:text-[#1565C0]"
+            <Link href="/catalog" className="text-[13px] font-semibold transition-colors hover:text-[#1565C0]"
               style={{ color: '#94A3B8' }}>
               {tr.home.viewAll}
             </Link>
@@ -471,7 +471,7 @@ export default function HomePage() {
                   }}>
 
                   <div className="flex items-start justify-between gap-2">
-                    <div className="font-mono text-xs font-black px-2.5 py-1 rounded-lg"
+                    <div className="font-mono text-sm font-black px-2.5 py-1 rounded-lg"
                       style={{
                         background: hov ? '#1565C0' : '#F1F5F9',
                         color: hov ? 'white' : '#475569',
@@ -479,25 +479,25 @@ export default function HomePage() {
                       }}>
                       {cat.code}
                     </div>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full"
+                    <span className="text-[12px] font-mono px-2 py-0.5 rounded-full"
                       style={{ background: '#F8FAFC', color: '#94A3B8', border: '1px solid #E2E8F0' }}>
                       {cat.stat}
                     </span>
                   </div>
 
                   <div>
-                    <h3 className="font-bold text-sm mb-1"
+                    <h3 className="font-bold text-base mb-1"
                       style={{ color: hov ? '#1565C0' : '#0F172A', transition: 'color 0.2s' }}>
                       {cat.title}
                     </h3>
-                    <p className="text-[11px] font-mono" style={{ color: '#94A3B8' }}>{cat.spec}</p>
+                    <p className="text-[13px] font-mono" style={{ color: '#94A3B8' }}>{cat.spec}</p>
                   </div>
 
-                  <p className="text-[12px] leading-relaxed" style={{ color: '#64748B' }}>
+                  <p className="text-[14px] leading-relaxed" style={{ color: '#64748B' }}>
                     {cat.desc}
                   </p>
 
-                  <div className="flex items-center gap-1.5 mt-auto pt-1 text-xs font-semibold"
+                  <div className="flex items-center gap-1.5 mt-auto pt-1 text-sm font-semibold"
                     style={{ color: hov ? '#1565C0' : '#94A3B8', transition: 'color 0.2s' }}>
                     {tr.home.viewCatalog}
                     <span style={{ transform: hov ? 'translateX(3px)' : 'none', transition: 'transform 0.2s', display: 'inline-block' }}>→</span>
@@ -517,10 +517,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8 py-5 flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-2">
             <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e' }} />
-            <span className="font-mono text-[9px] tracking-widest" style={{ color: '#94A3B8' }}>{tr.home.footerOnline}</span>
+            <span className="font-mono text-[11px] tracking-widest" style={{ color: '#94A3B8' }}>{tr.home.footerOnline}</span>
           </div>
-          <span className="font-black text-sm tracking-widest" style={{ color: '#CBD5E1' }}>BES SAIMAN GROUP</span>
-          <span className="text-[10px] font-mono" style={{ color: '#94A3B8' }}>
+          <span className="font-black text-base tracking-widest" style={{ color: '#CBD5E1' }}>BES SAIMAN GROUP</span>
+          <span className="text-[12px] font-mono" style={{ color: '#94A3B8' }}>
             © 2026 · Kazakhstan · bessaimangroup1@gmail.com
           </span>
         </div>

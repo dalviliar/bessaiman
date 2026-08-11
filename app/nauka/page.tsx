@@ -66,27 +66,41 @@ export default function NaukaPage() {
   const researchProjects = projects.filter(p => p.kind === 'project').map(toDevItem)
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <div>
 
       {/* ══ Hero ══ */}
-      <div className="text-center mb-14">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6 text-[10px] font-mono tracking-[0.2em] font-bold"
-          style={{ background: '#EFF6FF', color: '#1565C0', border: '1px solid #BFDBFE' }}>
-          BES SAIMAN GROUP
+      <section className="relative overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: 'url(/images/nauka-hero-lab.jpg)' }}
+          aria-hidden
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(180deg, rgba(8,17,34,0.82) 0%, rgba(8,17,34,0.68) 45%, rgba(8,17,34,0.88) 100%)' }}
+          aria-hidden
+        />
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6 text-[13px] font-mono tracking-[0.2em] font-bold"
+            style={{ background: 'rgba(255,255,255,0.12)', color: '#DBEAFE', border: '1px solid rgba(191,219,254,0.35)', backdropFilter: 'blur(4px)' }}>
+            BES SAIMAN GROUP
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-black mb-4 text-white" style={{ textShadow: '0 2px 24px rgba(0,0,0,0.45)' }}>
+            {tr.nauka.heroTitle}
+          </h1>
+          <p className="text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: '#E2E8F0' }}>
+            {tr.nauka.heroSubtitle}
+          </p>
         </div>
-        <h1 className="text-4xl font-black mb-4" style={{ color: '#0F172A' }}>
-          {tr.nauka.heroTitle}
-        </h1>
-        <p className="text-base max-w-2xl mx-auto leading-relaxed" style={{ color: '#64748B' }}>
-          {tr.nauka.heroSubtitle}
-        </p>
-      </div>
+      </section>
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 
       {/* ══ Individual developments ══ */}
       {individualDevs.length > 0 && (
         <div className="mb-16">
           <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.indivDevTitle}</h2>
-          <p className="text-sm mb-6" style={{ color: '#64748B' }}>{tr.nauka.indivDevIntro}</p>
+          <p className="text-base mb-6" style={{ color: '#64748B' }}>{tr.nauka.indivDevIntro}</p>
           <DevelopmentCarousel items={individualDevs} />
         </div>
       )}
@@ -95,7 +109,7 @@ export default function NaukaPage() {
       {researchProjects.length > 0 && (
         <div className="mb-16">
           <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.projectsTitle}</h2>
-          <p className="text-sm mb-6" style={{ color: '#64748B' }}>{tr.nauka.projectsIntro}</p>
+          <p className="text-base mb-6" style={{ color: '#64748B' }}>{tr.nauka.projectsIntro}</p>
           <DevelopmentCarousel items={researchProjects} />
         </div>
       )}
@@ -104,7 +118,7 @@ export default function NaukaPage() {
       {contracts.length > 0 && (
         <div className="mb-16">
           <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.contractsTitle}</h2>
-          <p className="text-sm mb-6" style={{ color: '#64748B' }}>{tr.nauka.contractsIntro}</p>
+          <p className="text-base mb-6" style={{ color: '#64748B' }}>{tr.nauka.contractsIntro}</p>
           <div className="rounded-2xl overflow-hidden" style={{ border: '1.5px solid #E2E8F0', background: 'white' }}>
             <div className="divide-y" style={{ borderColor: '#F1F5F9' }}>
               {contracts.map(c => (
@@ -113,12 +127,12 @@ export default function NaukaPage() {
                     <FileSignature size={16} style={{ color: '#1565C0' }} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>{c.title}</p>
+                    <p className="text-base font-semibold" style={{ color: '#0F172A' }}>{c.title}</p>
                     <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                      {c.year && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#F1F5F9', color: '#475569' }}>{c.year}</span>}
-                      {c.customer && <span className="text-[11px]" style={{ color: '#1565C0' }}>{c.customer}</span>}
+                      {c.year && <span className="text-[12px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#F1F5F9', color: '#475569' }}>{c.year}</span>}
+                      {c.customer && <span className="text-[13px]" style={{ color: '#1565C0' }}>{c.customer}</span>}
                     </div>
-                    {c.description && <p className="text-[12px] mt-1.5 leading-relaxed" style={{ color: '#64748B' }}>{c.description}</p>}
+                    {c.description && <p className="text-[14px] mt-1.5 leading-relaxed" style={{ color: '#64748B' }}>{c.description}</p>}
                   </div>
                 </div>
               ))}
@@ -131,7 +145,7 @@ export default function NaukaPage() {
       {(publications.length > 0 || patents.length > 0) && (
         <div className="mb-16">
           <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.ipTitle}</h2>
-          <p className="text-sm mb-6" style={{ color: '#64748B' }}>{tr.nauka.ipIntro}</p>
+          <p className="text-base mb-6" style={{ color: '#64748B' }}>{tr.nauka.ipIntro}</p>
 
           {/* Publications accordion */}
           {publications.length > 0 && (
@@ -151,8 +165,8 @@ export default function NaukaPage() {
                     <BookOpen size={20} style={{ color: pubOpen ? 'white' : '#1565C0' }} />
                   </div>
                   <div className="text-left">
-                    <div className="font-bold text-sm" style={{ color: '#0F172A' }}>{tr.nauka.pubTitle}</div>
-                    <div className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>{tr.nauka.pubIntro.slice(0, 80)}…</div>
+                    <div className="font-bold text-base" style={{ color: '#0F172A' }}>{tr.nauka.pubTitle}</div>
+                    <div className="text-sm mt-0.5" style={{ color: '#94A3B8' }}>{tr.nauka.pubIntro.slice(0, 80)}…</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0 ml-4">
@@ -168,25 +182,25 @@ export default function NaukaPage() {
                   <div className="divide-y" style={{ borderColor: '#F1F5F9' }}>
                     {publications.map((pub, i) => (
                       <div key={pub.id} className="flex items-start gap-3 px-6 py-4">
-                        <span className="shrink-0 mt-0.5 w-6 text-[11px] font-black text-right" style={{ color: '#CBD5E1' }}>{i + 1}.</span>
+                        <span className="shrink-0 mt-0.5 w-6 text-[13px] font-black text-right" style={{ color: '#CBD5E1' }}>{i + 1}.</span>
                         <div className="flex-1 min-w-0">
                           {pub.doi ? (
                             <a href={`https://doi.org/${pub.doi}`} target="_blank" rel="noopener noreferrer"
-                              className="text-sm font-semibold leading-snug hover:underline" style={{ color: '#0F172A' }}>
+                              className="text-base font-semibold leading-snug hover:underline" style={{ color: '#0F172A' }}>
                               {pub.title}
                             </a>
                           ) : (
-                            <span className="text-sm font-semibold leading-snug" style={{ color: '#0F172A' }}>{pub.title}</span>
+                            <span className="text-base font-semibold leading-snug" style={{ color: '#0F172A' }}>{pub.title}</span>
                           )}
                           <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                            {pub.year && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#F1F5F9', color: '#475569' }}>{pub.year}</span>}
-                            {pub.journal && <span className="text-[11px]" style={{ color: '#1565C0' }}>{pub.journal}</span>}
+                            {pub.year && <span className="text-[12px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#F1F5F9', color: '#475569' }}>{pub.year}</span>}
+                            {pub.journal && <span className="text-[13px]" style={{ color: '#1565C0' }}>{pub.journal}</span>}
                           </div>
-                          {pub.authors && <p className="text-[11px] mt-1" style={{ color: '#94A3B8' }}>{pub.authors}</p>}
+                          {pub.authors && <p className="text-[13px] mt-1" style={{ color: '#94A3B8' }}>{pub.authors}</p>}
                         </div>
                         {pub.doi && (
                           <a href={`https://doi.org/${pub.doi}`} target="_blank" rel="noopener noreferrer"
-                            className="shrink-0 flex items-center gap-1 text-[10px] font-bold px-2.5 py-1.5 rounded-lg transition-all hover:opacity-80"
+                            className="shrink-0 flex items-center gap-1 text-[12px] font-bold px-2.5 py-1.5 rounded-lg transition-all hover:opacity-80"
                             style={{ background: '#EFF6FF', color: '#1565C0' }}>
                             <ExternalLink size={10} />DOI
                           </a>
@@ -217,8 +231,8 @@ export default function NaukaPage() {
                     <ShieldCheck size={20} style={{ color: patentsOpen ? 'white' : '#1565C0' }} />
                   </div>
                   <div className="text-left">
-                    <div className="font-bold text-sm" style={{ color: '#0F172A' }}>{tr.nauka.patentsTitle}</div>
-                    <div className="text-xs mt-0.5" style={{ color: '#94A3B8' }}>{tr.nauka.patentsIntro.slice(0, 80)}…</div>
+                    <div className="font-bold text-base" style={{ color: '#0F172A' }}>{tr.nauka.patentsTitle}</div>
+                    <div className="text-sm mt-0.5" style={{ color: '#94A3B8' }}>{tr.nauka.patentsIntro.slice(0, 80)}…</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 shrink-0 ml-4">
@@ -234,12 +248,12 @@ export default function NaukaPage() {
                   <div className="divide-y" style={{ borderColor: '#F1F5F9' }}>
                     {patents.map((p, i) => (
                       <div key={p.id} className="flex items-center gap-3 px-6 py-4">
-                        <span className="shrink-0 w-6 text-[11px] font-black text-right" style={{ color: '#CBD5E1' }}>{i + 1}.</span>
+                        <span className="shrink-0 w-6 text-[13px] font-black text-right" style={{ color: '#CBD5E1' }}>{i + 1}.</span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>{p.title}</p>
-                          {p.patent_number && <p className="text-[11px] mt-1" style={{ color: '#94A3B8' }}>{p.patent_number}</p>}
+                          <p className="text-base font-semibold" style={{ color: '#0F172A' }}>{p.title}</p>
+                          {p.patent_number && <p className="text-[13px] mt-1" style={{ color: '#94A3B8' }}>{p.patent_number}</p>}
                         </div>
-                        <span className="shrink-0 text-[10px] font-bold px-2.5 py-1 rounded-full" style={{ background: '#ECFDF5', color: '#059669' }}>{p.badge_label}</span>
+                        <span className="shrink-0 text-[12px] font-bold px-2.5 py-1 rounded-full" style={{ background: '#ECFDF5', color: '#059669' }}>{p.badge_label}</span>
                       </div>
                     ))}
                   </div>
@@ -253,7 +267,7 @@ export default function NaukaPage() {
       {/* ══ Achievements — company diploma + employees in one row ══ */}
       <div className="mb-16">
         <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.achievementsTitle}</h2>
-        <p className="text-sm mb-6" style={{ color: '#64748B' }}>{tr.nauka.achievementsIntro}</p>
+        <p className="text-base mb-6" style={{ color: '#64748B' }}>{tr.nauka.achievementsIntro}</p>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {/* Company achievement — first card, same style as the rest */}
@@ -271,8 +285,8 @@ export default function NaukaPage() {
                 className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
             </div>
             <div className="p-3.5">
-              <p className="font-bold text-sm truncate" style={{ color: '#0F172A' }}>{tr.nauka.achievTitle}</p>
-              <p className="text-xs mt-0.5 truncate" style={{ color: '#64748B' }}>НИНЖ РК · 2025</p>
+              <p className="font-bold text-base truncate" style={{ color: '#0F172A' }}>{tr.nauka.achievTitle}</p>
+              <p className="text-sm mt-0.5 truncate" style={{ color: '#64748B' }}>НИНЖ РК · 2025</p>
             </div>
           </button>
 
@@ -300,11 +314,11 @@ export default function NaukaPage() {
                   )}
                 </div>
                 <div className="p-3.5">
-                  <p className="font-bold text-sm truncate" style={{ color: '#0F172A' }}>{a.full_name}</p>
-                  <p className="text-xs mt-0.5 truncate" style={{ color: '#64748B' }}>{a.award_name}</p>
+                  <p className="font-bold text-base truncate" style={{ color: '#0F172A' }}>{a.full_name}</p>
+                  <p className="text-sm mt-0.5 truncate" style={{ color: '#64748B' }}>{a.award_name}</p>
                   <div className="flex items-center gap-2 mt-1.5">
-                    {a.year && <span className="text-[11px]" style={{ color: '#94A3B8' }}>{a.year}</span>}
-                    {a.organization && <span className="text-[11px] truncate" style={{ color: '#1565C0' }}>{a.organization}</span>}
+                    {a.year && <span className="text-[13px]" style={{ color: '#94A3B8' }}>{a.year}</span>}
+                    {a.organization && <span className="text-[13px] truncate" style={{ color: '#1565C0' }}>{a.organization}</span>}
                   </div>
                 </div>
               </button>
@@ -322,25 +336,25 @@ export default function NaukaPage() {
               <img src={ACCREDITATION_IMAGE} alt={tr.nauka.accTitle} className="w-full h-full object-cover" style={{ minHeight: 160 }} />
             </div>
             <div className="p-6">
-              <div className="text-[10px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>
+              <div className="text-[12px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>
                 МОН РК · до 09.02.2029
               </div>
               <h3 className="font-black text-lg leading-tight mb-3" style={{ color: '#0F172A' }}>
                 {tr.nauka.accTitle}
               </h3>
-              <p className="text-sm leading-relaxed mb-2" style={{ color: '#334155' }}>
+              <p className="text-base leading-relaxed mb-2" style={{ color: '#334155' }}>
                 {tr.nauka.accDesc1}
               </p>
-              <p className="text-sm leading-relaxed mb-2" style={{ color: '#64748B' }}>
+              <p className="text-base leading-relaxed mb-2" style={{ color: '#64748B' }}>
                 {tr.nauka.accDesc2}
               </p>
-              <p className="text-xs font-semibold mb-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
+              <p className="text-sm font-semibold mb-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
                 style={{ background: '#EFF6FF', color: '#1565C0' }}>
                 📅 {tr.nauka.accDesc3}
               </p>
               <div>
                 <a href="/docs/svidetelstvo-akkreditacii.pdf" target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all hover:-translate-y-0.5"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-base transition-all hover:-translate-y-0.5"
                   style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', color: 'white', boxShadow: '0 4px 12px rgba(21,101,192,0.25)' }}>
                   <ExternalLink size={13} />
                   {tr.nauka.accViewDoc}
@@ -373,18 +387,18 @@ export default function NaukaPage() {
             </div>
             <div className="p-6">
               {achievModal.meta && (
-                <div className="text-[10px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>{achievModal.meta}</div>
+                <div className="text-[12px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>{achievModal.meta}</div>
               )}
               <h3 className="text-xl font-black mb-1 leading-tight" style={{ color: '#0F172A' }}>{achievModal.title}</h3>
               {achievModal.subtitle && (
-                <p className="text-sm font-semibold mb-3" style={{ color: '#1565C0' }}>{achievModal.subtitle}</p>
+                <p className="text-base font-semibold mb-3" style={{ color: '#1565C0' }}>{achievModal.subtitle}</p>
               )}
               {achievModal.body.map((p, i) => (
-                <p key={i} className="text-sm leading-relaxed mb-2" style={{ color: i === 0 ? '#334155' : '#64748B' }}>{p}</p>
+                <p key={i} className="text-base leading-relaxed mb-2" style={{ color: i === 0 ? '#334155' : '#64748B' }}>{p}</p>
               ))}
               {achievModal.link && (
                 <a href={achievModal.link.href} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 mt-3 px-4 py-2.5 rounded-xl font-semibold text-sm transition-all hover:-translate-y-0.5"
+                  className="inline-flex items-center gap-2 mt-3 px-4 py-2.5 rounded-xl font-semibold text-base transition-all hover:-translate-y-0.5"
                   style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', color: 'white', boxShadow: '0 4px 12px rgba(21,101,192,0.25)' }}>
                   <ExternalLink size={13} />
                   {achievModal.link.label}
@@ -400,14 +414,14 @@ export default function NaukaPage() {
         <div className="rounded-2xl p-8 mb-12"
           style={{ background: 'linear-gradient(135deg,#EBF2FB,#F0F9FF)', border: '1px solid rgba(21,101,192,0.12)' }}>
           <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.partnersTitle}</h2>
-          <p className="text-sm mb-6" style={{ color: '#64748B' }}>{tr.nauka.partnersSubtitle}</p>
+          <p className="text-base mb-6" style={{ color: '#64748B' }}>{tr.nauka.partnersSubtitle}</p>
           <div className="flex flex-wrap gap-3">
             {partners.map((p) => {
               const card = (
                 <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl"
                   style={{ background: '#FFFFFF', border: '1px solid rgba(21,101,192,0.18)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
                   {p.logo_url && <img src={p.logo_url} alt={p.name} style={{ height: 28, maxWidth: 70, objectFit: 'contain' }} />}
-                  <span className="text-sm font-medium" style={{ color: '#1565C0' }}>{p.name}</span>
+                  <span className="text-base font-medium" style={{ color: '#1565C0' }}>{p.name}</span>
                 </div>
               )
               return p.website_url
@@ -422,14 +436,15 @@ export default function NaukaPage() {
       <div className="text-center p-10 rounded-2xl"
         style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)' }}>
         <h2 className="text-2xl font-bold text-white mb-3">{tr.nauka.ctaTitle}</h2>
-        <p className="text-blue-100 mb-6 text-sm">{tr.nauka.ctaSubtitle}</p>
+        <p className="text-blue-100 mb-6 text-base">{tr.nauka.ctaSubtitle}</p>
         <a href="/contacts"
-          className="inline-block px-8 py-3 rounded-xl font-semibold text-sm transition-all hover:opacity-90"
+          className="inline-block px-8 py-3 rounded-xl font-semibold text-base transition-all hover:opacity-90"
           style={{ background: '#FFFFFF', color: '#1565C0' }}>
           {tr.nauka.ctaButton}
         </a>
       </div>
 
+      </div>
     </div>
   )
 }

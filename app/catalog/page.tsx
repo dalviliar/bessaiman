@@ -86,7 +86,7 @@ function FilterChip({
   return (
     <button
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold transition-all whitespace-nowrap"
+      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-base font-semibold transition-all whitespace-nowrap"
       style={{
         background: active ? '#1565C0' : 'white',
         border: `1.5px solid ${active ? '#1565C0' : '#E2E8F0'}`,
@@ -95,7 +95,7 @@ function FilterChip({
       }}>
       {label}
       {count !== undefined && (
-        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded"
+        <span className="text-[12px] font-mono px-1.5 py-0.5 rounded"
           style={{ background: active ? 'rgba(255,255,255,0.2)' : '#F1F5F9', color: active ? 'white' : '#94A3B8' }}>
           {count}
         </span>
@@ -111,14 +111,14 @@ function AttrFilterRow({
   if (values.length < 2) return null
   return (
     <div className="flex items-start gap-3 flex-wrap">
-      <span className="text-[10px] font-mono font-bold tracking-wider uppercase mt-2 shrink-0 w-24"
+      <span className="text-[12px] font-mono font-bold tracking-wider uppercase mt-2 shrink-0 w-24"
         style={{ color: '#94A3B8' }}>
         {def.label}:
       </span>
       <div className="flex flex-wrap gap-1.5">
         {values.map(v => (
           <button key={v} onClick={() => onSelect(selected === v ? '' : v)}
-            className="px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all"
+            className="px-2.5 py-1 rounded-lg text-[13px] font-semibold transition-all"
             style={{
               background: selected === v ? '#1565C0' : '#F1F5F9',
               color: selected === v ? 'white' : '#475569',
@@ -269,7 +269,7 @@ function CatalogContent() {
 
         {/* ── Заголовок ── */}
         <div className="mb-7">
-          <p className="font-mono text-[10px] tracking-[0.25em] uppercase mb-1.5 font-bold" style={{ color: '#1565C0' }}>
+          <p className="font-mono text-[12px] tracking-[0.25em] uppercase mb-1.5 font-bold" style={{ color: '#1565C0' }}>
             BES SAIMAN GROUP
           </p>
           <h1 className="text-3xl sm:text-4xl font-black mb-2" style={{ color: '#0F172A', letterSpacing: '-0.02em' }}>
@@ -277,7 +277,7 @@ function CatalogContent() {
           </h1>
           <div className="flex items-center gap-3">
             <div className="h-0.5 w-10 rounded-full" style={{ background: 'linear-gradient(90deg,#1565C0,#0284C7)' }} />
-            <p className="text-sm" style={{ color: '#64748B' }}>
+            <p className="text-base" style={{ color: '#64748B' }}>
               Высокоточное лабораторное оборудование казахстанского производства
             </p>
           </div>
@@ -285,7 +285,7 @@ function CatalogContent() {
 
         {/* ═══ Уровень 1: Тип продукции ═══════════════════════════ */}
         <div className="mb-4">
-          <p className="text-[9px] font-mono font-bold tracking-[0.2em] uppercase mb-2" style={{ color: '#94A3B8' }}>
+          <p className="text-[11px] font-mono font-bold tracking-[0.2em] uppercase mb-2" style={{ color: '#94A3B8' }}>
             ТИП ПРОДУКЦИИ
           </p>
           <div className="flex items-center gap-2 flex-wrap">
@@ -301,7 +301,7 @@ function CatalogContent() {
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
               {selType !== 'all' && <ChevronRight size={12} style={{ color: '#CBD5E1' }} />}
-              <p className="text-[9px] font-mono font-bold tracking-[0.2em] uppercase" style={{ color: '#94A3B8' }}>
+              <p className="text-[11px] font-mono font-bold tracking-[0.2em] uppercase" style={{ color: '#94A3B8' }}>
                 КАТЕГОРИЯ
               </p>
             </div>
@@ -325,12 +325,12 @@ function CatalogContent() {
                         style={{ background: active ? '#DBEAFE' : '#F1F5F9' }}>
                         <Icon size={15} style={{ color: active ? '#1565C0' : '#64748B' }} />
                       </div>
-                      <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded-full"
+                      <span className="text-[12px] font-mono font-bold px-1.5 py-0.5 rounded-full"
                         style={{ background: active ? '#DBEAFE' : '#F1F5F9', color: active ? '#1565C0' : '#94A3B8' }}>
                         {count}
                       </span>
                     </div>
-                    <span className="text-[11px] font-semibold leading-tight"
+                    <span className="text-[13px] font-semibold leading-tight"
                       style={{ color: active ? '#1565C0' : '#374151' }}>
                       {catName(cat)}
                     </span>
@@ -346,7 +346,7 @@ function CatalogContent() {
           <div className="mb-4">
             <div className="flex items-center gap-2 mb-2">
               <ChevronRight size={12} style={{ color: '#CBD5E1' }} />
-              <p className="text-[9px] font-mono font-bold tracking-[0.2em] uppercase" style={{ color: '#94A3B8' }}>
+              <p className="text-[11px] font-mono font-bold tracking-[0.2em] uppercase" style={{ color: '#94A3B8' }}>
                 ПОДТИП
               </p>
             </div>
@@ -364,7 +364,7 @@ function CatalogContent() {
           <div className="mb-4 p-4 rounded-xl" style={{ background: 'white', border: '1.5px solid #E2E8F0' }}>
             <div className="flex items-center gap-2 mb-3">
               <ChevronRight size={12} style={{ color: '#CBD5E1' }} />
-              <p className="text-[9px] font-mono font-bold tracking-[0.2em] uppercase" style={{ color: '#94A3B8' }}>
+              <p className="text-[11px] font-mono font-bold tracking-[0.2em] uppercase" style={{ color: '#94A3B8' }}>
                 ПАРАМЕТРЫ
               </p>
             </div>
@@ -385,7 +385,7 @@ function CatalogContent() {
             <input type="text" placeholder={tr.catalog.search}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 rounded-lg outline-none text-sm"
+              className="w-full pl-10 pr-10 py-2.5 rounded-lg outline-none text-base"
               style={{ background: 'white', border: '1.5px solid #E2E8F0', color: '#0F172A' }}
               onFocus={e => { e.target.style.borderColor = '#1565C0' }}
               onBlur={e => { e.target.style.borderColor = '#E2E8F0' }}
@@ -401,13 +401,13 @@ function CatalogContent() {
           {hasActiveFilters && (
             <button
               onClick={() => { setSelType('all'); setSelCat(''); setSelSubcat(''); setSelAttrs({}); setSearchQuery(''); updateUrl({ type: 'all', category: '' }) }}
-              className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-sm font-semibold transition-all"
+              className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-base font-semibold transition-all"
               style={{ background: '#FEF2F2', color: '#DC2626', border: '1.5px solid #FECACA' }}>
               <X size={12} /> Сбросить
             </button>
           )}
 
-          <p className="text-sm font-mono shrink-0" style={{ color: '#94A3B8' }}>
+          <p className="text-base font-mono shrink-0" style={{ color: '#94A3B8' }}>
             {loading ? '—' : finalProducts.length}{' '}
             {lang === 'ru' ? 'позиций' : lang === 'kk' ? 'позиция' : 'items'}
           </p>
@@ -427,7 +427,7 @@ function CatalogContent() {
             <p className="text-lg font-semibold mb-2" style={{ color: '#64748B' }}>
               {tr.catalog.noProducts}
             </p>
-            <p className="text-sm" style={{ color: '#94A3B8' }}>
+            <p className="text-base" style={{ color: '#94A3B8' }}>
               Попробуйте изменить фильтры
             </p>
           </div>

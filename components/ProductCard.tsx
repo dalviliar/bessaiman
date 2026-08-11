@@ -85,14 +85,14 @@ export default function ProductCard({ product }: { product: Product }) {
 
           {/* Classification code — top left */}
           {product.classification_code && (
-            <div className="absolute top-3 left-3 font-mono text-[10px] font-bold px-2 py-0.5 rounded"
+            <div className="absolute top-3 left-3 font-mono text-[12px] font-bold px-2 py-0.5 rounded"
               style={{ background: 'rgba(15,23,42,0.7)', color: '#38BDF8', border: '1px solid rgba(56,189,248,0.3)', backdropFilter: 'blur(4px)' }}>
               {product.classification_code}
             </div>
           )}
 
           {/* Type badge — top right */}
-          <div className="absolute top-3 right-3 text-[9px] font-bold px-2 py-0.5 rounded-full"
+          <div className="absolute top-3 right-3 text-[11px] font-bold px-2 py-0.5 rounded-full"
             style={{ background: '#F1F5F9', color: '#475569', border: '1px solid #E2E8F0' }}>
             {typeMeta.label}
           </div>
@@ -110,9 +110,9 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="flex items-center justify-between gap-2">
           {product.model && (
             <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-[9px] font-mono font-semibold shrink-0"
+              <span className="text-[11px] font-mono font-semibold shrink-0"
                 style={{ color: '#94A3B8' }}>Арт.:</span>
-              <span className="font-mono text-[10px] font-bold tracking-wider truncate"
+              <span className="font-mono text-[12px] font-bold tracking-wider truncate"
                 style={{ color: '#0284C7' }}>
                 {product.model}
               </span>
@@ -120,13 +120,13 @@ export default function ProductCard({ product }: { product: Product }) {
           )}
           <div className="flex items-center gap-1.5 flex-shrink-0">
             <div className="w-1.5 h-1.5 rounded-full" style={{ background: availMeta.dot }} />
-            <span className="text-[9px] font-mono" style={{ color: '#64748B' }}>{availMeta.label}</span>
+            <span className="text-[11px] font-mono" style={{ color: '#64748B' }}>{availMeta.label}</span>
           </div>
         </div>
 
         {/* Name */}
         <Link href={`/catalog/${product.slug}`}>
-          <h3 className="text-sm font-semibold leading-snug line-clamp-2 hover:text-sky-600 transition-colors"
+          <h3 className="text-base font-semibold leading-snug line-clamp-2 hover:text-sky-600 transition-colors"
             style={{ color: '#0F172A' }}>
             {name}
           </h3>
@@ -136,7 +136,7 @@ export default function ProductCard({ product }: { product: Product }) {
         {keySpecs.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {keySpecs.map(([key, val]) => (
-              <div key={key} className="flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-mono font-semibold"
+              <div key={key} className="flex items-center gap-1.5 px-2.5 py-1 rounded text-sm font-mono font-semibold"
                 style={{ background: '#EFF9FF', border: '1px solid #BAE6FD', color: '#0369A1' }}>
                 <Zap size={10} style={{ color: '#0284C7', flexShrink: 0 }} />
                 {val}
@@ -147,11 +147,11 @@ export default function ProductCard({ product }: { product: Product }) {
 
         {/* Bottom */}
         <div className="flex items-center justify-between mt-auto pt-2.5" style={{ borderTop: '1px solid #F1F5F9' }}>
-          <span className="text-xs font-semibold" style={{ color: product.price ? '#0F172A' : '#94A3B8' }}>
+          <span className="text-sm font-semibold" style={{ color: product.price ? '#0F172A' : '#94A3B8' }}>
             {product.price ? `${product.price.toLocaleString('ru-RU')} ₸` : tr.catalog.priceOnRequest}
           </span>
           <Link href={`/catalog/${product.slug}`}
-            className="flex items-center gap-1 text-[11px] font-semibold group-hover:gap-2 transition-all"
+            className="flex items-center gap-1 text-[13px] font-semibold group-hover:gap-2 transition-all"
             style={{ color: '#1565C0' }}>
             {tr.catalog.viewProduct}
             <ArrowRight size={12} />
@@ -161,7 +161,7 @@ export default function ProductCard({ product }: { product: Product }) {
         {/* В корзину КП */}
         <button
           onClick={() => addItem(product)}
-          className="flex items-center justify-center gap-2 w-full py-2 rounded-lg text-xs font-semibold transition-all"
+          className="flex items-center justify-center gap-2 w-full py-2 rounded-lg text-sm font-semibold transition-all"
           style={{
             background: inCart ? '#F0FDF4' : '#EFF6FF',
             border: `1.5px solid ${inCart ? '#BBF7D0' : '#BFDBFE'}`,

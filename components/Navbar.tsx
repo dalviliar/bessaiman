@@ -83,7 +83,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="relative px-4 py-2 text-[13px] font-medium tracking-wide transition-all duration-200"
+                className="relative px-4 py-2 text-[15px] font-medium tracking-wide transition-all duration-200"
                 style={{ color: active ? '#1565C0' : '#475569', borderRadius: 6 }}
               >
                 {active && (
@@ -131,7 +131,7 @@ export default function Navbar() {
             }}>
             <ShoppingCart size={16} />
             {totalItems > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black"
+              <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center text-[11px] font-black"
                 style={{ background: '#1565C0', color: 'white' }}>
                 {totalItems > 9 ? '9+' : totalItems}
               </span>
@@ -142,7 +142,7 @@ export default function Navbar() {
           <div className="relative">
             <button
               onClick={() => setLangOpen(!langOpen)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-mono font-semibold tracking-wider transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[14px] font-mono font-semibold tracking-wider transition-colors"
               style={{
                 color: '#64748B',
                 border: '1px solid #CBD5E1',
@@ -166,7 +166,7 @@ export default function Navbar() {
                   <button
                     key={l.code}
                     onClick={() => { setLang(l.code); setLangOpen(false) }}
-                    className="w-full text-left px-4 py-2 text-[12px] font-mono font-semibold tracking-wider transition-colors"
+                    className="w-full text-left px-4 py-2 text-[14px] font-mono font-semibold tracking-wider transition-colors"
                     style={{
                       color: lang === l.code ? '#1565C0' : '#64748B',
                       background: lang === l.code ? 'rgba(21,101,192,0.06)' : 'transparent',
@@ -197,7 +197,7 @@ export default function Navbar() {
               key={link.href}
               href={link.href}
               onClick={() => setMenuOpen(false)}
-              className="block px-4 py-2.5 text-sm font-medium tracking-wide mb-1 transition-colors"
+              className="block px-4 py-2.5 text-base font-medium tracking-wide mb-1 transition-colors"
               style={{
                 color: pathname === link.href ? '#1565C0' : '#475569',
                 borderRadius: 6,

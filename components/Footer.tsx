@@ -37,14 +37,14 @@ export default function Footer() {
               height={396}
               className="h-20 w-auto mb-4"
             />
-            <p className="text-steel-silver text-sm leading-relaxed max-w-xs">
+            <p className="text-steel-silver text-base leading-relaxed max-w-xs">
               {tr.about.missionText}
             </p>
           </div>
 
           {/* Nav */}
           <div>
-            <h4 className="text-white font-semibold text-sm mb-4 uppercase tracking-wider">
+            <h4 className="text-white font-semibold text-base mb-4 uppercase tracking-wider">
               {tr.nav.catalog}
             </h4>
             <div className="space-y-2">
@@ -56,7 +56,7 @@ export default function Footer() {
                 { href: '/contacts', label: tr.nav.contacts },
               ].map((l) => (
                 <Link key={l.href} href={l.href}
-                  className="block text-steel-silver hover:text-steel-accent text-sm transition-colors">
+                  className="block text-steel-silver hover:text-steel-accent text-base transition-colors">
                   {l.label}
                 </Link>
               ))}
@@ -65,25 +65,25 @@ export default function Footer() {
 
           {/* Contacts */}
           <div>
-            <h4 className="text-white font-semibold text-sm mb-4 uppercase tracking-wider">
+            <h4 className="text-white font-semibold text-base mb-4 uppercase tracking-wider">
               {tr.nav.contacts}
             </h4>
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <MapPin size={15} className="text-steel-accent mt-0.5 shrink-0" />
-                <span className="text-steel-silver text-sm">{tr.contacts.address}</span>
+                <span className="text-steel-silver text-base">{tr.contacts.address}</span>
               </div>
               <div className="flex items-center gap-3">
                 <Phone size={15} className="text-steel-accent shrink-0" />
                 <a href={`tel:${tr.contacts.phone}`}
-                  className="text-steel-silver hover:text-white text-sm transition-colors">
+                  className="text-steel-silver hover:text-white text-base transition-colors">
                   {tr.contacts.phone}
                 </a>
               </div>
               <div className="flex items-center gap-3">
                 <Mail size={15} className="text-steel-accent shrink-0" />
                 <a href={`mailto:${tr.contacts.email}`}
-                  className="text-steel-silver hover:text-white text-sm transition-colors">
+                  className="text-steel-silver hover:text-white text-base transition-colors">
                   {tr.contacts.email}
                 </a>
               </div>
@@ -92,7 +92,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 pt-6 border-t border-steel-border/30 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <p className="text-steel-silver/60 text-xs">
+          <p className="text-steel-silver/60 text-sm">
             © {new Date().getFullYear()} Bes Saiman Group. All rights reserved.
             <span className="mx-1.5 text-steel-silver/30">·</span>
             <a href="https://wa.me/77470636611" target="_blank" rel="noopener noreferrer"
@@ -126,7 +126,7 @@ export default function Footer() {
             <div className="w-px h-4 bg-steel-border/30" />
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-slow" />
-              <span className="text-steel-silver/60 text-xs">System operational</span>
+              <span className="text-steel-silver/60 text-sm">System operational</span>
             </div>
           </div>
         </div>

@@ -127,11 +127,11 @@ export default function KPCartPage() {
         <div className="max-w-4xl mx-auto px-6 py-20 text-center">
           <ShoppingCart size={64} className="mx-auto mb-6" style={{ color: '#CBD5E1' }} />
           <h1 className="text-2xl font-black mb-3" style={{ color: '#0F172A' }}>Корзина КП пуста</h1>
-          <p className="text-sm mb-8" style={{ color: '#64748B' }}>
+          <p className="text-base mb-8" style={{ color: '#64748B' }}>
             Добавьте товары из каталога, чтобы сформировать коммерческое предложение
           </p>
           <Link href="/catalog"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-base"
             style={{ background: '#1565C0', color: 'white' }}>
             Перейти в каталог
             <ChevronRight size={14} />
@@ -150,15 +150,15 @@ export default function KPCartPage() {
             <CheckCircle size={40} style={{ color: '#16A34A' }} />
           </div>
           <h1 className="text-2xl font-black mb-3" style={{ color: '#0F172A' }}>КП сформировано!</h1>
-          <p className="text-sm mb-8" style={{ color: '#64748B' }}>PDF загружен на ваш компьютер</p>
+          <p className="text-base mb-8" style={{ color: '#64748B' }}>PDF загружен на ваш компьютер</p>
           <div className="flex items-center justify-center gap-3">
             <button onClick={() => { clear(); setStatus('idle') }}
-              className="px-6 py-3 rounded-lg font-semibold text-sm"
+              className="px-6 py-3 rounded-lg font-semibold text-base"
               style={{ background: '#1565C0', color: 'white' }}>
               Очистить и начать заново
             </button>
             <Link href="/catalog"
-              className="px-6 py-3 rounded-lg font-semibold text-sm"
+              className="px-6 py-3 rounded-lg font-semibold text-base"
               style={{ border: '1.5px solid #E2E8F0', color: '#475569', background: 'white' }}>
               Продолжить выбор
             </Link>
@@ -175,7 +175,7 @@ export default function KPCartPage() {
         {/* Заголовок */}
         <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
           <div>
-            <p className="font-mono text-[9px] tracking-[0.25em] uppercase mb-1" style={{ color: '#1565C0', fontWeight: 700 }}>
+            <p className="font-mono text-[11px] tracking-[0.25em] uppercase mb-1" style={{ color: '#1565C0', fontWeight: 700 }}>
               КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ
             </p>
             <h1 className="text-2xl font-black" style={{ color: '#0F172A', letterSpacing: '-0.02em' }}>
@@ -183,7 +183,7 @@ export default function KPCartPage() {
             </h1>
           </div>
           <Link href="/catalog"
-            className="flex items-center gap-1.5 text-sm font-semibold"
+            className="flex items-center gap-1.5 text-base font-semibold"
             style={{ color: '#1565C0' }}>
             + Добавить товары
           </Link>
@@ -197,17 +197,17 @@ export default function KPCartPage() {
             {/* Таблица товаров */}
             <div className="rounded-xl overflow-hidden" style={{ border: '1.5px solid #E2E8F0', background: 'white' }}>
               <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid #F1F5F9' }}>
-                <span className="font-semibold text-sm" style={{ color: '#0F172A' }}>
+                <span className="font-semibold text-base" style={{ color: '#0F172A' }}>
                   Товары ({items.length})
                 </span>
-                <button onClick={clear} className="text-xs flex items-center gap-1"
+                <button onClick={clear} className="text-sm flex items-center gap-1"
                   style={{ color: '#94A3B8' }}>
                   <X size={11} /> Очистить всё
                 </button>
               </div>
 
               {/* Шапка таблицы */}
-              <div className="hidden sm:grid grid-cols-12 px-4 py-2 text-[10px] font-mono font-bold tracking-wider uppercase"
+              <div className="hidden sm:grid grid-cols-12 px-4 py-2 text-[12px] font-mono font-bold tracking-wider uppercase"
                 style={{ borderBottom: '1px solid #F1F5F9', color: '#94A3B8' }}>
                 <span className="col-span-5">Наименование</span>
                 <span className="col-span-3 text-center">Кол-во</span>
@@ -233,10 +233,10 @@ export default function KPCartPage() {
                         }
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-mono font-semibold mb-0.5" style={{ color: '#0284C7' }}>
+                        <p className="text-sm font-mono font-semibold mb-0.5" style={{ color: '#0284C7' }}>
                           {product.model ?? '—'}
                         </p>
-                        <p className="text-xs font-medium leading-snug line-clamp-2" style={{ color: '#0F172A' }}>
+                        <p className="text-sm font-medium leading-snug line-clamp-2" style={{ color: '#0F172A' }}>
                           {product.name_ru}
                         </p>
                       </div>
@@ -253,7 +253,7 @@ export default function KPCartPage() {
                       <input
                         type="number" min={1} value={quantity}
                         onChange={e => updateQty(product.id, parseInt(e.target.value) || 1)}
-                        className="w-10 text-center text-sm font-semibold rounded outline-none"
+                        className="w-10 text-center text-base font-semibold rounded outline-none"
                         style={{ border: '1px solid #E2E8F0', color: '#0F172A', padding: '2px 0' }}
                       />
                       <button onClick={() => updateQty(product.id, quantity + 1)}
@@ -265,14 +265,14 @@ export default function KPCartPage() {
 
                     {/* Цена */}
                     <div className="col-span-2 text-right">
-                      <span className="text-xs font-semibold" style={{ color: product.price ? '#0F172A' : '#94A3B8' }}>
+                      <span className="text-sm font-semibold" style={{ color: product.price ? '#0F172A' : '#94A3B8' }}>
                         {product.price ? `${product.price.toLocaleString('ru-RU')} ₸` : 'По запросу'}
                       </span>
                     </div>
 
                     {/* Сумма + удалить */}
                     <div className="col-span-2 flex items-center justify-end gap-2">
-                      <span className="text-xs font-bold" style={{ color: '#1565C0' }}>
+                      <span className="text-sm font-bold" style={{ color: '#1565C0' }}>
                         {subtotal > 0 ? `${subtotal.toLocaleString('ru-RU')} ₸` : '—'}
                       </span>
                       <button onClick={() => removeItem(product.id)}
@@ -289,10 +289,10 @@ export default function KPCartPage() {
               {total > 0 && (
                 <div className="flex items-center justify-between px-4 py-3"
                   style={{ borderTop: '2px solid #E2E8F0', background: '#F8FAFC' }}>
-                  <span className="font-semibold text-sm" style={{ color: '#64748B' }}>Итого:</span>
-                  <span className="font-black text-base" style={{ color: '#1565C0' }}>
+                  <span className="font-semibold text-base" style={{ color: '#64748B' }}>Итого:</span>
+                  <span className="font-black text-lg" style={{ color: '#1565C0' }}>
                     {total.toLocaleString('ru-RU')} ₸
-                    {!hasAllPrices && <span className="text-xs font-normal ml-1" style={{ color: '#94A3B8' }}>+ по запросу</span>}
+                    {!hasAllPrices && <span className="text-sm font-normal ml-1" style={{ color: '#94A3B8' }}>+ по запросу</span>}
                   </span>
                 </div>
               )}
@@ -302,10 +302,10 @@ export default function KPCartPage() {
             {suggestions.length > 0 && (
               <div className="rounded-xl overflow-hidden" style={{ border: '1.5px solid #E2E8F0', background: 'white' }}>
                 <div className="px-4 py-3" style={{ borderBottom: '1px solid #F1F5F9' }}>
-                  <p className="font-semibold text-sm" style={{ color: '#0F172A' }}>
+                  <p className="font-semibold text-base" style={{ color: '#0F172A' }}>
                     Подходящие комплектующие и расходники
                   </p>
-                  <p className="text-[11px] mt-0.5" style={{ color: '#94A3B8' }}>
+                  <p className="text-[13px] mt-0.5" style={{ color: '#94A3B8' }}>
                     Автоматически подобраны к выбранному оборудованию
                   </p>
                 </div>
@@ -324,27 +324,27 @@ export default function KPCartPage() {
                           }
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-[10px] font-mono" style={{ color: '#94A3B8' }}>
+                          <p className="text-[12px] font-mono" style={{ color: '#94A3B8' }}>
                             к {forProductName.slice(0, 30)}…
                           </p>
-                          <p className="text-xs font-medium line-clamp-1" style={{ color: '#0F172A' }}>
+                          <p className="text-sm font-medium line-clamp-1" style={{ color: '#0F172A' }}>
                             {accessory.name_ru}
                           </p>
                           {accessory.model && (
-                            <p className="text-[10px] font-mono" style={{ color: '#0284C7' }}>
+                            <p className="text-[12px] font-mono" style={{ color: '#0284C7' }}>
                               {accessory.model}
                             </p>
                           )}
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           {accessory.price && (
-                            <span className="text-xs font-semibold" style={{ color: '#64748B' }}>
+                            <span className="text-sm font-semibold" style={{ color: '#64748B' }}>
                               {accessory.price.toLocaleString('ru-RU')} ₸
                             </span>
                           )}
                           <button
                             onClick={() => inC ? null : addItem(accessory)}
-                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-sm font-semibold transition-all"
                             style={{
                               background: inC ? '#F0FDF4' : '#EFF6FF',
                               border: `1.5px solid ${inC ? '#BBF7D0' : '#BFDBFE'}`,
@@ -373,10 +373,10 @@ export default function KPCartPage() {
                   <FileText size={15} style={{ color: '#1565C0' }} />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm" style={{ color: '#0F172A' }}>
+                  <p className="font-semibold text-base" style={{ color: '#0F172A' }}>
                     Оформить КП
                   </p>
-                  <p className="text-[10px]" style={{ color: '#94A3B8' }}>
+                  <p className="text-[12px]" style={{ color: '#94A3B8' }}>
                     PDF с реквизитами и печатью
                   </p>
                 </div>
@@ -384,7 +384,7 @@ export default function KPCartPage() {
 
               <form onSubmit={handleGenerate} className="px-5 py-4 flex flex-col gap-3.5">
 
-                <p className="text-[11px] leading-relaxed" style={{ color: '#94A3B8' }}>
+                <p className="text-[13px] leading-relaxed" style={{ color: '#94A3B8' }}>
                   Данные покупателя необязательны — укажите для персонализации КП.
                 </p>
 
@@ -395,13 +395,13 @@ export default function KPCartPage() {
                   { field: 'email',   label: 'Email',            type: 'email', placeholder: 'email@company.kz' },
                 ].map(({ field, label, type, placeholder }) => (
                   <div key={field}>
-                    <label className="block text-[11px] mb-1 font-medium" style={{ color: '#64748B' }}>
+                    <label className="block text-[13px] mb-1 font-medium" style={{ color: '#64748B' }}>
                       {label}
                     </label>
                     <input type={type} value={form[field as keyof Form]}
                       onChange={set(field as keyof Form)}
                       placeholder={placeholder}
-                      className="w-full px-3 py-2 rounded-lg text-xs outline-none transition-all"
+                      className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all"
                       style={{ border: '1.5px solid #E2E8F0', color: '#0F172A', background: '#FAFAFA' }}
                       onFocus={e => { e.target.style.borderColor = '#1565C0'; e.target.style.background = 'white' }}
                       onBlur={e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.background = '#FAFAFA' }}
@@ -410,12 +410,12 @@ export default function KPCartPage() {
                 ))}
 
                 <div>
-                  <label className="block text-[11px] mb-1 font-medium" style={{ color: '#64748B' }}>
+                  <label className="block text-[13px] mb-1 font-medium" style={{ color: '#64748B' }}>
                     Примечание
                   </label>
                   <textarea value={form.note} onChange={set('note')} rows={2}
                     placeholder="Особые условия, конфигурация..."
-                    className="w-full px-3 py-2 rounded-lg text-xs outline-none transition-all resize-none"
+                    className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all resize-none"
                     style={{ border: '1.5px solid #E2E8F0', color: '#0F172A', background: '#FAFAFA' }}
                     onFocus={e => { e.target.style.borderColor = '#1565C0'; e.target.style.background = 'white' }}
                     onBlur={e => { e.target.style.borderColor = '#E2E8F0'; e.target.style.background = '#FAFAFA' }}
@@ -423,14 +423,14 @@ export default function KPCartPage() {
                 </div>
 
                 {status === 'error' && (
-                  <p className="text-xs px-3 py-2 rounded-lg"
+                  <p className="text-sm px-3 py-2 rounded-lg"
                     style={{ background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }}>
                     Ошибка генерации PDF. Попробуйте ещё раз.
                   </p>
                 )}
 
                 <button type="submit" disabled={status === 'loading' || items.length === 0}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-semibold text-sm transition-all"
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-semibold text-base transition-all"
                   style={{
                     background: items.length > 0 ? '#1565C0' : '#E2E8F0',
                     color: items.length > 0 ? 'white' : '#94A3B8',
@@ -442,7 +442,7 @@ export default function KPCartPage() {
                   }
                 </button>
 
-                <p className="text-[10px] text-center" style={{ color: '#CBD5E1' }}>
+                <p className="text-[12px] text-center" style={{ color: '#CBD5E1' }}>
                   Включает реквизиты, печать и подпись директора
                 </p>
               </form>

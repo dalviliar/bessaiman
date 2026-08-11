@@ -15,7 +15,7 @@ export interface DevItem {
 
 function TagRow({ tags, size = 'sm' }: { tags: string | null; size?: 'sm' | 'md' }) {
   if (!tags) return null
-  const cls = size === 'sm' ? 'text-[10px] px-2 py-0.5' : 'text-[11px] px-2.5 py-1'
+  const cls = size === 'sm' ? 'text-[12px] px-2 py-0.5' : 'text-[13px] px-2.5 py-1'
   return (
     <div className="flex flex-wrap gap-1.5">
       {tags.split(',').map(t => t.trim()).filter(Boolean).map(t => (
@@ -116,9 +116,9 @@ export function DevelopmentCarousel({ items }: { items: DevItem[] }) {
               )}
             </div>
             <div className="p-4">
-              <h3 className="font-bold text-sm mb-2 leading-snug" style={{ color: '#0F172A' }}>{item.title}</h3>
+              <h3 className="font-bold text-base mb-2 leading-snug" style={{ color: '#0F172A' }}>{item.title}</h3>
               {item.period && (
-                <div className="flex items-center gap-1.5 text-xs mb-1.5" style={{ color: '#64748B' }}>
+                <div className="flex items-center gap-1.5 text-sm mb-1.5" style={{ color: '#64748B' }}>
                   <Calendar size={12} />{item.period}
                 </div>
               )}
@@ -148,15 +148,15 @@ export function DevelopmentCarousel({ items }: { items: DevItem[] }) {
             <div className="p-6">
               <h3 className="text-xl font-bold mb-2" style={{ color: '#0F172A' }}>{active.title}</h3>
               {active.period && (
-                <div className="flex items-center gap-1.5 text-sm mb-3" style={{ color: '#64748B' }}>
+                <div className="flex items-center gap-1.5 text-base mb-3" style={{ color: '#64748B' }}>
                   <Calendar size={14} />{active.period}
                 </div>
               )}
               <div className="mb-4"><TagRow tags={active.tags} size="md" /></div>
               {active.description ? (
-                <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: '#334155' }}>{active.description}</p>
+                <p className="text-base leading-relaxed whitespace-pre-line" style={{ color: '#334155' }}>{active.description}</p>
               ) : (
-                <p className="text-sm" style={{ color: '#94A3B8' }}>Подробное описание пока не добавлено.</p>
+                <p className="text-base" style={{ color: '#94A3B8' }}>Подробное описание пока не добавлено.</p>
               )}
             </div>
           </div>

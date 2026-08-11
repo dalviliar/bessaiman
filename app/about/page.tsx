@@ -43,7 +43,7 @@ export default function AboutPage() {
         ].map((s) => (
           <div key={s.label} className="steel-card p-6 text-center">
             <div className="text-3xl font-black text-steel-accent mb-1">{s.value}</div>
-            <div className="text-steel-silver text-sm">{s.label}</div>
+            <div className="text-steel-silver text-base">{s.label}</div>
           </div>
         ))}
       </div>
@@ -58,7 +58,7 @@ export default function AboutPage() {
             </div>
             <div>
               <h3 className="text-[#0F172A] font-semibold mb-1">{v.title}</h3>
-              <p className="text-steel-silver text-sm leading-relaxed">{v.desc}</p>
+              <p className="text-steel-silver text-base leading-relaxed">{v.desc}</p>
             </div>
           </div>
         ))}
