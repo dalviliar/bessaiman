@@ -215,7 +215,7 @@ export default function TestAssemblyPage() {
 
       {/* ══ HERO ══ */}
       <section style={{ borderBottom: '1px solid #E2E8F0', background: 'white' }}>
-        <div className="w-full max-w-7xl mx-auto px-6 lg:px-8 grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.7fr)] gap-6 md:gap-2 items-center py-14 md:py-20">
+        <div className="w-full max-w-[1560px] mx-auto px-6 lg:px-8 grid md:grid-cols-[minmax(330px,0.85fr)_minmax(0,1.9fr)] gap-6 md:gap-4 items-center py-14 md:py-20">
 
           {/* Left */}
           <div className="flex flex-col gap-6" style={{ animation: 'fade-up 0.6s ease both' }}>
@@ -279,10 +279,10 @@ export default function TestAssemblyPage() {
 
           {/* Right — 3D rig, in the same slot the old model occupied, nudged
               toward the text so it doesn't sit off on its own */}
-          <div className="flex justify-center items-center md:-translate-x-16 lg:-translate-x-24"
+          <div className="flex justify-center items-center"
             style={{ animation: 'fade-up 0.5s 0.12s ease both' }}>
             <div style={{ width: '100%' }}>
-              <TubeFurnaceRig3D height={440} />
+              <TubeFurnaceRig3D height={470} />
             </div>
           </div>
         </div>

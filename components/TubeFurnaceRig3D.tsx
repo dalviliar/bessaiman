@@ -63,7 +63,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       // canvas aspect — it frames correctly both in a narrow hero column and
       // on a full-width stage.
       const START_MARGIN = 1.12   // room to watch parts fly in…
-      const FIT_PAD = 1.06        // slack for the slow idle rotation
+      const FIT_PAD = 1.0         // the idle rotation stays inside the bbox
       const TARGET = new THREE.Vector3(0.15, -0.25, 0)
       const VIEW_DIR = new THREE.Vector3(0.26, 0.19, 1).normalize()
       const camRight = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), VIEW_DIR).normalize()
@@ -171,21 +171,31 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       const gaugeFaceM = new THREE.MeshStandardMaterial({
         color: 0xF6F9FC, metalness: 0.02, roughness: 0.06, transparent: true, opacity: 0.97,
       })
-      // Company mark, applied as a decal on the furnace hood and the cabinet.
-      const logoTex = new THREE.TextureLoader().load('/logo-full-white.png')
-      logoTex.colorSpace = THREE.SRGBColorSpace
-      logoTex.anisotropy = 8
-      const logoM = new THREE.MeshStandardMaterial({
-        map: logoTex, transparent: true, metalness: 0, roughness: 0.45,
-        emissive: 0xffffff, emissiveMap: logoTex, emissiveIntensity: 0.3,
+      // Company mark: the full-colour logo on a white label, the way it is
+      // printed on the real machines.
+      const loadLogo = (file: string) => {
+        const t = new THREE.TextureLoader().load(file)
+        t.colorSpace = THREE.SRGBColorSpace
+        t.anisotropy = 8
+        return t
+      }
+      const logoDarkM = new THREE.MeshStandardMaterial({
+        map: loadLogo('/logo-full.png'), transparent: true, metalness: 0, roughness: 0.42,
         depthWrite: false, side: THREE.DoubleSide,
       })
+      const logoWhiteTex = loadLogo('/logo-full-white.png')
+      const logoWhiteM = new THREE.MeshStandardMaterial({
+        map: logoWhiteTex, transparent: true, metalness: 0, roughness: 0.45,
+        emissive: 0xffffff, emissiveMap: logoWhiteTex, emissiveIntensity: 0.3,
+        depthWrite: false, side: THREE.DoubleSide,
+      })
+      const labelM = P(0xF8FAFC, 0.3, 0.7)
 
       // A plane bent around the X axis, so the decal hugs the round hood while
       // keeping ordinary plane UVs — a cylinder sector would map the logo
       // around the circumference instead of along the furnace.
-      const curvedDecal = (width: number, radius: number) => {
-        const g = new THREE.PlaneGeometry(width, width / 4.04, 1, 24)
+      const curvedDecal = (width: number, height: number, radius: number) => {
+        const g = new THREE.PlaneGeometry(width, height, 1, 28)
         const p = g.attributes.position
         for (let i = 0; i < p.count; i++) {
           const a = -p.getY(i) / radius
@@ -327,10 +337,14 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
         furnHi.add(disc)
       })
       mesh(furnHi, Box(3.6, 0.06, 0.06), steelM, 0, 0.94, 0)       // spine rail
-      // brand decal, curved onto the hood
+      // brand label, curved onto the hood
       {
-        const decal = new THREE.Mesh(curvedDecal(2.1, 0.975), logoM)
-        decal.rotation.set(0.72, 0, 0)
+        const w = 2.66, h = w / 4.04
+        const plate = new THREE.Mesh(curvedDecal(w + 0.26, h + 0.2, 0.968), labelM)
+        plate.rotation.set(0.7, 0, 0)
+        furnHi.add(plate)
+        const decal = new THREE.Mesh(curvedDecal(w, h, 0.978), logoDarkM)
+        decal.rotation.set(0.7, 0, 0)
         furnHi.add(decal)
       }
       // top vent stack + fan
@@ -502,7 +516,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       const cab = spawn([6.55, -0.42, -0.35], [12.5, -0.42, -0.35], 6.9, 0.95)
       mesh(cab, Box(1.5, 2.0, 0.9), panelM)
       mesh(cab, Box(1.56, 0.09, 0.96), steelM, 0, 1.02, 0)
-      mesh(cab, new THREE.PlaneGeometry(0.77, 0.19), logoM, 0, 0.89, 0.47)
+      mesh(cab, new THREE.PlaneGeometry(0.86, 0.213), logoWhiteM, 0, 0.87, 0.47)
       mesh(cab, Box(1.56, 0.09, 0.96), darkM, 0, -1.0, 0)
       ;[-0.62, 0.62].forEach(x => [-0.34, 0.34].forEach(z => mesh(cab, Cyl(0.07, 0.07, 0.1, 12), rubberM, x, -1.08, z)))
       // front panel faces the viewer (+Z), flush on the cabinet front
