@@ -14,13 +14,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
     const { id } = await params
-    const { title_ru, title_kk, title_en, description_ru, description_kk, description_en, period, tags, image_url, kind } = await request.json()
+    const { title_ru, title_kk, title_en, description_ru, description_kk, description_en, period, tags, images, kind } = await request.json()
     if (!title_ru?.trim()) return NextResponse.json({ error: 'Укажите название проекта' }, { status: 400 })
 
     const row = await queryOne(
-      `UPDATE science_projects SET title_ru=$1, title_kk=$2, title_en=$3, description_ru=$4, description_kk=$5, description_en=$6, period=$7, tags=$8, image_url=$9, kind=$10
+      `UPDATE science_projects SET title_ru=$1, title_kk=$2, title_en=$3, description_ru=$4, description_kk=$5, description_en=$6, period=$7, tags=$8, images=$9, kind=$10
        WHERE id=$11 RETURNING *`,
-      [title_ru.trim(), title_kk || null, title_en || null, description_ru || null, description_kk || null, description_en || null, period || null, tags || null, image_url || null, kind === 'project' ? 'project' : 'individual', id],
+      [title_ru.trim(), title_kk || null, title_en || null, description_ru || null, description_kk || null, description_en || null, period || null, tags || null, Array.isArray(images) ? images.filter(Boolean) : [], kind === 'project' ? 'project' : 'individual', id],
     )
     if (!row) return NextResponse.json({ error: 'Не найдено' }, { status: 404 })
 

@@ -10,7 +10,7 @@ interface Patent { id: string; title: string; patent_number: string | null; badg
 interface Project {
   id: string; title_ru: string; title_kk: string | null; title_en: string | null
   description_ru: string | null; description_kk: string | null; description_en: string | null
-  period: string | null; tags: string | null; image_url: string | null; kind: string
+  period: string | null; tags: string | null; images: string[] | null; kind: string
 }
 interface Achievement { id: string; full_name: string; award_name: string; year: number | null; organization: string | null; certificate_url: string | null }
 interface Contract { id: string; title: string; customer: string | null; year: number | null; description: string | null }
@@ -59,7 +59,7 @@ export default function NaukaPage() {
     description: (lang === 'kk' ? p.description_kk : lang === 'en' ? p.description_en : p.description_ru) || '',
     period: p.period,
     tags: p.tags,
-    image_url: p.image_url,
+    images: p.images ?? [],
   })
 
   const individualDevs = projects.filter(p => p.kind !== 'project').map(toDevItem)
@@ -413,9 +413,9 @@ export default function NaukaPage() {
       {partners.length > 0 && (
         <div className="rounded-2xl p-8 mb-12"
           style={{ background: 'linear-gradient(135deg,#EBF2FB,#F0F9FF)', border: '1px solid rgba(21,101,192,0.12)' }}>
-          <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.partnersTitle}</h2>
-          <p className="text-base mb-6" style={{ color: '#64748B' }}>{tr.nauka.partnersSubtitle}</p>
-          <div className="flex flex-wrap gap-3">
+          <h2 className="text-xl font-bold mb-1.5 text-center" style={{ color: '#0F172A' }}>{tr.nauka.partnersTitle}</h2>
+          <p className="text-base mb-6 text-center" style={{ color: '#64748B' }}>{tr.nauka.partnersSubtitle}</p>
+          <div className="flex flex-wrap justify-center gap-3">
             {partners.map((p) => {
               const card = (
                 <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl"

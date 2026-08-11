@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ChevronLeft, ChevronRight, X, Calendar, FlaskConical } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X, Calendar, FlaskConical, Image as ImageIcon } from 'lucide-react'
 import { useZoomPreview, ZoomPreviewOverlay } from '@/components/HoverZoomPreview'
 
 export interface DevItem {
@@ -10,7 +10,7 @@ export interface DevItem {
   description: string
   period: string | null
   tags: string | null
-  image_url: string | null
+  images: string[]
 }
 
 function TagRow({ tags, size = 'sm' }: { tags: string | null; size?: 'sm' | 'md' }) {
@@ -29,10 +29,12 @@ export function DevelopmentCarousel({ items }: { items: DevItem[] }) {
   const trackRef = useRef<HTMLDivElement>(null)
   const drag = useRef({ down: false, startX: 0, scrollStart: 0, moved: false })
   const [active, setActive] = useState<DevItem | null>(null)
+  const [shot, setShot] = useState(0)
   const { preview, show: showPreview, hide: hidePreview } = useZoomPreview()
 
   useEffect(() => {
     if (!active) return
+    setShot(0)
     document.body.style.overflow = 'hidden'
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setActive(null) }
     window.addEventListener('keydown', onKey)
@@ -100,19 +102,25 @@ export function DevelopmentCarousel({ items }: { items: DevItem[] }) {
         {items.map(item => (
           <div key={item.id} data-card
             onClick={() => openCard(item)}
-            onMouseEnter={e => { if (!drag.current.down && item.image_url) showPreview(item.image_url, e.currentTarget, item.id) }}
+            onMouseEnter={e => { if (!drag.current.down && item.images[0]) showPreview(item.images[0], e.currentTarget, item.id) }}
             onMouseLeave={() => hidePreview(item.id)}
             className="group flex-none w-[85%] sm:w-[calc(50%-0.5rem)] lg:w-[calc(33.333%-0.667rem)] rounded-xl overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
             style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)', scrollSnapAlign: 'start' }}
           >
-            <div className="aspect-[4/3] overflow-hidden" style={{ background: '#F1F5F9' }}>
-              {item.image_url ? (
-                <img src={item.image_url} alt={item.title} draggable={false}
+            <div className="relative aspect-[4/3] overflow-hidden" style={{ background: '#F1F5F9' }}>
+              {item.images[0] ? (
+                <img src={item.images[0]} alt={item.title} draggable={false}
                   className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <FlaskConical size={28} style={{ color: '#CBD5E1' }} />
                 </div>
+              )}
+              {item.images.length > 1 && (
+                <span className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-md text-[12px] font-semibold"
+                  style={{ background: 'rgba(15,23,42,0.72)', color: 'white' }}>
+                  <ImageIcon size={12} />{item.images.length}
+                </span>
               )}
             </div>
             <div className="p-4">
@@ -140,9 +148,41 @@ export function DevelopmentCarousel({ items }: { items: DevItem[] }) {
               style={{ background: 'rgba(15,23,42,0.06)' }}>
               <X size={16} style={{ color: '#0F172A' }} />
             </button>
-            {active.image_url && (
-              <div className="w-full aspect-[16/9]" style={{ background: '#F1F5F9' }}>
-                <img src={active.image_url} alt={active.title} className="w-full h-full object-contain" />
+            {active.images.length > 0 && (
+              <div>
+                <div className="relative w-full aspect-[16/9]" style={{ background: '#F1F5F9' }}>
+                  <img src={active.images[Math.min(shot, active.images.length - 1)]} alt={active.title}
+                    className="w-full h-full object-contain" />
+                  {active.images.length > 1 && (
+                    <>
+                      <button onClick={() => setShot(s => (s - 1 + active.images.length) % active.images.length)} aria-label="Предыдущее фото"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-transform hover:scale-110"
+                        style={{ background: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}>
+                        <ChevronLeft size={17} style={{ color: '#0F172A' }} />
+                      </button>
+                      <button onClick={() => setShot(s => (s + 1) % active.images.length)} aria-label="Следующее фото"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-transform hover:scale-110"
+                        style={{ background: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}>
+                        <ChevronRight size={17} style={{ color: '#0F172A' }} />
+                      </button>
+                    </>
+                  )}
+                </div>
+                {active.images.length > 1 && (
+                  <div className="flex gap-2 px-6 pt-4 overflow-x-auto no-scrollbar">
+                    {active.images.map((src, i) => (
+                      <button key={src + i} onClick={() => setShot(i)}
+                        className="flex-none w-20 h-16 rounded-lg overflow-hidden transition-opacity"
+                        style={{
+                          border: i === shot ? '2px solid #1565C0' : '1px solid #E2E8F0',
+                          opacity: i === shot ? 1 : 0.7,
+                          background: '#F8FAFC',
+                        }}>
+                        <img src={src} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
             <div className="p-6">

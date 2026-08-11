@@ -155,6 +155,92 @@ function ImagePicker({
   )
 }
 
+function GalleryPicker({
+  urls, onChange, uploadUrl, label,
+}: {
+  urls: string[]
+  onChange: (urls: string[]) => void
+  uploadUrl: string
+  label: string
+}) {
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const handleUpload = async (files: FileList | null) => {
+    if (!files?.length) return
+    setUploading(true); setError('')
+    try {
+      const uploaded: string[] = []
+      for (const file of Array.from(files)) {
+        const fd = new FormData()
+        fd.append('file', file)
+        const res = await fetch(uploadUrl, { method: 'POST', body: fd })
+        const data = await res.json()
+        if (!res.ok) throw new Error(data.error)
+        uploaded.push(data.url)
+      }
+      onChange([...urls, ...uploaded])
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка загрузки')
+    } finally {
+      setUploading(false)
+      if (fileRef.current) fileRef.current.value = ''
+    }
+  }
+
+  const move = (i: number, dir: -1 | 1) => {
+    const j = i + dir
+    if (j < 0 || j >= urls.length) return
+    const next = [...urls]
+    ;[next[i], next[j]] = [next[j], next[i]]
+    onChange(next)
+  }
+
+  return (
+    <div>
+      <FieldLabel>{label}</FieldLabel>
+      {urls.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-2">
+          {urls.map((u, i) => (
+            <div key={u + i} className="relative w-24">
+              <div className="w-24 h-24 rounded-lg flex items-center justify-center overflow-hidden"
+                style={{ background: 'rgba(255,255,255,0.05)', border: i === 0 ? '1px solid rgba(59,130,246,0.6)' : '1px solid rgba(255,255,255,0.1)' }}>
+                <img src={u} alt="" className="max-w-full max-h-full object-contain" />
+              </div>
+              {i === 0 && (
+                <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded text-[9px] font-bold"
+                  style={{ background: 'rgba(59,130,246,0.9)', color: 'white' }}>обложка</span>
+              )}
+              <div className="flex items-center justify-between mt-1">
+                <button type="button" onClick={() => move(i, -1)} disabled={i === 0}
+                  className="px-1.5 text-xs disabled:opacity-25" style={{ color: '#93C5FD' }}>←</button>
+                <button type="button" onClick={() => onChange(urls.filter((_, k) => k !== i))}
+                  className="text-[11px]" style={{ color: '#F87171' }}>убрать</button>
+                <button type="button" onClick={() => move(i, 1)} disabled={i === urls.length - 1}
+                  className="px-1.5 text-xs disabled:opacity-25" style={{ color: '#93C5FD' }}>→</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <button type="button"
+        onClick={() => fileRef.current?.click()}
+        className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium"
+        style={{ background: 'rgba(59,130,246,0.1)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.2)' }}>
+        {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+        {uploading ? 'Загрузка...' : urls.length ? 'Добавить ещё' : 'Загрузить фото'}
+      </button>
+      <p className="text-[11px] mt-1.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+        Можно выбрать сразу несколько файлов. Первое фото — обложка карточки, порядок меняется стрелками.
+      </p>
+      {error && <p className="text-xs mt-1.5" style={{ color: '#F87171' }}>{error}</p>}
+      <input ref={fileRef} type="file" accept="image/*" multiple className="hidden"
+        onChange={e => handleUpload(e.target.files)} />
+    </div>
+  )
+}
+
 // ────────────────────────────────────────────────────────────────
 // Publications
 // ────────────────────────────────────────────────────────────────
@@ -376,11 +462,11 @@ function PatentsTab() {
 interface Project {
   id: string; title_ru: string; title_kk: string | null; title_en: string | null
   description_ru: string | null; description_kk: string | null; description_en: string | null
-  period: string | null; tags: string | null; image_url: string | null; kind: string; sort_order: number
+  period: string | null; tags: string | null; images: string[] | null; kind: string; sort_order: number
 }
 const EMPTY_PROJECT = {
   title_ru: '', title_kk: '', title_en: '', description_ru: '', description_kk: '', description_en: '',
-  period: '', tags: '', image_url: '',
+  period: '', tags: '', images: [] as string[],
 }
 const PROJECT_KINDS = [
   { key: 'individual', label: 'Индивидуальные разработки' },
@@ -408,7 +494,7 @@ function ProjectsTab() {
     setForm({
       title_ru: p.title_ru, title_kk: p.title_kk ?? '', title_en: p.title_en ?? '',
       description_ru: p.description_ru ?? '', description_kk: p.description_kk ?? '', description_en: p.description_en ?? '',
-      period: p.period ?? '', tags: p.tags ?? '', image_url: p.image_url ?? '',
+      period: p.period ?? '', tags: p.tags ?? '', images: p.images ?? [],
     })
     setError('')
   }
@@ -422,7 +508,7 @@ function ProjectsTab() {
       const payload = {
         title_ru: form.title_ru.trim(), title_kk: form.title_kk || null, title_en: form.title_en || null,
         description_ru: form.description_ru || null, description_kk: form.description_kk || null, description_en: form.description_en || null,
-        period: form.period || null, tags: form.tags || null, image_url: form.image_url || null,
+        period: form.period || null, tags: form.tags || null, images: form.images,
         kind: editing ? editing.kind : filter,
       }
       const res = await fetch(editing ? `/api/admin/science/projects/${editing.id}` : '/api/admin/science/projects', {
@@ -499,7 +585,7 @@ function ProjectsTab() {
             <textarea className="steel-input w-full" rows={3} value={form.description_en} onChange={e => setForm(f => ({ ...f, description_en: e.target.value }))} />
           </div>
         </div>
-        <ImagePicker url={form.image_url} onChange={url => setForm(f => ({ ...f, image_url: url }))} uploadUrl="/api/admin/science/upload" label="Схема / фото разработки" />
+        <GalleryPicker urls={form.images} onChange={images => setForm(f => ({ ...f, images }))} uploadUrl="/api/admin/science/upload" label="Фото и схемы разработки" />
       </FormShell>
 
       {loading ? (
@@ -517,7 +603,7 @@ function ProjectsTab() {
                 })
               })} />
               <div className="w-14 h-14 rounded-lg flex items-center justify-center overflow-hidden shrink-0" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                {p.image_url ? <img src={p.image_url} alt="" className="w-full h-full object-cover" /> : <FlaskConical size={18} style={{ color: 'rgba(255,255,255,0.2)' }} />}
+                {p.images?.[0] ? <img src={p.images[0]} alt="" className="w-full h-full object-cover" /> : <FlaskConical size={18} style={{ color: 'rgba(255,255,255,0.2)' }} />}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white truncate">{p.title_ru}</p>
