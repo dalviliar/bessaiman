@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js'
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js'
 
 function RigFallback({ height }: { height: number }) {
   return (
@@ -60,16 +62,46 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       // The rig is wide and flat, so the camera distance is derived from the
       // canvas aspect — it frames correctly both in a narrow hero column and
       // on a full-width stage.
-      const RIG_HALF_W = 7.35
-      const RIG_HALF_H = 2.2
+      const START_MARGIN = 1.12   // room to watch parts fly in…
+      const FIT_PAD = 1.06        // slack for the slow idle rotation
       const TARGET = new THREE.Vector3(0.15, -0.25, 0)
       const VIEW_DIR = new THREE.Vector3(0.26, 0.19, 1).normalize()
+      const camRight = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), VIEW_DIR).normalize()
+      const camUp = new THREE.Vector3().crossVectors(VIEW_DIR, camRight).normalize()
 
-      let baseDist = 1
+      // Framing is solved numerically against the assembled rig's real bounding
+      // box: hand-tuned extents kept cropping the cabinet as parts were added.
+      let rigBox: THREE.Box3 | null = null
+      let baseDist = 16
       const fitCamera = () => {
-        const aspect = camera.aspect
         const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)
-        baseDist = Math.max(RIG_HALF_W / (tan * aspect), RIG_HALF_H / tan)
+        if (!rigBox) {
+          baseDist = START_MARGIN * Math.max(7.45 / (tan * camera.aspect), 2.25 / tan)
+          camera.position.copy(TARGET).addScaledVector(VIEW_DIR, baseDist)
+          camera.lookAt(TARGET)
+          return
+        }
+        const corners: THREE.Vector3[] = []
+        for (const x of [rigBox.min.x, rigBox.max.x])
+          for (const y of [rigBox.min.y, rigBox.max.y])
+            for (const z of [rigBox.min.z, rigBox.max.z]) corners.push(new THREE.Vector3(x, y, z))
+        const v = new THREE.Vector3()
+        let dist = baseDist
+        for (let i = 0; i < 12; i++) {
+          camera.position.copy(TARGET).addScaledVector(VIEW_DIR, dist)
+          camera.lookAt(TARGET)
+          camera.updateMatrixWorld(true)
+          let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity
+          for (const c of corners) {
+            v.copy(c).project(camera)
+            minX = Math.min(minX, v.x); maxX = Math.max(maxX, v.x)
+            minY = Math.min(minY, v.y); maxY = Math.max(maxY, v.y)
+          }
+          TARGET.addScaledVector(camRight, ((minX + maxX) / 2) * tan * camera.aspect * dist)
+          TARGET.addScaledVector(camUp, ((minY + maxY) / 2) * tan * dist)
+          dist *= Math.max(maxX - minX, maxY - minY) * FIT_PAD / 2
+        }
+        baseDist = dist * START_MARGIN
         camera.position.copy(TARGET).addScaledVector(VIEW_DIR, baseDist)
         camera.lookAt(TARGET)
       }
@@ -81,11 +113,17 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       renderer.shadowMap.enabled = true
       renderer.shadowMap.type = THREE.PCFSoftShadowMap
       renderer.toneMapping = THREE.ACESFilmicToneMapping
-      renderer.toneMappingExposure = 1.15
+      renderer.toneMappingExposure = 1.05
+      renderer.outputColorSpace = THREE.SRGBColorSpace
 
-      // ── Lights ──────────────────────────────────────────────────
-      scene.add(new THREE.AmbientLight(0xffffff, 0.95))
-      const key = new THREE.DirectionalLight(0xffffff, 3.4)
+      // Image-based lighting — without it metal reads as flat plastic.
+      const pmrem = new THREE.PMREMGenerator(renderer)
+      const envRT = pmrem.fromScene(new RoomEnvironment(), 0.04)
+      scene.environment = envRT.texture
+
+      // ── Lights (env map carries most of the ambient now) ────────
+      scene.add(new THREE.AmbientLight(0xffffff, 0.28))
+      const key = new THREE.DirectionalLight(0xffffff, 2.4)
       key.position.set(6, 12, 8)
       key.castShadow = true
       key.shadow.mapSize.set(2048, 2048)
@@ -95,34 +133,40 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       key.shadow.camera.top = 10
       key.shadow.camera.bottom = -6
       scene.add(key)
-      const fillL = new THREE.PointLight(0xdceaf8, 1.4)
+      const fillL = new THREE.PointLight(0xdceaf8, 0.7)
       fillL.position.set(-9, 3, 7)
       scene.add(fillL)
-      const fillR = new THREE.PointLight(0xe8f2ff, 1.0)
+      const fillR = new THREE.PointLight(0xe8f2ff, 0.5)
       fillR.position.set(9, 2, 6)
       scene.add(fillR)
-      scene.add(new THREE.HemisphereLight(0xe8f0ff, 0x93a3b2, 1.1))
+      scene.add(new THREE.HemisphereLight(0xe8f0ff, 0x93a3b2, 0.35))
 
       // ── Materials ───────────────────────────────────────────────
       const M = (color: number, metalness = 0.8, roughness = 0.22) =>
         new THREE.MeshStandardMaterial({ color, metalness, roughness })
 
-      const shellM   = M(0xE9EDF0, 0.35, 0.38)   // painted furnace body
-      const shellTopM= M(0xDCE3E8, 0.35, 0.40)
-      const steelM   = M(0xB9C6CE, 0.92, 0.14)   // stainless frame
-      const darkM    = M(0x2C3945, 0.65, 0.34)   // dark structural steel
-      const baseM    = M(0x1D2730, 0.55, 0.45)
-      const boltM    = M(0xDCE6EE, 0.95, 0.07)
-      const ceramicM = M(0xF2EFE6, 0.05, 0.72)   // insulation
-      const brassM   = M(0xC9A227, 0.85, 0.28)
-      const rubberM  = M(0x1B2026, 0.08, 0.88)
-      const panelM   = M(0x27333F, 0.45, 0.42)
-      const knobRedM = M(0xC1352B, 0.25, 0.44)
-      const knobBluM = M(0x2C6FB5, 0.25, 0.44)
-      const gaugeM   = M(0xA9B7C2, 0.78, 0.20)
-      const pumpM    = M(0x38566E, 0.62, 0.34)
-      const glassM   = new THREE.MeshStandardMaterial({
-        color: 0xCFE6F4, metalness: 0.05, roughness: 0.02, transparent: true, opacity: 0.5,
+      // Lacquered paint: no metalness, a clearcoat layer on top.
+      const P = (color: number, roughness = 0.42, clearcoat = 0.55) =>
+        new THREE.MeshPhysicalMaterial({ color, metalness: 0.0, roughness, clearcoat, clearcoatRoughness: 0.18 })
+
+      const shellM   = P(0xEDF1F4, 0.34)          // painted furnace body
+      const shellTopM= P(0xE2E8ED, 0.36)
+      const steelM   = M(0xC2CDD6, 1.0, 0.24)     // brushed stainless
+      const darkM    = M(0x2F3B47, 0.88, 0.42)    // dark structural steel
+      const baseM    = M(0x1F2932, 0.8, 0.52)
+      const boltM    = M(0xD9E2EA, 1.0, 0.16)
+      const ceramicM = P(0xF3F0E8, 0.85, 0.0)     // insulation, no gloss
+      const brassM   = M(0xC9A227, 1.0, 0.3)
+      const rubberM  = P(0x1A1F25, 0.95, 0.0)
+      const panelM   = P(0x2A3742, 0.44)
+      const knobRedM = P(0xC1352B, 0.4)
+      const knobBluM = P(0x2C6FB5, 0.4)
+      const gaugeM   = M(0xAEBCC7, 0.95, 0.26)
+      const pumpM    = P(0x3B5B75, 0.4)
+      const glassM   = new THREE.MeshPhysicalMaterial({
+        color: 0xE6F3FA, metalness: 0, roughness: 0.06,
+        transmission: 0.92, thickness: 0.4, ior: 1.46,
+        transparent: true, opacity: 1,
       })
       const gaugeFaceM = new THREE.MeshStandardMaterial({
         color: 0xF6F9FC, metalness: 0.02, roughness: 0.06, transparent: true, opacity: 0.97,
@@ -138,7 +182,13 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       )
 
       // ── Geometry helpers ────────────────────────────────────────
-      const Box  = (x: number, y: number, z: number) => new THREE.BoxGeometry(x, y, z)
+      // Bevelled edges — sharp box corners are what makes CG props look fake.
+      const Box = (x: number, y: number, z: number) => {
+        const r = Math.min(0.03, Math.min(x, y, z) * 0.28)
+        return r > 0.004
+          ? new RoundedBoxGeometry(x, y, z, 2, r)
+          : new THREE.BoxGeometry(x, y, z)
+      }
       const Cyl  = (rT: number, rB: number, hh: number, seg = 40) => new THREE.CylinderGeometry(rT, rB, hh, seg)
       const Tor  = (r: number, tube: number, seg = 52) => new THREE.TorusGeometry(r, tube, 10, seg)
       const Sph  = (r: number) => new THREE.SphereGeometry(r, 20, 20)
@@ -540,6 +590,15 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       const TIME_SCALE = 1
       const ASSEMBLY_END = Math.max(...parts.map(p => p.delay + p.duration)) + 0.3
 
+      {
+        const startPos = parts.map(p => p.group.position.clone())
+        for (const p of parts) { p.group.position.copy(p.end); p.group.rotation.copy(p.endRot); p.group.visible = true }
+        rig.updateMatrixWorld(true)
+        rigBox = new THREE.Box3().setFromObject(rig)
+        parts.forEach((p, i) => { p.group.position.copy(startPos[i]); p.group.rotation.copy(p.startRot); p.group.visible = false })
+        fitCamera()
+      }
+
       // ── Animate ─────────────────────────────────────────────────
       const clock = new THREE.Clock()
       let elapsed = 0
@@ -604,8 +663,10 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
         })
 
         // slow push-in once assembled, so the detailing is readable
+        // …then pull in exactly that margin so the finished rig fills the frame
         const push = easeOutCubic(THREE.MathUtils.clamp((t - ASSEMBLY_END) / 4, 0, 1))
-        camera.position.copy(TARGET).addScaledVector(VIEW_DIR, baseDist * (1 - 0.1 * push))
+        const zoom = 1 - push * (1 - 1 / START_MARGIN)
+        camera.position.copy(TARGET).addScaledVector(VIEW_DIR, baseDist * zoom)
         camera.lookAt(TARGET)
 
         // gentle showcase sway — keeps the wide rig readable head-on
