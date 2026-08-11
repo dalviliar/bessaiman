@@ -9,7 +9,7 @@ import { useLang } from '@/context/LanguageContext'
 const TubeFurnaceRig3D = dynamic(() => import('@/components/TubeFurnaceRig3D'), {
   ssr: false,
   loading: () => (
-    <div style={{ width: '100%', height: 500, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    <div style={{ width: '100%', height: 440, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <div style={{ width: 48, height: 48, border: '3px solid #E2E8F0', borderTopColor: '#1565C0', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
     </div>
   ),
@@ -211,7 +211,7 @@ export default function HomePage() {
 
       {/* ══ HERO ══ */}
       <section style={{ borderBottom: '1px solid #E2E8F0', background: 'white' }}>
-        <div className="w-full max-w-7xl mx-auto px-6 lg:px-8 grid md:grid-cols-[minmax(420px,0.9fr)_minmax(0,1.75fr)] gap-6 md:gap-4 items-center py-14 md:py-20">
+        <div className="w-full max-w-7xl mx-auto px-6 lg:px-8 grid md:grid-cols-[minmax(415px,0.86fr)_minmax(0,1.95fr)] gap-6 md:gap-0 items-center py-10 md:py-12">
 
           {/* Left */}
           <div className="flex flex-col gap-6" style={{ animation: 'fade-up 0.6s ease both' }}>
@@ -274,9 +274,9 @@ export default function HomePage() {
           </div>
 
           {/* Right — 3D model */}
-          <div className="flex justify-center items-center" style={{ animation: 'fade-up 0.5s 0.12s ease both', marginRight: 'calc(-1 * max(0px, (100vw - 80rem) / 2))' }}>
+          <div className="flex justify-center items-center md:-ml-10 lg:-ml-14" style={{ animation: 'fade-up 0.5s 0.12s ease both', marginRight: 'calc(-1 * max(0px, (100vw - 80rem) / 2))' }}>
             <div style={{ width: '100%' }}>
-              <TubeFurnaceRig3D height={500} />
+              <TubeFurnaceRig3D height={440} />
             </div>
           </div>
         </div>
@@ -284,7 +284,7 @@ export default function HomePage() {
 
       {/* ══ НОВОСТИ & УВЕДОМЛЕНИЯ ══ */}
       {news.length > 0 && (
-        <section style={{ background: '#F1F5F9', borderTop: '1px solid #E2E8F0', padding: '56px 0' }}>
+        <section style={{ background: '#F1F5F9', borderTop: '1px solid #E2E8F0', padding: '40px 0' }}>
           <div className="max-w-7xl mx-auto px-6 lg:px-8">
 
             <div className="flex items-end justify-between mb-8">

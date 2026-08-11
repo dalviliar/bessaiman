@@ -292,8 +292,9 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       legX.forEach((x, i) => {
         mesh(spawn([x, -1.02, 0], [x, -6.2, 0], 0.66 + i * 0.05, 0.7), Box(0.14, 0.12, 2.1), steelM)
       })
-      // table top
+      // table top + front apron (carries the welded company name)
       mesh(spawn([0, -0.9, 0], [0, 5.6, 0], 0.9, 0.9), Box(11.6, 0.12, 2.3), steelM)
+      mesh(spawn([0, -1.14, 1.12], [0, 6.4, 1.12], 0.94, 0.85), Box(11.2, 0.36, 0.05), M(0x39434E, 0.85, 0.42))
       mesh(spawn([0, -0.83, 0], [0, 6.2, 0], 1.0, 0.8), Box(11.2, 0.03, 2.0), M(0x8FA3B0, 0.55, 0.55))
 
       // ══ 2. FURNACE BODY (clamshell) ═════════════════════════════
@@ -339,7 +340,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       mesh(furnHi, Box(3.6, 0.06, 0.06), steelM, 0, 0.94, 0)       // spine rail
       // brand label, curved onto the hood
       {
-        const w = 2.66, h = w / 4.04
+        const w = 3.02, h = w / 4.04
         const plate = new THREE.Mesh(curvedDecal(w + 0.26, h + 0.2, 0.968), labelM)
         plate.rotation.set(0.7, 0, 0)
         furnHi.add(plate)
@@ -507,8 +508,8 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       // exhaust piping up from the pump, elbowed back over the cabinet
       mesh(spawn([4.2, 0.42, 0.1], [11, 3.4, 0.1], 6.85, 0.7), Cyl(0.13, 0.13, 0.9, 18), steelM)
       mesh(spawn([4.2, 0.87, 0.1], [11, 4.2, 0.1], 6.95, 0.6), Tor(0.16, 0.13, 20), steelM, 0, 0, 0, 0, Math.PI / 2, 0)
-      mesh(spawn([4.2, 1.03, -0.35], [11, 4.8, -0.35], 7.05, 0.6, [Math.PI / 2, 0, 0], [Math.PI / 2, 0.4, 0]), Cyl(0.13, 0.13, 0.9, 18), steelM)
-      mesh(spawn([4.2, 1.03, -0.85], [11, 5.2, -0.85], 7.15, 0.5), Cyl(0.17, 0.17, 0.07, 20), darkM, 0, 0, 0, Math.PI / 2, 0, 0)
+      mesh(spawn([4.78, 1.03, 0.1], [11, 4.8, 0.1], 7.05, 0.6, [0, 0, Math.PI / 2], [0.4, 0, Math.PI / 2]), Cyl(0.13, 0.13, 1.15, 18), steelM)
+      mesh(spawn([5.38, 1.03, 0.1], [11, 5.2, 0.1], 7.15, 0.5), Cyl(0.17, 0.17, 0.07, 20), darkM, 0, 0, 0, 0, 0, Math.PI / 2)
       // inlet line from tube outlet flange to the pump
       mesh(spawn([3.35, -0.2, 0.1], [10.5, -3, 0.1], 7.1, 0.6), Cyl(0.1, 0.1, 0.9, 14), rubberM, 0, 0, 0, 0, 0, 0.35)
 
@@ -516,7 +517,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       const cab = spawn([6.55, -0.42, -0.35], [12.5, -0.42, -0.35], 6.9, 0.95)
       mesh(cab, Box(1.5, 2.0, 0.9), panelM)
       mesh(cab, Box(1.56, 0.09, 0.96), steelM, 0, 1.02, 0)
-      mesh(cab, new THREE.PlaneGeometry(0.86, 0.213), logoWhiteM, 0, 0.87, 0.47)
+      mesh(cab, new THREE.PlaneGeometry(1.06, 0.262), logoWhiteM, 0, 0.9, 0.47)
       mesh(cab, Box(1.56, 0.09, 0.96), darkM, 0, -1.0, 0)
       ;[-0.62, 0.62].forEach(x => [-0.34, 0.34].forEach(z => mesh(cab, Cyl(0.07, 0.07, 0.1, 12), rubberM, x, -1.08, z)))
       // front panel faces the viewer (+Z), flush on the cabinet front
@@ -610,6 +611,77 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       })
       // tongs lying on the bench
       mesh(spawn([0.5, -0.74, 0.82], [0.5, -6, 3], 7.85, 0.5, [0, 0.35, Math.PI / 2], [0.8, 0.9, 1.2]), Cyl(0.018, 0.018, 0.75, 8), steelM)
+
+      // ══ 11. WELDED NAMEPLATE ON THE APRON ═══════════════════════
+      // Two canvases: one for the bead itself, one for how hot each letter
+      // still is — so the name is laid down letter by letter and cools off.
+      const WELD_TEXT = 'BES SAIMAN GROUP'
+      const WELD_W = 2048, WELD_H = 256
+      const makeWeldCanvas = () => {
+        const c = document.createElement('canvas')
+        c.width = WELD_W; c.height = WELD_H
+        return { c, ctx: c.getContext('2d')! }
+      }
+      const beadCv = makeWeldCanvas()
+      const glowCv = makeWeldCanvas()
+      const weldFont = `700 ${Math.round(WELD_H * 0.62)}px "Trebuchet MS", "Segoe UI", sans-serif`
+      const letterX: number[] = []
+      {
+        beadCv.ctx.font = weldFont
+        const spacing = WELD_H * 0.09
+        let total = 0
+        for (const ch of WELD_TEXT) total += beadCv.ctx.measureText(ch).width + spacing
+        let x = (WELD_W - total) / 2
+        for (const ch of WELD_TEXT) {
+          letterX.push(x)
+          x += beadCv.ctx.measureText(ch).width + spacing
+        }
+      }
+      const drawWeld = (heat: number[]) => {
+        for (const { ctx } of [beadCv, glowCv]) {
+          ctx.clearRect(0, 0, WELD_W, WELD_H)
+          ctx.font = weldFont
+          ctx.textBaseline = 'middle'
+        }
+        WELD_TEXT.split('').forEach((ch, i) => {
+          const hv = heat[i]
+          if (hv < 0) return
+          const y = WELD_H / 2
+          // cooled bead: dark oxidised metal with a bright crown
+          beadCv.ctx.lineWidth = WELD_H * 0.16
+          beadCv.ctx.lineJoin = 'round'
+          beadCv.ctx.strokeStyle = '#12171B'
+          beadCv.ctx.strokeText(ch, letterX[i], y)
+          const hot = Math.max(0, Math.min(1, hv))
+          beadCv.ctx.fillStyle = hot > 0
+            ? `rgb(${Math.round(214 + 41 * hot)},${Math.round(221 - 51 * hot)},${Math.round(228 - 188 * hot)})`
+            : '#D6DDE4'
+          beadCv.ctx.fillText(ch, letterX[i], y)
+          if (hot > 0.01) {
+            glowCv.ctx.fillStyle = `rgb(${Math.round(255 * hot)},${Math.round(150 * hot)},${Math.round(40 * hot)})`
+            glowCv.ctx.fillText(ch, letterX[i], y)
+          }
+        })
+        beadTex.needsUpdate = true
+        glowTex.needsUpdate = true
+      }
+      const beadTex = new THREE.CanvasTexture(beadCv.c)
+      beadTex.colorSpace = THREE.SRGBColorSpace
+      beadTex.anisotropy = 8
+      const glowTex = new THREE.CanvasTexture(glowCv.c)
+      glowTex.colorSpace = THREE.SRGBColorSpace
+      const weldM = new THREE.MeshStandardMaterial({
+        map: beadTex, transparent: true, metalness: 0.75, roughness: 0.5,
+        emissive: 0xffffff, emissiveMap: glowTex, emissiveIntensity: 2.6, depthWrite: false,
+      })
+      const weldW = 3.9
+      const weldPlate = new THREE.Mesh(new THREE.PlaneGeometry(weldW, weldW * WELD_H / WELD_W), weldM)
+      weldPlate.position.set(-2.4, -1.14, 1.155)
+      rig.add(weldPlate)
+      const spark = new THREE.PointLight(0xffb257, 0, 2.2, 2)
+      rig.add(spark)
+      const weldHeat = WELD_TEXT.split('').map(() => -1)
+      drawWeld(weldHeat)
 
       // ── Ground shadow ───────────────────────────────────────────
       const shadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.ShadowMaterial({ opacity: 0.16 }))
@@ -708,6 +780,28 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
         gaugeNeedles.forEach((n, i) => {
           n.rotation.z = -0.8 + power * (1.1 + Math.sin(t * 1.4 + i) * 0.28)
         })
+
+        // the name is welded on last, one letter at a time
+        const weldT = t - (ASSEMBLY_END + 2.0)
+        if (weldT > 0) {
+          const PER_LETTER = 0.15
+          let changed = false
+          for (let i = 0; i < weldHeat.length; i++) {
+            const laid = i * PER_LETTER
+            if (weldT < laid) continue
+            const h = Math.max(0, 1 - (weldT - laid) / 1.9)
+            if (weldHeat[i] < 0 || Math.abs(h - weldHeat[i]) > 0.004) { weldHeat[i] = h; changed = true }
+          }
+          if (changed) drawWeld(weldHeat)
+          const idx = Math.floor(weldT / PER_LETTER)
+          if (idx < WELD_TEXT.length) {
+            const u = (letterX[idx] + 40) / WELD_W
+            spark.position.set(weldPlate.position.x + (u - 0.5) * weldW, weldPlate.position.y, weldPlate.position.z + 0.3)
+            spark.intensity = 7 + Math.random() * 7
+          } else {
+            spark.intensity = 0
+          }
+        }
 
         // slow push-in once assembled, so the detailing is readable
         // …then pull in exactly that margin so the finished rig fills the frame
