@@ -29,6 +29,7 @@ interface NCard {
   accent?: string
   tags?: string | null
   badge?: string
+  group?: string
   body: string[]
   link?: { href: string; label: string }
 }
@@ -63,6 +64,7 @@ export default function NaukaPage() {
   const [contracts, setContracts] = useState<Contract[]>([])
 
   const [tab, setTab] = useState('dev')
+  const [sub, setSub] = useState('')
   const [limit, setLimit] = useState(PAGE_SIZE)
   const [active, setActive] = useState<NCard | null>(null)
   const [shot, setShot] = useState(0)
@@ -126,6 +128,7 @@ export default function NaukaPage() {
       icon: ShieldCheck,
       accent: '#059669',
       badge: p.badge_label,
+      group: 'patent',
       body: [],
     })),
     ...publications.map(p => ({
@@ -136,6 +139,7 @@ export default function NaukaPage() {
       images: [],
       icon: BookOpen,
       accent: '#1565C0',
+      group: 'publication',
       body: p.authors ? [p.authors] : [],
       link: p.doi ? { href: `https://doi.org/${p.doi}`, label: 'DOI' } : undefined,
     })),
@@ -175,10 +179,20 @@ export default function NaukaPage() {
 
   const current = TABS.find(t => t.key === tab) ?? TABS[0]
 
-  useEffect(() => { setLimit(PAGE_SIZE) }, [tab])
+  const groups = current
+    ? Array.from(new Set(current.cards.map(c => c.group).filter(Boolean))) as string[]
+    : []
+  const groupLabel: Record<string, string> = {
+    patent: tr.nauka.patentsTitle,
+    publication: tr.nauka.pubTitle,
+  }
+  const visible = current ? current.cards.filter(c => !sub || c.group === sub) : []
 
-  const shown = current ? current.cards.slice(0, limit) : []
-  const rest = current ? current.cards.length - shown.length : 0
+  useEffect(() => { setLimit(PAGE_SIZE); setSub('') }, [tab])
+  useEffect(() => { setLimit(PAGE_SIZE) }, [sub])
+
+  const shown = visible.slice(0, limit)
+  const rest = visible.length - shown.length
 
   return (
     <div>
@@ -214,7 +228,10 @@ export default function NaukaPage() {
         {/* ══ Section tabs ══ */}
         {current && (
           <div className="mb-16">
-            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 mb-6">
+            {/* stays reachable while a long grid scrolls past */}
+            <div className="sticky top-[76px] md:top-[96px] z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 mb-5"
+              style={{ background: 'rgba(240,244,248,0.94)', backdropFilter: 'blur(8px)' }}>
+              <div className="flex gap-2 overflow-x-auto no-scrollbar">
               {TABS.map(t => {
                 const on = t.key === current.key
                 return (
@@ -234,9 +251,32 @@ export default function NaukaPage() {
                   </button>
                 )
               })}
+              </div>
             </div>
 
-            <p className="text-base mb-6" style={{ color: '#64748B' }}>{current.intro}</p>
+            <p className="text-base mb-5" style={{ color: '#64748B' }}>{current.intro}</p>
+
+            {groups.length > 1 && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {[{ key: '', label: tr.nauka.allFilter }, ...groups.map(g => ({ key: g, label: groupLabel[g] ?? g }))].map(g => {
+                  const on = g.key === sub
+                  return (
+                    <button key={g.key || 'all'} type="button" onClick={() => setSub(g.key)}
+                      className="px-3.5 py-1.5 rounded-full text-sm font-semibold transition-colors"
+                      style={{
+                        background: on ? '#EFF6FF' : 'white',
+                        color: on ? '#1565C0' : '#64748B',
+                        border: `1px solid ${on ? '#BFDBFE' : '#E2E8F0'}`,
+                      }}>
+                      {g.label}
+                      <span className="ml-1.5" style={{ color: '#94A3B8' }}>
+                        {g.key ? current.cards.filter(c => c.group === g.key).length : current.cards.length}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {shown.map(card => {
@@ -244,14 +284,22 @@ export default function NaukaPage() {
                 const cover = card.images[0]
                 return (
                   <button key={card.id} type="button" onClick={() => setActive(card)}
-                    onMouseEnter={e => { if (cover) showPreview(cover, e.currentTarget, card.id) }}
-                    onMouseLeave={() => hidePreview(card.id)}
-                    className="group text-left rounded-xl overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                    onMouseEnter={e => {
+                      if (cover) showPreview(cover, e.currentTarget, card.id)
+                      e.currentTarget.style.borderColor = '#93C5FD'
+                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(21,101,192,0.12)'
+                    }}
+                    onMouseLeave={e => {
+                      hidePreview(card.id)
+                      e.currentTarget.style.borderColor = '#E2E8F0'
+                      e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.04)'
+                    }}
+                    className="group text-left rounded-xl overflow-hidden flex flex-col transition-[box-shadow,border-color] duration-200"
                     style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
                     <div className="relative aspect-[4/3] overflow-hidden" style={{ background: '#F1F5F9' }}>
                       {cover ? (
                         <img src={cover} alt={card.title} draggable={false}
-                          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
+                          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center"
                           style={{ background: `linear-gradient(135deg, ${card.accent}14, ${card.accent}05)` }}>

@@ -71,15 +71,28 @@ function FormShell({
   onSubmit: (e: React.FormEvent) => void
   children: React.ReactNode
 }) {
+  const [open, setOpen] = useState(false)
+  useEffect(() => { if (editing) setOpen(true) }, [editing])
+
+  // Collapsed by default so the records stay in view — the form grew tall
+  // enough to push the whole list below the fold.
+  if (!editing && !open) {
+    return (
+      <button type="button" onClick={() => setOpen(true)}
+        className="mb-6 w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold transition-colors"
+        style={{ background: 'rgba(59,130,246,0.1)', color: '#60A5FA', border: '1px dashed rgba(59,130,246,0.35)' }}>
+        <Plus size={15} />{title}
+      </button>
+    )
+  }
+
   return (
     <form onSubmit={onSubmit} className="mb-8 p-5 rounded-xl space-y-4" style={cardStyle}>
       <div className="flex items-center justify-between mb-1">
         <h2 className="text-sm font-bold text-white">{title}</h2>
-        {editing && (
-          <button type="button" onClick={onCancel} style={{ color: 'rgba(255,255,255,0.4)' }}>
-            <X size={16} />
-          </button>
-        )}
+        <button type="button" onClick={() => { onCancel(); setOpen(false) }} style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <X size={16} />
+        </button>
       </div>
       {children}
       <div className="flex items-center gap-4">
