@@ -327,7 +327,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       })
       // table top + front apron (carries the welded company name)
       mesh(spawn([0, -0.9, 0], [0, 5.6, 0], 0.9, 0.9), Box(11.6, 0.12, 2.3), steelM)
-      mesh(spawn([0, -1.26, 1.12], [0, 6.4, 1.12], 0.94, 0.85), Box(11.2, 0.64, 0.05), M(0x39434E, 0.85, 0.42))
+      mesh(spawn([0, -1.37, 1.12], [0, 6.4, 1.12], 0.94, 0.85), Box(11.2, 0.86, 0.05), M(0x39434E, 0.85, 0.42))
       mesh(spawn([0, -0.83, 0], [0, 6.2, 0], 1.0, 0.8), Box(11.2, 0.03, 2.0), M(0x8FA3B0, 0.55, 0.55))
 
       // ══ 2. FURNACE BODY (clamshell) ═════════════════════════════
@@ -659,78 +659,84 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       const glowCv = makeWeldCanvas()
       const weldFont = `700 ${Math.round(WELD_H * 0.55)}px "Trebuchet MS", "Segoe UI", sans-serif`
 
-      // Laid down in order: the mark's dotted comet tail as tack welds, then
-      // the letters. Nested arcs open to the right, dots thinning outwards —
-      // the same build as the printed logo.
-      type WeldItem = { x: number; y: number; r: number } | { x: number; ch: string }
-      const weldItems: WeldItem[] = []
+      // The dotted mark is taken straight from the logo artwork — hand-placed
+      // tacks never matched it — and swept on left to right like a real bead.
+      const tintCv = makeWeldCanvas()
+      const logoImg = new Image()
+      let logoReady = false
+      logoImg.onload = () => { logoReady = true }
+      logoImg.src = '/logo-full.png'
+      const MARK_SRC = { w: 196, h: 396 }      // the dot swoosh, before the "B"
+      const MARK_TIME = 1.1
+      const PER_LETTER = 0.15
+
+      const letterX: number[] = []
+      let markX = 0
+      const markW = WELD_H * (MARK_SRC.w / MARK_SRC.h)
       {
         beadCv.ctx.font = weldFont
         const spacing = WELD_H * 0.08
         let textW = 0
         for (const ch of WELD_TEXT) textW += beadCv.ctx.measureText(ch).width + spacing
-        const markR = WELD_H * 0.46
-        const gap = WELD_H * 0.2
-        const startX = (WELD_W - (markR * 1.35 + gap + textW)) / 2
-        const cx = startX + markR, cy = WELD_H / 2
-
-        // Few, bold tacks: at the size this plate is read on screen a faithful
-        // dot count collapses into a blob.
-        const dots: { x: number; y: number; r: number }[] = []
-        for (const [rad, n, size] of [[0.5, 5, 0.055], [0.68, 6, 0.047], [0.84, 7, 0.039], [1.0, 8, 0.031]] as const) {
-          const half = Math.PI * 0.52
-          for (let i = 0; i < n; i++) {
-            const a = Math.PI + (-half + (2 * half * i) / (n - 1))
-            dots.push({ x: cx + markR * rad * Math.cos(a), y: cy + markR * rad * Math.sin(a) * 1.05, r: WELD_H * size })
-          }
-        }
-        dots.sort((a, b) => a.x - b.x)      // tacked left to right, like the letters
-        weldItems.push(...dots)
-
-        let x = cx + markR * 0.35 + gap
+        const gap = WELD_H * 0.1
+        markX = (WELD_W - (markW + gap + textW)) / 2
+        let x = markX + markW + gap
         for (const ch of WELD_TEXT) {
-          weldItems.push({ x, ch })
+          letterX.push(x)
           x += beadCv.ctx.measureText(ch).width + spacing
         }
       }
-      // dots tack on quickly, letters take their time
-      const weldAt: number[] = []
-      {
-        let acc = 0
-        for (const it of weldItems) { weldAt.push(acc); acc += 'ch' in it ? 0.15 : 0.014 }
+      const weldAt = letterX.map((_, i) => MARK_TIME + i * PER_LETTER)
+
+      const drawMark = (target: typeof beadCv, stops: [string, string, string], head: number, vis: number) => {
+        const t = tintCv.ctx
+        t.clearRect(0, 0, WELD_W, WELD_H)
+        t.save()
+        t.beginPath(); t.rect(markX, 0, vis, WELD_H); t.clip()
+        t.drawImage(logoImg, 0, 0, MARK_SRC.w, MARK_SRC.h, markX, 0, markW, WELD_H)
+        t.restore()
+        t.globalCompositeOperation = 'source-in'
+        const g = t.createLinearGradient(head - markW * 0.4, 0, head, 0)
+        g.addColorStop(0, stops[0]); g.addColorStop(0.55, stops[1]); g.addColorStop(1, stops[2])
+        t.fillStyle = g
+        t.fillRect(0, 0, WELD_W, WELD_H)
+        t.globalCompositeOperation = 'source-over'
+        target.ctx.drawImage(tintCv.c, 0, 0)
       }
 
-      const drawWeld = (heat: number[]) => {
+      const drawWeld = (wt: number, heat: number[]) => {
         for (const { ctx } of [beadCv, glowCv]) {
           ctx.clearRect(0, 0, WELD_W, WELD_H)
           ctx.font = weldFont
           ctx.textBaseline = 'middle'
         }
-        weldItems.forEach((it, i) => {
+        if (logoReady && wt > 0) {
+          const head = markX + markW * (wt / MARK_TIME)
+          const vis = Math.min(Math.max(head - markX, 0), markW)
+          if (vis > 0) {
+            beadCv.ctx.save()
+            beadCv.ctx.shadowColor = 'rgba(8,12,16,0.95)'
+            beadCv.ctx.shadowBlur = WELD_H * 0.012
+            drawMark(beadCv, ['#E3EAF0', '#FFD9A0', '#FF8A24'], head, vis)
+            beadCv.ctx.restore()
+            drawMark(glowCv, ['#000000', '#7a3f0c', '#FF8A24'], head, vis)
+          }
+        }
+        letterX.forEach((lx, i) => {
           if (heat[i] < 0) return
           const hot = Math.max(0, Math.min(1, heat[i]))
           // cooled bead: bright crown over a dark oxidised outline
-          const crown = hot > 0
+          beadCv.ctx.lineWidth = WELD_H * 0.16
+          beadCv.ctx.lineJoin = 'round'
+          beadCv.ctx.strokeStyle = '#12171B'
+          beadCv.ctx.strokeText(WELD_TEXT[i], lx, WELD_H / 2)
+          beadCv.ctx.fillStyle = hot > 0
             ? `rgb(${Math.round(227 + 28 * hot)},${Math.round(234 - 64 * hot)},${Math.round(240 - 200 * hot)})`
             : '#E3EAF0'
-          const glow = `rgb(${Math.round(255 * hot)},${Math.round(150 * hot)},${Math.round(40 * hot)})`
-          if ('ch' in it) {
-            beadCv.ctx.lineWidth = WELD_H * 0.16
-            beadCv.ctx.lineJoin = 'round'
-            beadCv.ctx.strokeStyle = '#12171B'
-            beadCv.ctx.strokeText(it.ch, it.x, WELD_H / 2)
-            beadCv.ctx.fillStyle = crown
-            beadCv.ctx.fillText(it.ch, it.x, WELD_H / 2)
-            if (hot > 0.01) { glowCv.ctx.fillStyle = glow; glowCv.ctx.fillText(it.ch, it.x, WELD_H / 2) }
-          } else {
-            beadCv.ctx.beginPath(); beadCv.ctx.arc(it.x, it.y, it.r * 1.45, 0, Math.PI * 2)
-            beadCv.ctx.fillStyle = '#12171B'; beadCv.ctx.fill()
-            beadCv.ctx.beginPath(); beadCv.ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2)
-            beadCv.ctx.fillStyle = crown; beadCv.ctx.fill()
-            if (hot > 0.01) {
-              glowCv.ctx.beginPath(); glowCv.ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2)
-              glowCv.ctx.fillStyle = glow; glowCv.ctx.fill()
-            }
+          beadCv.ctx.fillText(WELD_TEXT[i], lx, WELD_H / 2)
+          if (hot > 0.01) {
+            glowCv.ctx.fillStyle = `rgb(${Math.round(255 * hot)},${Math.round(150 * hot)},${Math.round(40 * hot)})`
+            glowCv.ctx.fillText(WELD_TEXT[i], lx, WELD_H / 2)
           }
         })
         beadTex.needsUpdate = true
@@ -745,14 +751,14 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
         map: beadTex, transparent: true, metalness: 0.75, roughness: 0.5,
         emissive: 0xffffff, emissiveMap: glowTex, emissiveIntensity: 2.6, depthWrite: false,
       })
-      const weldW = 5.2
+      const weldW = 7.0
       const weldPlate = new THREE.Mesh(new THREE.PlaneGeometry(weldW, weldW * WELD_H / WELD_W), weldM)
-      weldPlate.position.set(0.8, -1.26, 1.165)
+      weldPlate.position.set(0.85, -1.37, 1.165)
       rig.add(weldPlate)
       const spark = new THREE.PointLight(0xffb257, 0, 2.2, 2)
       rig.add(spark)
-      const weldHeat = weldItems.map(() => -1)
-      drawWeld(weldHeat)
+      const weldHeat = letterX.map(() => -1)
+      drawWeld(-1, weldHeat)
 
       // ── Ground shadow ───────────────────────────────────────────
       const shadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.ShadowMaterial({ opacity: 0.16 }))
@@ -877,19 +883,24 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
 
         // the name is welded on last, one letter at a time
         const weldT = t - (ASSEMBLY_END + 1.6)
-        if (weldT > 0) {
-          let changed = false
+        const weldDone = weldAt[weldAt.length - 1] + 2.2
+        if (weldT > 0 && weldT < weldDone + 0.2) {
           let tip = -1
           for (let i = 0; i < weldHeat.length; i++) {
             if (weldT < weldAt[i]) continue
             tip = i
-            const h = Math.max(0, 1 - (weldT - weldAt[i]) / 1.9)
-            if (weldHeat[i] < 0 || Math.abs(h - weldHeat[i]) > 0.004) { weldHeat[i] = h; changed = true }
+            weldHeat[i] = Math.max(0, 1 - (weldT - weldAt[i]) / 1.9)
           }
-          if (changed) drawWeld(weldHeat)
-          if (tip >= 0 && tip < weldItems.length - 1) {
-            const u = (weldItems[tip].x + 40) / WELD_W
-            spark.position.set(weldPlate.position.x + (u - 0.5) * weldW, weldPlate.position.y, weldPlate.position.z + 0.3)
+          drawWeld(weldT, weldHeat)
+          const head = weldT < MARK_TIME
+            ? markX + markW * (weldT / MARK_TIME)
+            : (tip >= 0 && tip < letterX.length - 1 ? letterX[tip] + 40 : -1)
+          if (head >= 0) {
+            spark.position.set(
+              weldPlate.position.x + (head / WELD_W - 0.5) * weldW,
+              weldPlate.position.y,
+              weldPlate.position.z + 0.3,
+            )
             spark.intensity = 7 + Math.random() * 7
           } else {
             spark.intensity = 0
