@@ -142,12 +142,45 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       scene.add(new THREE.HemisphereLight(0xe8f0ff, 0x93a3b2, 0.35))
 
       // ── Materials ───────────────────────────────────────────────
+      // Uniform roughness is what makes CG metal read as plastic, so every
+      // surface gets a faint procedural grain — directional for the brushed
+      // steel, speckled for the painted panels.
+      const grainTexture = (streaks: number, contrast: number) => {
+        const S = 512
+        const c = document.createElement('canvas')
+        c.width = S; c.height = S
+        const ctx = c.getContext('2d')!
+        ctx.fillStyle = '#808080'
+        ctx.fillRect(0, 0, S, S)
+        for (let i = 0; i < streaks; i++) {
+          const v = 128 + (Math.random() - 0.5) * 2 * contrast
+          ctx.strokeStyle = `rgb(${v},${v},${v})`
+          ctx.lineWidth = Math.random() * 1.8 + 0.3
+          const y = Math.random() * S
+          ctx.beginPath()
+          ctx.moveTo(0, y)
+          ctx.lineTo(S, y + (Math.random() - 0.5) * 3)
+          ctx.stroke()
+        }
+        const t = new THREE.CanvasTexture(c)
+        t.wrapS = t.wrapT = THREE.RepeatWrapping
+        t.repeat.set(3, 3)
+        return t
+      }
+      const brushedGrain = grainTexture(900, 46)
+      const paintGrain = grainTexture(420, 16)
+
       const M = (color: number, metalness = 0.8, roughness = 0.22) =>
-        new THREE.MeshStandardMaterial({ color, metalness, roughness })
+        new THREE.MeshStandardMaterial({
+          color, metalness, roughness, roughnessMap: brushedGrain, envMapIntensity: 1.15,
+        })
 
       // Lacquered paint: no metalness, a clearcoat layer on top.
       const P = (color: number, roughness = 0.42, clearcoat = 0.55) =>
-        new THREE.MeshPhysicalMaterial({ color, metalness: 0.0, roughness, clearcoat, clearcoatRoughness: 0.18 })
+        new THREE.MeshPhysicalMaterial({
+          color, metalness: 0.0, roughness, roughnessMap: paintGrain,
+          clearcoat, clearcoatRoughness: 0.18, envMapIntensity: 1.1,
+        })
 
       const shellM   = P(0x1565C0, 0.32)          // furnace body in the brand blue
       const shellTopM= P(0x1B72CD, 0.34)
@@ -294,7 +327,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       })
       // table top + front apron (carries the welded company name)
       mesh(spawn([0, -0.9, 0], [0, 5.6, 0], 0.9, 0.9), Box(11.6, 0.12, 2.3), steelM)
-      mesh(spawn([0, -1.14, 1.12], [0, 6.4, 1.12], 0.94, 0.85), Box(11.2, 0.5, 0.05), M(0x39434E, 0.85, 0.42))
+      mesh(spawn([0, -1.26, 1.12], [0, 6.4, 1.12], 0.94, 0.85), Box(11.2, 0.64, 0.05), M(0x39434E, 0.85, 0.42))
       mesh(spawn([0, -0.83, 0], [0, 6.2, 0], 1.0, 0.8), Box(11.2, 0.03, 2.0), M(0x8FA3B0, 0.55, 0.55))
 
       // ══ 2. FURNACE BODY (clamshell) ═════════════════════════════
@@ -616,7 +649,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       // Two canvases: one for the bead itself, one for how hot each letter
       // still is — so the name is laid down letter by letter and cools off.
       const WELD_TEXT = 'BES SAIMAN GROUP'
-      const WELD_W = 2560, WELD_H = 256
+      const WELD_W = 2560, WELD_H = 300
       const makeWeldCanvas = () => {
         const c = document.createElement('canvas')
         c.width = WELD_W; c.height = WELD_H
@@ -624,10 +657,11 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       }
       const beadCv = makeWeldCanvas()
       const glowCv = makeWeldCanvas()
-      const weldFont = `700 ${Math.round(WELD_H * 0.6)}px "Trebuchet MS", "Segoe UI", sans-serif`
+      const weldFont = `700 ${Math.round(WELD_H * 0.55)}px "Trebuchet MS", "Segoe UI", sans-serif`
 
-      // Laid down in order: first the dotted arcs of the logo mark as tack
-      // welds, then the letters.
+      // Laid down in order: the mark's dotted comet tail as tack welds, then
+      // the letters. Nested arcs open to the right, dots thinning outwards —
+      // the same build as the printed logo.
       type WeldItem = { x: number; y: number; r: number } | { x: number; ch: string }
       const weldItems: WeldItem[] = []
       {
@@ -635,17 +669,25 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
         const spacing = WELD_H * 0.08
         let textW = 0
         for (const ch of WELD_TEXT) textW += beadCv.ctx.measureText(ch).width + spacing
-        const markR = WELD_H * 0.44
-        const gap = WELD_H * 0.16
-        const startX = (WELD_W - (markR + gap + textW)) / 2
+        const markR = WELD_H * 0.46
+        const gap = WELD_H * 0.2
+        const startX = (WELD_W - (markR * 1.35 + gap + textW)) / 2
         const cx = startX + markR, cy = WELD_H / 2
-        for (const [r, n, dot] of [[1.0, 9, 0.052], [0.78, 8, 0.046], [0.57, 7, 0.04], [0.36, 5, 0.034]] as const) {
+
+        // Few, bold tacks: at the size this plate is read on screen a faithful
+        // dot count collapses into a blob.
+        const dots: { x: number; y: number; r: number }[] = []
+        for (const [rad, n, size] of [[0.5, 5, 0.055], [0.68, 6, 0.047], [0.84, 7, 0.039], [1.0, 8, 0.031]] as const) {
+          const half = Math.PI * 0.52
           for (let i = 0; i < n; i++) {
-            const a = Math.PI * (0.66 + (1.68 * i) / (n - 1))
-            weldItems.push({ x: cx + markR * r * Math.cos(a), y: cy + markR * r * Math.sin(a), r: WELD_H * dot })
+            const a = Math.PI + (-half + (2 * half * i) / (n - 1))
+            dots.push({ x: cx + markR * rad * Math.cos(a), y: cy + markR * rad * Math.sin(a) * 1.05, r: WELD_H * size })
           }
         }
-        let x = cx + gap
+        dots.sort((a, b) => a.x - b.x)      // tacked left to right, like the letters
+        weldItems.push(...dots)
+
+        let x = cx + markR * 0.35 + gap
         for (const ch of WELD_TEXT) {
           weldItems.push({ x, ch })
           x += beadCv.ctx.measureText(ch).width + spacing
@@ -655,7 +697,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       const weldAt: number[] = []
       {
         let acc = 0
-        for (const it of weldItems) { weldAt.push(acc); acc += 'ch' in it ? 0.15 : 0.035 }
+        for (const it of weldItems) { weldAt.push(acc); acc += 'ch' in it ? 0.15 : 0.014 }
       }
 
       const drawWeld = (heat: number[]) => {
@@ -669,8 +711,8 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
           const hot = Math.max(0, Math.min(1, heat[i]))
           // cooled bead: bright crown over a dark oxidised outline
           const crown = hot > 0
-            ? `rgb(${Math.round(214 + 41 * hot)},${Math.round(221 - 51 * hot)},${Math.round(228 - 188 * hot)})`
-            : '#D6DDE4'
+            ? `rgb(${Math.round(227 + 28 * hot)},${Math.round(234 - 64 * hot)},${Math.round(240 - 200 * hot)})`
+            : '#E3EAF0'
           const glow = `rgb(${Math.round(255 * hot)},${Math.round(150 * hot)},${Math.round(40 * hot)})`
           if ('ch' in it) {
             beadCv.ctx.lineWidth = WELD_H * 0.16
@@ -703,9 +745,9 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
         map: beadTex, transparent: true, metalness: 0.75, roughness: 0.5,
         emissive: 0xffffff, emissiveMap: glowTex, emissiveIntensity: 2.6, depthWrite: false,
       })
-      const weldW = 6.4
+      const weldW = 5.2
       const weldPlate = new THREE.Mesh(new THREE.PlaneGeometry(weldW, weldW * WELD_H / WELD_W), weldM)
-      weldPlate.position.set(1.35, -1.16, 1.165)
+      weldPlate.position.set(0.8, -1.26, 1.165)
       rig.add(weldPlate)
       const spark = new THREE.PointLight(0xffb257, 0, 2.2, 2)
       rig.add(spark)
@@ -718,6 +760,29 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       shadowPlane.position.y = -2.36
       shadowPlane.receiveShadow = true
       scene.add(shadowPlane)
+
+      // Soft ambient occlusion under the bench — a cast shadow alone leaves the
+      // rig looking like it hovers.
+      {
+        const S = 256
+        const c = document.createElement('canvas')
+        c.width = c.height = S
+        const ctx = c.getContext('2d')!
+        const g = ctx.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2)
+        g.addColorStop(0, 'rgba(20,30,45,0.5)')
+        g.addColorStop(0.55, 'rgba(20,30,45,0.22)')
+        g.addColorStop(1, 'rgba(20,30,45,0)')
+        ctx.fillStyle = g
+        ctx.fillRect(0, 0, S, S)
+        const tex = new THREE.CanvasTexture(c)
+        const contact = new THREE.Mesh(
+          new THREE.PlaneGeometry(17, 4.4),
+          new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false }),
+        )
+        contact.rotation.x = -Math.PI / 2
+        contact.position.set(0.2, -2.35, 0.1)
+        scene.add(contact)
+      }
 
       // Re-time everything into a strict queue: parts authored at roughly the
       // same moment form one step (a bolt ring goes in together) and each step
