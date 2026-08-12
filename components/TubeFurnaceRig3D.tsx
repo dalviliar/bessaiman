@@ -43,7 +43,7 @@ interface FlyPart {
  */
 export default function TubeFurnaceRig3D({
   height = 620,
-  slogan = 'СОЗДАЙ СВОЁ С НАМИ!',
+  slogan = 'Ваши задачи — наши инженерные решения!',
 }: { height?: number; slogan?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [webglFailed, setWebglFailed] = useState(false)
@@ -325,7 +325,7 @@ export default function TubeFurnaceRig3D({
       })
       // table top + front apron (carries the welded company name)
       mesh(spawn([0, -0.9, 0], [0, 5.6, 0], 0.9, 0.9), Box(11.6, 0.12, 2.3), steelM)
-      mesh(spawn([0, -1.37, 1.12], [0, 6.4, 1.12], 0.94, 0.85), Box(11.2, 0.86, 0.05), M(0x39434E, 0.85, 0.42))
+      mesh(spawn([0, -1.37, 1.12], [0, 6.4, 1.12], 0.94, 0.85), Box(11.2, 0.86, 0.05), P(0x2F3A49, 0.36, 0.58))
       mesh(spawn([0, -0.83, 0], [0, 6.2, 0], 1.0, 0.8), Box(11.2, 0.03, 2.0), M(0x8FA3B0, 0.55, 0.55))
 
       // ══ 2. FURNACE BODY (clamshell) ═════════════════════════════
@@ -705,12 +705,26 @@ export default function TubeFurnaceRig3D({
       furnHi.add(hoodDecal)
 
       // ── slogan on the apron ──
-      const apronS = weldSurface(2560, 300)
-      const apronFont = `700 ${Math.round(apronS.H * 0.55)}px "Trebuchet MS", "Segoe UI", sans-serif`
+      const apronS = weldSurface(3600, 300)
+      // the slogan differs in length per language, so the type is fitted to
+      // the plate rather than fixed
+      const fontOf = (px: number) => `700 ${px}px "Trebuchet MS", "Segoe UI", sans-serif`
       const letterX: number[] = []
+      let apronFont = fontOf(150)
       {
+        const maxW = apronS.W * 0.92
+        let px = Math.round(apronS.H * 0.5)
+        let spacing = px * 0.1
+        for (;;) {
+          apronS.bead.ctx.font = fontOf(px)
+          spacing = px * 0.1
+          let textW = 0
+          for (const ch of slogan) textW += apronS.bead.ctx.measureText(ch).width + spacing
+          if (textW <= maxW || px <= 46) break
+          px -= 4
+        }
+        apronFont = fontOf(px)
         apronS.bead.ctx.font = apronFont
-        const spacing = apronS.H * 0.06
         let textW = 0
         for (const ch of slogan) textW += apronS.bead.ctx.measureText(ch).width + spacing
         let x = (apronS.W - textW) / 2
@@ -719,7 +733,7 @@ export default function TubeFurnaceRig3D({
           x += apronS.bead.ctx.measureText(ch).width + spacing
         }
       }
-      const apronW = 7.0
+      const apronW = 9.6
       const apronPlate = new THREE.Mesh(
         new THREE.PlaneGeometry(apronW, apronW * apronS.H / apronS.W),
         apronS.material,
@@ -755,7 +769,7 @@ export default function TubeFurnaceRig3D({
 
       const HOOD_TIME = 2.4
       const SLOGAN_AT = HOOD_TIME + 0.9
-      const PER_LETTER = 0.12
+      const PER_LETTER = Math.min(0.14, Math.max(0.055, 3.6 / letterX.length))
       const sloganAt = letterX.map((_, i) => SLOGAN_AT + i * PER_LETTER)
       const WELD_END = sloganAt[sloganAt.length - 1] + 2.2
       const sloganHeat = letterX.map(() => -1)
