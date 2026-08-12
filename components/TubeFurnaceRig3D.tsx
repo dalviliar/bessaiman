@@ -294,7 +294,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       })
       // table top + front apron (carries the welded company name)
       mesh(spawn([0, -0.9, 0], [0, 5.6, 0], 0.9, 0.9), Box(11.6, 0.12, 2.3), steelM)
-      mesh(spawn([0, -1.14, 1.12], [0, 6.4, 1.12], 0.94, 0.85), Box(11.2, 0.36, 0.05), M(0x39434E, 0.85, 0.42))
+      mesh(spawn([0, -1.14, 1.12], [0, 6.4, 1.12], 0.94, 0.85), Box(11.2, 0.5, 0.05), M(0x39434E, 0.85, 0.42))
       mesh(spawn([0, -0.83, 0], [0, 6.2, 0], 1.0, 0.8), Box(11.2, 0.03, 2.0), M(0x8FA3B0, 0.55, 0.55))
 
       // ══ 2. FURNACE BODY (clamshell) ═════════════════════════════
@@ -616,7 +616,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       // Two canvases: one for the bead itself, one for how hot each letter
       // still is — so the name is laid down letter by letter and cools off.
       const WELD_TEXT = 'BES SAIMAN GROUP'
-      const WELD_W = 2048, WELD_H = 256
+      const WELD_W = 2560, WELD_H = 256
       const makeWeldCanvas = () => {
         const c = document.createElement('canvas')
         c.width = WELD_W; c.height = WELD_H
@@ -624,42 +624,71 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       }
       const beadCv = makeWeldCanvas()
       const glowCv = makeWeldCanvas()
-      const weldFont = `700 ${Math.round(WELD_H * 0.62)}px "Trebuchet MS", "Segoe UI", sans-serif`
-      const letterX: number[] = []
+      const weldFont = `700 ${Math.round(WELD_H * 0.6)}px "Trebuchet MS", "Segoe UI", sans-serif`
+
+      // Laid down in order: first the dotted arcs of the logo mark as tack
+      // welds, then the letters.
+      type WeldItem = { x: number; y: number; r: number } | { x: number; ch: string }
+      const weldItems: WeldItem[] = []
       {
         beadCv.ctx.font = weldFont
-        const spacing = WELD_H * 0.09
-        let total = 0
-        for (const ch of WELD_TEXT) total += beadCv.ctx.measureText(ch).width + spacing
-        let x = (WELD_W - total) / 2
+        const spacing = WELD_H * 0.08
+        let textW = 0
+        for (const ch of WELD_TEXT) textW += beadCv.ctx.measureText(ch).width + spacing
+        const markR = WELD_H * 0.44
+        const gap = WELD_H * 0.16
+        const startX = (WELD_W - (markR + gap + textW)) / 2
+        const cx = startX + markR, cy = WELD_H / 2
+        for (const [r, n, dot] of [[1.0, 9, 0.052], [0.78, 8, 0.046], [0.57, 7, 0.04], [0.36, 5, 0.034]] as const) {
+          for (let i = 0; i < n; i++) {
+            const a = Math.PI * (0.66 + (1.68 * i) / (n - 1))
+            weldItems.push({ x: cx + markR * r * Math.cos(a), y: cy + markR * r * Math.sin(a), r: WELD_H * dot })
+          }
+        }
+        let x = cx + gap
         for (const ch of WELD_TEXT) {
-          letterX.push(x)
+          weldItems.push({ x, ch })
           x += beadCv.ctx.measureText(ch).width + spacing
         }
       }
+      // dots tack on quickly, letters take their time
+      const weldAt: number[] = []
+      {
+        let acc = 0
+        for (const it of weldItems) { weldAt.push(acc); acc += 'ch' in it ? 0.15 : 0.035 }
+      }
+
       const drawWeld = (heat: number[]) => {
         for (const { ctx } of [beadCv, glowCv]) {
           ctx.clearRect(0, 0, WELD_W, WELD_H)
           ctx.font = weldFont
           ctx.textBaseline = 'middle'
         }
-        WELD_TEXT.split('').forEach((ch, i) => {
-          const hv = heat[i]
-          if (hv < 0) return
-          const y = WELD_H / 2
-          // cooled bead: dark oxidised metal with a bright crown
-          beadCv.ctx.lineWidth = WELD_H * 0.16
-          beadCv.ctx.lineJoin = 'round'
-          beadCv.ctx.strokeStyle = '#12171B'
-          beadCv.ctx.strokeText(ch, letterX[i], y)
-          const hot = Math.max(0, Math.min(1, hv))
-          beadCv.ctx.fillStyle = hot > 0
+        weldItems.forEach((it, i) => {
+          if (heat[i] < 0) return
+          const hot = Math.max(0, Math.min(1, heat[i]))
+          // cooled bead: bright crown over a dark oxidised outline
+          const crown = hot > 0
             ? `rgb(${Math.round(214 + 41 * hot)},${Math.round(221 - 51 * hot)},${Math.round(228 - 188 * hot)})`
             : '#D6DDE4'
-          beadCv.ctx.fillText(ch, letterX[i], y)
-          if (hot > 0.01) {
-            glowCv.ctx.fillStyle = `rgb(${Math.round(255 * hot)},${Math.round(150 * hot)},${Math.round(40 * hot)})`
-            glowCv.ctx.fillText(ch, letterX[i], y)
+          const glow = `rgb(${Math.round(255 * hot)},${Math.round(150 * hot)},${Math.round(40 * hot)})`
+          if ('ch' in it) {
+            beadCv.ctx.lineWidth = WELD_H * 0.16
+            beadCv.ctx.lineJoin = 'round'
+            beadCv.ctx.strokeStyle = '#12171B'
+            beadCv.ctx.strokeText(it.ch, it.x, WELD_H / 2)
+            beadCv.ctx.fillStyle = crown
+            beadCv.ctx.fillText(it.ch, it.x, WELD_H / 2)
+            if (hot > 0.01) { glowCv.ctx.fillStyle = glow; glowCv.ctx.fillText(it.ch, it.x, WELD_H / 2) }
+          } else {
+            beadCv.ctx.beginPath(); beadCv.ctx.arc(it.x, it.y, it.r * 1.45, 0, Math.PI * 2)
+            beadCv.ctx.fillStyle = '#12171B'; beadCv.ctx.fill()
+            beadCv.ctx.beginPath(); beadCv.ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2)
+            beadCv.ctx.fillStyle = crown; beadCv.ctx.fill()
+            if (hot > 0.01) {
+              glowCv.ctx.beginPath(); glowCv.ctx.arc(it.x, it.y, it.r, 0, Math.PI * 2)
+              glowCv.ctx.fillStyle = glow; glowCv.ctx.fill()
+            }
           }
         })
         beadTex.needsUpdate = true
@@ -674,13 +703,13 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
         map: beadTex, transparent: true, metalness: 0.75, roughness: 0.5,
         emissive: 0xffffff, emissiveMap: glowTex, emissiveIntensity: 2.6, depthWrite: false,
       })
-      const weldW = 3.9
+      const weldW = 6.4
       const weldPlate = new THREE.Mesh(new THREE.PlaneGeometry(weldW, weldW * WELD_H / WELD_W), weldM)
-      weldPlate.position.set(-2.4, -1.14, 1.155)
+      weldPlate.position.set(1.35, -1.16, 1.165)
       rig.add(weldPlate)
       const spark = new THREE.PointLight(0xffb257, 0, 2.2, 2)
       rig.add(spark)
-      const weldHeat = WELD_TEXT.split('').map(() => -1)
+      const weldHeat = weldItems.map(() => -1)
       drawWeld(weldHeat)
 
       // ── Ground shadow ───────────────────────────────────────────
@@ -693,8 +722,8 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       // Re-time everything into a strict queue: parts authored at roughly the
       // same moment form one step (a bolt ring goes in together) and each step
       // waits for the previous one, so only one thing is ever in flight.
-      const STEP = 0.68
-      const FLIGHT = 0.6
+      const STEP = 0.55
+      const FLIGHT = 0.5
       {
         const ordered = [...parts].sort((a, b) => a.delay - b.delay)
         let step = -1
@@ -782,20 +811,19 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
         })
 
         // the name is welded on last, one letter at a time
-        const weldT = t - (ASSEMBLY_END + 2.0)
+        const weldT = t - (ASSEMBLY_END + 1.6)
         if (weldT > 0) {
-          const PER_LETTER = 0.15
           let changed = false
+          let tip = -1
           for (let i = 0; i < weldHeat.length; i++) {
-            const laid = i * PER_LETTER
-            if (weldT < laid) continue
-            const h = Math.max(0, 1 - (weldT - laid) / 1.9)
+            if (weldT < weldAt[i]) continue
+            tip = i
+            const h = Math.max(0, 1 - (weldT - weldAt[i]) / 1.9)
             if (weldHeat[i] < 0 || Math.abs(h - weldHeat[i]) > 0.004) { weldHeat[i] = h; changed = true }
           }
           if (changed) drawWeld(weldHeat)
-          const idx = Math.floor(weldT / PER_LETTER)
-          if (idx < WELD_TEXT.length) {
-            const u = (letterX[idx] + 40) / WELD_W
+          if (tip >= 0 && tip < weldItems.length - 1) {
+            const u = (weldItems[tip].x + 40) / WELD_W
             spark.position.set(weldPlate.position.x + (u - 0.5) * weldW, weldPlate.position.y, weldPlate.position.z + 0.3)
             spark.intensity = 7 + Math.random() * 7
           } else {
