@@ -21,6 +21,7 @@ const WhatsAppIcon = () => (
   </svg>
 )
 import { useLang } from '@/context/LanguageContext'
+import { seasonTheme } from '@/lib/season'
 import { useCart } from '@/context/CartContext'
 import type { Lang } from '@/types'
 
@@ -36,6 +37,7 @@ export default function Navbar() {
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
+  const [season] = useState(seasonTheme)
 
   const links = [
     { href: '/',         label: tr.nav.home },
@@ -49,16 +51,16 @@ export default function Navbar() {
     <nav
       className="sticky top-0 z-50"
       style={{
-        background: 'rgba(255,255,255,0.95)',
+        background: `linear-gradient(180deg, ${season.soft} 0%, rgba(255,255,255,0.96) 62%)`,
         backdropFilter: 'blur(16px)',
-        borderBottom: '1px solid #E2E8F0',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+        borderBottom: `1px solid ${season.edge}`,
+        boxShadow: '0 2px 10px rgba(15,23,42,0.06)',
       }}
     >
-      {/* Top accent line */}
+      {/* Top accent line — carries the season's colour */}
       <div style={{
-        height: 2,
-        background: 'linear-gradient(90deg, #1565C0 0%, #0284C7 50%, #1565C0 100%)',
+        height: 3,
+        background: `linear-gradient(90deg, ${season.strip[1]} 0%, ${season.strip[0]} 50%, ${season.strip[1]} 100%)`,
       }} />
 
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between py-2.5">
@@ -76,21 +78,23 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-1">
+        <div className="hidden md:flex items-center gap-1.5">
           {links.map((link) => {
             const active = pathname === link.href
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className="relative px-4 py-2 text-[15px] font-medium tracking-wide transition-all duration-200"
-                style={{ color: active ? '#1565C0' : '#475569', borderRadius: 6 }}
+                className="relative px-4 lg:px-5 py-2.5 text-base font-semibold tracking-wide rounded-lg transition-colors duration-200"
+                style={{
+                  color: active ? '#FFFFFF' : '#334155',
+                  background: active ? season.solid : 'transparent',
+                  boxShadow: active ? `0 4px 12px ${season.solid}38` : 'none',
+                }}
+                onMouseEnter={e => { if (!active) e.currentTarget.style.background = season.soft }}
+                onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}
               >
-                {active && (
-                  <span className="absolute inset-0 rounded-md"
-                    style={{ background: 'rgba(21,101,192,0.08)', border: '1px solid rgba(21,101,192,0.15)' }} />
-                )}
-                <span className="relative">{link.label}</span>
+                {link.label}
               </Link>
             )
           })}
@@ -191,22 +195,24 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden px-4 pb-4 pt-2" style={{ borderTop: '1px solid #E2E8F0' }}>
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMenuOpen(false)}
-              className="block px-4 py-2.5 text-base font-medium tracking-wide mb-1 transition-colors"
-              style={{
-                color: pathname === link.href ? '#1565C0' : '#475569',
-                borderRadius: 6,
-                background: pathname === link.href ? 'rgba(21,101,192,0.06)' : 'transparent',
-              }}
-            >
-              {link.label}
-            </Link>
-          ))}
+        <div className="md:hidden px-4 pb-4 pt-2" style={{ borderTop: `1px solid ${season.edge}` }}>
+          {links.map((link) => {
+            const active = pathname === link.href
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+                className="block px-4 py-3 text-base font-semibold tracking-wide mb-1 rounded-lg transition-colors"
+                style={{
+                  color: active ? '#FFFFFF' : '#334155',
+                  background: active ? season.solid : 'transparent',
+                }}
+              >
+                {link.label}
+              </Link>
+            )
+          })}
         </div>
       )}
     </nav>
