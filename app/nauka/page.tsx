@@ -1,9 +1,12 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { BookOpen, Trophy, ShieldCheck, ExternalLink, ChevronDown, Medal, FileSignature, X } from 'lucide-react'
+import {
+  BookOpen, Trophy, ShieldCheck, ExternalLink, Medal, FileSignature, X,
+  Calendar, FlaskConical, ChevronLeft, ChevronRight, Image as ImageIcon, type LucideIcon,
+} from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
-import { DevelopmentCarousel, type DevItem } from '@/components/nauka/DevelopmentCarousel'
+import { useZoomPreview, ZoomPreviewOverlay } from '@/components/HoverZoomPreview'
 
 interface Publication { id: string; title: string; authors: string | null; journal: string | null; year: number | null; doi: string | null }
 interface Patent { id: string; title: string; patent_number: string | null; badge_label: string }
@@ -14,7 +17,21 @@ interface Project {
 }
 interface Achievement { id: string; full_name: string; award_name: string; year: number | null; organization: string | null; certificate_url: string | null }
 interface Contract { id: string; title: string; customer: string | null; year: number | null; description: string | null }
-interface AchievModalData { image: string | null; meta?: string; title: string; subtitle?: string; body: string[]; link?: { href: string; label: string } }
+
+// Every tab renders the same card, so each section is reduced to this shape.
+interface NCard {
+  id: string
+  title: string
+  subtitle?: string
+  meta: string[]
+  images: string[]
+  icon?: LucideIcon
+  accent?: string
+  tags?: string | null
+  badge?: string
+  body: string[]
+  link?: { href: string; label: string }
+}
 
 // Rendered once from the first page of the source PDFs (scripts used to
 // generate these are throwaway - see the diploma/accreditation PDFs in
@@ -22,17 +39,34 @@ interface AchievModalData { image: string | null; meta?: string; title: string; 
 const COMPANY_DIPLOMA_IMAGE = '/docs/diplom-luchshiy-inzhener-2025-preview.jpg'
 const ACCREDITATION_IMAGE = '/docs/svidetelstvo-akkreditacii-preview.jpg'
 
+const PAGE_SIZE = 9
+
+function TagRow({ tags, size = 'sm' }: { tags?: string | null; size?: 'sm' | 'md' }) {
+  if (!tags) return null
+  const cls = size === 'sm' ? 'text-[12px] px-2 py-0.5' : 'text-[13px] px-2.5 py-1'
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {tags.split(',').map(t => t.trim()).filter(Boolean).map(t => (
+        <span key={t} className={`font-semibold rounded-full ${cls}`} style={{ background: '#EFF6FF', color: '#1565C0' }}>{t}</span>
+      ))}
+    </div>
+  )
+}
+
 export default function NaukaPage() {
   const { tr, lang } = useLang()
   const [partners, setPartners] = useState<{ id: string; name: string; logo_url: string | null; website_url: string | null }[]>([])
-  const [pubOpen, setPubOpen] = useState(false)
-  const [patentsOpen, setPatentsOpen] = useState(false)
   const [publications, setPublications] = useState<Publication[]>([])
   const [patents, setPatents] = useState<Patent[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [contracts, setContracts] = useState<Contract[]>([])
-  const [achievModal, setAchievModal] = useState<AchievModalData | null>(null)
+
+  const [tab, setTab] = useState('dev')
+  const [limit, setLimit] = useState(PAGE_SIZE)
+  const [active, setActive] = useState<NCard | null>(null)
+  const [shot, setShot] = useState(0)
+  const { preview, show: showPreview, hide: hidePreview } = useZoomPreview()
 
   useEffect(() => {
     fetch('/api/partners').then(r => r.json()).then(d => setPartners(Array.isArray(d) ? d : [])).catch(() => {})
@@ -46,24 +80,105 @@ export default function NaukaPage() {
   }, [])
 
   useEffect(() => {
-    if (!achievModal) return
+    if (!active) return
+    setShot(0)
     document.body.style.overflow = 'hidden'
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setAchievModal(null) }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setActive(null) }
     window.addEventListener('keydown', onKey)
     return () => { document.body.style.overflow = ''; window.removeEventListener('keydown', onKey) }
-  }, [achievModal])
+  }, [active])
 
-  const toDevItem = (p: Project): DevItem => ({
+  const pick = (ru: string | null, kk: string | null, en: string | null) =>
+    (lang === 'kk' ? kk : lang === 'en' ? en : ru) || ru || ''
+
+  const projectCard = (p: Project): NCard => ({
     id: p.id,
-    title: (lang === 'kk' ? p.title_kk : lang === 'en' ? p.title_en : p.title_ru) || p.title_ru,
-    description: (lang === 'kk' ? p.description_kk : lang === 'en' ? p.description_en : p.description_ru) || '',
-    period: p.period,
-    tags: p.tags,
+    title: pick(p.title_ru, p.title_kk, p.title_en),
+    meta: p.period ? [p.period] : [],
     images: p.images ?? [],
+    icon: FlaskConical,
+    accent: '#1565C0',
+    tags: p.tags,
+    body: [pick(p.description_ru, p.description_kk, p.description_en)].filter(Boolean),
   })
 
-  const individualDevs = projects.filter(p => p.kind !== 'project').map(toDevItem)
-  const researchProjects = projects.filter(p => p.kind === 'project').map(toDevItem)
+  const devCards = projects.filter(p => p.kind !== 'project').map(projectCard)
+  const projectCards = projects.filter(p => p.kind === 'project').map(projectCard)
+
+  const contractCards: NCard[] = contracts.map(c => ({
+    id: c.id,
+    title: c.title,
+    subtitle: c.customer ?? undefined,
+    meta: c.year ? [String(c.year)] : [],
+    images: [],
+    icon: FileSignature,
+    accent: '#0284C7',
+    body: c.description ? [c.description] : [],
+  }))
+
+  const ipCards: NCard[] = [
+    ...patents.map(p => ({
+      id: `pat-${p.id}`,
+      title: p.title,
+      subtitle: p.patent_number ?? undefined,
+      meta: [],
+      images: [],
+      icon: ShieldCheck,
+      accent: '#059669',
+      badge: p.badge_label,
+      body: [],
+    })),
+    ...publications.map(p => ({
+      id: `pub-${p.id}`,
+      title: p.title,
+      subtitle: p.journal ?? undefined,
+      meta: p.year ? [String(p.year)] : [],
+      images: [],
+      icon: BookOpen,
+      accent: '#1565C0',
+      body: p.authors ? [p.authors] : [],
+      link: p.doi ? { href: `https://doi.org/${p.doi}`, label: 'DOI' } : undefined,
+    })),
+  ]
+
+  const awardCards: NCard[] = [
+    {
+      id: 'company-diploma',
+      title: tr.nauka.achievTitle,
+      subtitle: 'НИНЖ РК',
+      meta: ['2025'],
+      images: [COMPANY_DIPLOMA_IMAGE],
+      icon: Trophy,
+      accent: '#F59E0B',
+      body: [tr.nauka.achievDesc1, tr.nauka.achievDesc2],
+      link: { href: '/docs/diplom-luchshiy-inzhener-2025.pdf', label: tr.nauka.achievViewDoc },
+    },
+    ...achievements.map(a => ({
+      id: a.id,
+      title: a.full_name,
+      subtitle: a.award_name,
+      meta: [a.year ? String(a.year) : '', a.organization ?? ''].filter(Boolean),
+      images: a.certificate_url ? [a.certificate_url] : [],
+      icon: Medal,
+      accent: '#F59E0B',
+      body: [],
+    })),
+  ]
+
+  const TABS = [
+    { key: 'dev', label: tr.nauka.indivDevTitle, intro: tr.nauka.indivDevIntro, cards: devCards },
+    { key: 'projects', label: tr.nauka.projectsTitle, intro: tr.nauka.projectsIntro, cards: projectCards },
+    { key: 'contracts', label: tr.nauka.contractsTitle, intro: tr.nauka.contractsIntro, cards: contractCards },
+    { key: 'ip', label: tr.nauka.ipTitle, intro: tr.nauka.ipIntro, cards: ipCards },
+    { key: 'awards', label: tr.nauka.achievementsTitle, intro: tr.nauka.achievementsIntro, cards: awardCards },
+  ].filter(t => t.cards.length > 0)
+
+  const current = TABS.find(t => t.key === tab) ?? TABS[0]
+
+  useEffect(() => { setLimit(PAGE_SIZE) }, [tab])
+
+  const shown = current ? current.cards.slice(0, limit) : []
+  const rest = current ? current.cards.length - shown.length : 0
 
   return (
     <div>
@@ -94,355 +209,248 @@ export default function NaukaPage() {
         </div>
       </section>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
 
-      {/* ══ Individual developments ══ */}
-      {individualDevs.length > 0 && (
-        <div className="mb-16">
-          <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.indivDevTitle}</h2>
-          <p className="text-base mb-6" style={{ color: '#64748B' }}>{tr.nauka.indivDevIntro}</p>
-          <DevelopmentCarousel items={individualDevs} />
-        </div>
-      )}
+        {/* ══ Section tabs ══ */}
+        {current && (
+          <div className="mb-16">
+            <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 mb-6">
+              {TABS.map(t => {
+                const on = t.key === current.key
+                return (
+                  <button key={t.key} type="button" onClick={() => setTab(t.key)}
+                    className="flex-none inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-base font-semibold transition-all"
+                    style={{
+                      background: on ? 'linear-gradient(135deg,#1565C0,#0284C7)' : 'white',
+                      color: on ? 'white' : '#475569',
+                      border: `1.5px solid ${on ? 'transparent' : '#E2E8F0'}`,
+                      boxShadow: on ? '0 4px 14px rgba(21,101,192,0.25)' : '0 1px 3px rgba(0,0,0,0.04)',
+                    }}>
+                    {t.label}
+                    <span className="text-[12px] font-black px-1.5 py-0.5 rounded-md"
+                      style={{ background: on ? 'rgba(255,255,255,0.22)' : '#F1F5F9', color: on ? 'white' : '#94A3B8' }}>
+                      {t.cards.length}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
 
-      {/* ══ Projects ══ */}
-      {researchProjects.length > 0 && (
-        <div className="mb-16">
-          <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.projectsTitle}</h2>
-          <p className="text-base mb-6" style={{ color: '#64748B' }}>{tr.nauka.projectsIntro}</p>
-          <DevelopmentCarousel items={researchProjects} />
-        </div>
-      )}
+            <p className="text-base mb-6" style={{ color: '#64748B' }}>{current.intro}</p>
 
-      {/* ══ Contract research (хоздоговоры) ══ */}
-      {contracts.length > 0 && (
-        <div className="mb-16">
-          <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.contractsTitle}</h2>
-          <p className="text-base mb-6" style={{ color: '#64748B' }}>{tr.nauka.contractsIntro}</p>
-          <div className="rounded-2xl overflow-hidden" style={{ border: '1.5px solid #E2E8F0', background: 'white' }}>
-            <div className="divide-y" style={{ borderColor: '#F1F5F9' }}>
-              {contracts.map(c => (
-                <div key={c.id} className="flex items-start gap-4 px-6 py-4">
-                  <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 mt-0.5" style={{ background: '#EFF6FF' }}>
-                    <FileSignature size={16} style={{ color: '#1565C0' }} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-base font-semibold" style={{ color: '#0F172A' }}>{c.title}</p>
-                    <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                      {c.year && <span className="text-[12px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#F1F5F9', color: '#475569' }}>{c.year}</span>}
-                      {c.customer && <span className="text-[13px]" style={{ color: '#1565C0' }}>{c.customer}</span>}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {shown.map(card => {
+                const Icon = card.icon ?? FlaskConical
+                const cover = card.images[0]
+                return (
+                  <button key={card.id} type="button" onClick={() => setActive(card)}
+                    onMouseEnter={e => { if (cover) showPreview(cover, e.currentTarget, card.id) }}
+                    onMouseLeave={() => hidePreview(card.id)}
+                    className="group text-left rounded-xl overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                    style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                    <div className="relative aspect-[4/3] overflow-hidden" style={{ background: '#F1F5F9' }}>
+                      {cover ? (
+                        <img src={cover} alt={card.title} draggable={false}
+                          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center"
+                          style={{ background: `linear-gradient(135deg, ${card.accent}14, ${card.accent}05)` }}>
+                          <Icon size={40} style={{ color: card.accent, opacity: 0.55 }} />
+                        </div>
+                      )}
+                      {card.images.length > 1 && (
+                        <span className="absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-md text-[12px] font-semibold"
+                          style={{ background: 'rgba(15,23,42,0.72)', color: 'white' }}>
+                          <ImageIcon size={12} />{card.images.length}
+                        </span>
+                      )}
+                      {card.badge && (
+                        <span className="absolute top-2 left-2 px-2.5 py-1 rounded-full text-[12px] font-bold"
+                          style={{ background: '#ECFDF5', color: '#059669' }}>{card.badge}</span>
+                      )}
                     </div>
-                    {c.description && <p className="text-[14px] mt-1.5 leading-relaxed" style={{ color: '#64748B' }}>{c.description}</p>}
-                  </div>
+                    <div className="p-4 flex flex-col flex-1">
+                      <h3 className="font-bold text-base leading-snug line-clamp-2 mb-1.5" style={{ color: '#0F172A' }}>{card.title}</h3>
+                      {card.subtitle && (
+                        <p className="text-sm line-clamp-1 mb-1.5" style={{ color: '#1565C0' }}>{card.subtitle}</p>
+                      )}
+                      {card.meta.length > 0 && (
+                        <div className="flex items-center gap-1.5 text-sm mb-2" style={{ color: '#64748B' }}>
+                          <Calendar size={12} />{card.meta.join(' · ')}
+                        </div>
+                      )}
+                      <div className="mt-auto"><TagRow tags={card.tags} /></div>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+
+            {rest > 0 && (
+              <div className="text-center mt-7">
+                <button type="button" onClick={() => setLimit(l => l + PAGE_SIZE)}
+                  className="px-6 py-2.5 rounded-xl font-semibold text-base transition-all hover:-translate-y-0.5"
+                  style={{ background: 'white', border: '1.5px solid #CBD5E1', color: '#1565C0' }}>
+                  {tr.nauka.showMore} · {rest}
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        <ZoomPreviewOverlay preview={preview} scale={1.25} maxHeight="45vh" />
+
+        {/* ══ Accreditation — separate section ══ */}
+        <div className="mb-14">
+          <h2 className="text-xl font-bold mb-4" style={{ color: '#0F172A' }}>{tr.nauka.accSectionTitle}</h2>
+          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E2E8F0', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+            <div className="grid grid-cols-1 sm:grid-cols-[220px_1fr]">
+              <div className="overflow-hidden" style={{ background: '#F1F5F9' }}>
+                <img src={ACCREDITATION_IMAGE} alt={tr.nauka.accTitle} className="w-full h-full object-cover" style={{ minHeight: 160 }} />
+              </div>
+              <div className="p-6">
+                <div className="text-[12px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>
+                  МОН РК · до 09.02.2029
                 </div>
-              ))}
+                <h3 className="font-black text-lg leading-tight mb-3" style={{ color: '#0F172A' }}>
+                  {tr.nauka.accTitle}
+                </h3>
+                <p className="text-base leading-relaxed mb-2" style={{ color: '#334155' }}>
+                  {tr.nauka.accDesc1}
+                </p>
+                <p className="text-base leading-relaxed mb-2" style={{ color: '#64748B' }}>
+                  {tr.nauka.accDesc2}
+                </p>
+                <p className="text-sm font-semibold mb-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
+                  style={{ background: '#EFF6FF', color: '#1565C0' }}>
+                  📅 {tr.nauka.accDesc3}
+                </p>
+                <div>
+                  <a href="/docs/svidetelstvo-akkreditacii.pdf" target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-base transition-all hover:-translate-y-0.5"
+                    style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', color: 'white', boxShadow: '0 4px 12px rgba(21,101,192,0.25)' }}>
+                    <ExternalLink size={13} />
+                    {tr.nauka.accViewDoc}
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      )}
 
-      {/* ══ Intellectual property ══ */}
-      {(publications.length > 0 || patents.length > 0) && (
-        <div className="mb-16">
-          <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.ipTitle}</h2>
-          <p className="text-base mb-6" style={{ color: '#64748B' }}>{tr.nauka.ipIntro}</p>
-
-          {/* Publications accordion */}
-          {publications.length > 0 && (
-            <div className="mb-4">
-              <button
-                onClick={() => setPubOpen(v => !v)}
-                className="w-full flex items-center justify-between p-5 rounded-2xl transition-all"
-                style={{
-                  background: 'white',
-                  border: `1.5px solid ${pubOpen ? '#1565C0' : '#E2E8F0'}`,
-                  boxShadow: pubOpen ? '0 4px 20px rgba(21,101,192,0.1)' : '0 1px 4px rgba(0,0,0,0.04)',
-                }}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ background: pubOpen ? '#1565C0' : '#EFF6FF' }}>
-                    <BookOpen size={20} style={{ color: pubOpen ? 'white' : '#1565C0' }} />
-                  </div>
-                  <div className="text-left">
-                    <div className="font-bold text-base" style={{ color: '#0F172A' }}>{tr.nauka.pubTitle}</div>
-                    <div className="text-sm mt-0.5" style={{ color: '#94A3B8' }}>{tr.nauka.pubIntro.slice(0, 80)}…</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 shrink-0 ml-4">
-                  <span className="font-black text-lg px-3 py-1 rounded-lg" style={{ background: '#EFF6FF', color: '#1565C0' }}>
-                    {publications.length}
-                  </span>
-                  <ChevronDown size={18} style={{ color: '#94A3B8', transform: pubOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s' }} />
-                </div>
+        {/* ══ Card detail modal ══ */}
+        {active && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: 'rgba(15,23,42,0.6)' }} onClick={() => setActive(null)}>
+            <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl"
+              style={{ background: 'white' }} onClick={e => e.stopPropagation()}>
+              <button onClick={() => setActive(null)} aria-label="Закрыть"
+                className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center z-10 transition-colors hover:opacity-80"
+                style={{ background: 'rgba(15,23,42,0.06)' }}>
+                <X size={16} style={{ color: '#0F172A' }} />
               </button>
 
-              {pubOpen && (
-                <div className="mt-3 rounded-2xl overflow-hidden" style={{ border: '1.5px solid #E2E8F0', background: 'white' }}>
-                  <div className="divide-y" style={{ borderColor: '#F1F5F9' }}>
-                    {publications.map((pub, i) => (
-                      <div key={pub.id} className="flex items-start gap-3 px-6 py-4">
-                        <span className="shrink-0 mt-0.5 w-6 text-[13px] font-black text-right" style={{ color: '#CBD5E1' }}>{i + 1}.</span>
-                        <div className="flex-1 min-w-0">
-                          {pub.doi ? (
-                            <a href={`https://doi.org/${pub.doi}`} target="_blank" rel="noopener noreferrer"
-                              className="text-base font-semibold leading-snug hover:underline" style={{ color: '#0F172A' }}>
-                              {pub.title}
-                            </a>
-                          ) : (
-                            <span className="text-base font-semibold leading-snug" style={{ color: '#0F172A' }}>{pub.title}</span>
-                          )}
-                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                            {pub.year && <span className="text-[12px] font-bold px-2 py-0.5 rounded-full" style={{ background: '#F1F5F9', color: '#475569' }}>{pub.year}</span>}
-                            {pub.journal && <span className="text-[13px]" style={{ color: '#1565C0' }}>{pub.journal}</span>}
-                          </div>
-                          {pub.authors && <p className="text-[13px] mt-1" style={{ color: '#94A3B8' }}>{pub.authors}</p>}
-                        </div>
-                        {pub.doi && (
-                          <a href={`https://doi.org/${pub.doi}`} target="_blank" rel="noopener noreferrer"
-                            className="shrink-0 flex items-center gap-1 text-[12px] font-bold px-2.5 py-1.5 rounded-lg transition-all hover:opacity-80"
-                            style={{ background: '#EFF6FF', color: '#1565C0' }}>
-                            <ExternalLink size={10} />DOI
-                          </a>
-                        )}
-                      </div>
-                    ))}
+              {active.images.length > 0 && (
+                <div>
+                  <div className="relative w-full aspect-[16/9]" style={{ background: '#F1F5F9' }}>
+                    <img src={active.images[Math.min(shot, active.images.length - 1)]} alt={active.title}
+                      className="w-full h-full object-contain" />
+                    {active.images.length > 1 && (
+                      <>
+                        <button onClick={() => setShot(s => (s - 1 + active.images.length) % active.images.length)} aria-label="Предыдущее фото"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-transform hover:scale-110"
+                          style={{ background: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}>
+                          <ChevronLeft size={17} style={{ color: '#0F172A' }} />
+                        </button>
+                        <button onClick={() => setShot(s => (s + 1) % active.images.length)} aria-label="Следующее фото"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-transform hover:scale-110"
+                          style={{ background: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}>
+                          <ChevronRight size={17} style={{ color: '#0F172A' }} />
+                        </button>
+                      </>
+                    )}
                   </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Patents & copyright certificates accordion */}
-          {patents.length > 0 && (
-            <div>
-              <button
-                onClick={() => setPatentsOpen(v => !v)}
-                className="w-full flex items-center justify-between p-5 rounded-2xl transition-all"
-                style={{
-                  background: 'white',
-                  border: `1.5px solid ${patentsOpen ? '#1565C0' : '#E2E8F0'}`,
-                  boxShadow: patentsOpen ? '0 4px 20px rgba(21,101,192,0.1)' : '0 1px 4px rgba(0,0,0,0.04)',
-                }}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ background: patentsOpen ? '#1565C0' : '#EFF6FF' }}>
-                    <ShieldCheck size={20} style={{ color: patentsOpen ? 'white' : '#1565C0' }} />
-                  </div>
-                  <div className="text-left">
-                    <div className="font-bold text-base" style={{ color: '#0F172A' }}>{tr.nauka.patentsTitle}</div>
-                    <div className="text-sm mt-0.5" style={{ color: '#94A3B8' }}>{tr.nauka.patentsIntro.slice(0, 80)}…</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3 shrink-0 ml-4">
-                  <span className="font-black text-lg px-3 py-1 rounded-lg" style={{ background: '#EFF6FF', color: '#1565C0' }}>
-                    {patents.length}
-                  </span>
-                  <ChevronDown size={18} style={{ color: '#94A3B8', transform: patentsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s' }} />
-                </div>
-              </button>
-
-              {patentsOpen && (
-                <div className="mt-3 rounded-2xl overflow-hidden" style={{ border: '1.5px solid #E2E8F0', background: 'white' }}>
-                  <div className="divide-y" style={{ borderColor: '#F1F5F9' }}>
-                    {patents.map((p, i) => (
-                      <div key={p.id} className="flex items-center gap-3 px-6 py-4">
-                        <span className="shrink-0 w-6 text-[13px] font-black text-right" style={{ color: '#CBD5E1' }}>{i + 1}.</span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-base font-semibold" style={{ color: '#0F172A' }}>{p.title}</p>
-                          {p.patent_number && <p className="text-[13px] mt-1" style={{ color: '#94A3B8' }}>{p.patent_number}</p>}
-                        </div>
-                        <span className="shrink-0 text-[12px] font-bold px-2.5 py-1 rounded-full" style={{ background: '#ECFDF5', color: '#059669' }}>{p.badge_label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ══ Achievements — company diploma + employees in one row ══ */}
-      <div className="mb-16">
-        <h2 className="text-xl font-bold mb-1.5" style={{ color: '#0F172A' }}>{tr.nauka.achievementsTitle}</h2>
-        <p className="text-base mb-6" style={{ color: '#64748B' }}>{tr.nauka.achievementsIntro}</p>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {/* Company achievement — first card, same style as the rest */}
-          <button type="button" onClick={() => setAchievModal({
-            image: COMPANY_DIPLOMA_IMAGE,
-            meta: 'НИНЖ РК · 2025',
-            title: tr.nauka.achievTitle,
-            body: [tr.nauka.achievDesc1, tr.nauka.achievDesc2],
-            link: { href: '/docs/diplom-luchshiy-inzhener-2025.pdf', label: tr.nauka.achievViewDoc },
-          })}
-            className="group text-left rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-            style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div className="aspect-[4/3] overflow-hidden" style={{ background: '#F1F5F9' }}>
-              <img src={COMPANY_DIPLOMA_IMAGE} alt={tr.nauka.achievTitle} draggable={false}
-                className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
-            </div>
-            <div className="p-3.5">
-              <p className="font-bold text-base truncate" style={{ color: '#0F172A' }}>{tr.nauka.achievTitle}</p>
-              <p className="text-sm mt-0.5 truncate" style={{ color: '#64748B' }}>НИНЖ РК · 2025</p>
-            </div>
-          </button>
-
-          {/* Employee achievements — same row */}
-          {achievements.map((a, i) => {
-            const medalColor = i === 0 ? '#F59E0B' : i === 1 ? '#94A3B8' : i === 2 ? '#B45309' : '#64748B'
-            return (
-              <button key={a.id} type="button" onClick={() => setAchievModal({
-                image: a.certificate_url,
-                meta: [a.organization, a.year ? String(a.year) : null].filter(Boolean).join(' · ') || undefined,
-                title: a.full_name,
-                subtitle: a.award_name,
-                body: [],
-              })}
-                className="group text-left rounded-xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
-                style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                <div className="aspect-[4/3] overflow-hidden" style={{ background: '#F1F5F9' }}>
-                  {a.certificate_url ? (
-                    <img src={a.certificate_url} alt={a.award_name} draggable={false}
-                      className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center" style={{ background: `${medalColor}1A` }}>
-                      <Medal size={28} style={{ color: medalColor }} />
+                  {active.images.length > 1 && (
+                    <div className="flex gap-2 px-6 pt-4 overflow-x-auto no-scrollbar">
+                      {active.images.map((src, i) => (
+                        <button key={src + i} onClick={() => setShot(i)}
+                          className="flex-none w-20 h-16 rounded-lg overflow-hidden transition-opacity"
+                          style={{
+                            border: i === shot ? '2px solid #1565C0' : '1px solid #E2E8F0',
+                            opacity: i === shot ? 1 : 0.7,
+                            background: '#F8FAFC',
+                          }}>
+                          <img src={src} alt="" className="w-full h-full object-cover" />
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
-                <div className="p-3.5">
-                  <p className="font-bold text-base truncate" style={{ color: '#0F172A' }}>{a.full_name}</p>
-                  <p className="text-sm mt-0.5 truncate" style={{ color: '#64748B' }}>{a.award_name}</p>
-                  <div className="flex items-center gap-2 mt-1.5">
-                    {a.year && <span className="text-[13px]" style={{ color: '#94A3B8' }}>{a.year}</span>}
-                    {a.organization && <span className="text-[13px] truncate" style={{ color: '#1565C0' }}>{a.organization}</span>}
+              )}
+
+              <div className="p-6">
+                {active.meta.length > 0 && (
+                  <div className="text-[12px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>
+                    {active.meta.join(' · ')}
                   </div>
-                </div>
-              </button>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* ══ Accreditation — separate section ══ */}
-      <div className="mb-14">
-        <h2 className="text-xl font-bold mb-4" style={{ color: '#0F172A' }}>{tr.nauka.accSectionTitle}</h2>
-        <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E2E8F0', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
-          <div className="grid grid-cols-1 sm:grid-cols-[220px_1fr]">
-            <div className="overflow-hidden" style={{ background: '#F1F5F9' }}>
-              <img src={ACCREDITATION_IMAGE} alt={tr.nauka.accTitle} className="w-full h-full object-cover" style={{ minHeight: 160 }} />
-            </div>
-            <div className="p-6">
-              <div className="text-[12px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>
-                МОН РК · до 09.02.2029
-              </div>
-              <h3 className="font-black text-lg leading-tight mb-3" style={{ color: '#0F172A' }}>
-                {tr.nauka.accTitle}
-              </h3>
-              <p className="text-base leading-relaxed mb-2" style={{ color: '#334155' }}>
-                {tr.nauka.accDesc1}
-              </p>
-              <p className="text-base leading-relaxed mb-2" style={{ color: '#64748B' }}>
-                {tr.nauka.accDesc2}
-              </p>
-              <p className="text-sm font-semibold mb-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
-                style={{ background: '#EFF6FF', color: '#1565C0' }}>
-                📅 {tr.nauka.accDesc3}
-              </p>
-              <div>
-                <a href="/docs/svidetelstvo-akkreditacii.pdf" target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-base transition-all hover:-translate-y-0.5"
-                  style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', color: 'white', boxShadow: '0 4px 12px rgba(21,101,192,0.25)' }}>
-                  <ExternalLink size={13} />
-                  {tr.nauka.accViewDoc}
-                </a>
+                )}
+                <h3 className="text-xl font-black mb-1 leading-tight" style={{ color: '#0F172A' }}>{active.title}</h3>
+                {active.subtitle && (
+                  <p className="text-base font-semibold mb-3" style={{ color: '#1565C0' }}>{active.subtitle}</p>
+                )}
+                {active.tags && <div className="mb-4"><TagRow tags={active.tags} size="md" /></div>}
+                {active.body.length > 0
+                  ? active.body.map((p, i) => (
+                    <p key={i} className="text-base leading-relaxed whitespace-pre-line mb-2" style={{ color: i === 0 ? '#334155' : '#64748B' }}>{p}</p>
+                  ))
+                  : <p className="text-base" style={{ color: '#94A3B8' }}>{tr.nauka.noDetails}</p>}
+                {active.link && (
+                  <a href={active.link.href} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 mt-3 px-4 py-2.5 rounded-xl font-semibold text-base transition-all hover:-translate-y-0.5"
+                    style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', color: 'white', boxShadow: '0 4px 12px rgba(21,101,192,0.25)' }}>
+                    <ExternalLink size={13} />
+                    {active.link.label}
+                  </a>
+                )}
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* ══ Achievement detail modal (company or employee) ══ */}
-      {achievModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: 'rgba(15,23,42,0.6)' }} onClick={() => setAchievModal(null)}>
-          <div className="relative w-full max-w-lg max-h-[85vh] overflow-y-auto rounded-2xl"
-            style={{ background: 'white' }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setAchievModal(null)} aria-label="Закрыть"
-              className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center z-10 transition-colors hover:opacity-80"
-              style={{ background: 'rgba(15,23,42,0.06)' }}>
-              <X size={16} style={{ color: '#0F172A' }} />
-            </button>
-            <div className="w-full aspect-[4/3]" style={{ background: '#F1F5F9' }}>
-              {achievModal.image ? (
-                <img src={achievModal.image} alt={achievModal.title} className="w-full h-full object-contain" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)' }}>
-                  <Trophy size={48} style={{ color: 'white' }} />
-                </div>
-              )}
-            </div>
-            <div className="p-6">
-              {achievModal.meta && (
-                <div className="text-[12px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>{achievModal.meta}</div>
-              )}
-              <h3 className="text-xl font-black mb-1 leading-tight" style={{ color: '#0F172A' }}>{achievModal.title}</h3>
-              {achievModal.subtitle && (
-                <p className="text-base font-semibold mb-3" style={{ color: '#1565C0' }}>{achievModal.subtitle}</p>
-              )}
-              {achievModal.body.map((p, i) => (
-                <p key={i} className="text-base leading-relaxed mb-2" style={{ color: i === 0 ? '#334155' : '#64748B' }}>{p}</p>
-              ))}
-              {achievModal.link && (
-                <a href={achievModal.link.href} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 mt-3 px-4 py-2.5 rounded-xl font-semibold text-base transition-all hover:-translate-y-0.5"
-                  style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', color: 'white', boxShadow: '0 4px 12px rgba(21,101,192,0.25)' }}>
-                  <ExternalLink size={13} />
-                  {achievModal.link.label}
-                </a>
-              )}
+        {/* ══ Partners ══ */}
+        {partners.length > 0 && (
+          <div className="rounded-2xl p-8 mb-12"
+            style={{ background: 'linear-gradient(135deg,#EBF2FB,#F0F9FF)', border: '1px solid rgba(21,101,192,0.12)' }}>
+            <h2 className="text-xl font-bold mb-1.5 text-center" style={{ color: '#0F172A' }}>{tr.nauka.partnersTitle}</h2>
+            <p className="text-base mb-6 text-center" style={{ color: '#64748B' }}>{tr.nauka.partnersSubtitle}</p>
+            <div className="flex flex-wrap justify-center gap-3">
+              {partners.map((p) => {
+                const card = (
+                  <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl"
+                    style={{ background: '#FFFFFF', border: '1px solid rgba(21,101,192,0.18)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
+                    {p.logo_url && <img src={p.logo_url} alt={p.name} style={{ height: 28, maxWidth: 70, objectFit: 'contain' }} />}
+                    <span className="text-base font-medium" style={{ color: '#1565C0' }}>{p.name}</span>
+                  </div>
+                )
+                return p.website_url
+                  ? <a key={p.id} href={p.website_url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>{card}</a>
+                  : <div key={p.id}>{card}</div>
+              })}
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* ══ Partners ══ */}
-      {partners.length > 0 && (
-        <div className="rounded-2xl p-8 mb-12"
-          style={{ background: 'linear-gradient(135deg,#EBF2FB,#F0F9FF)', border: '1px solid rgba(21,101,192,0.12)' }}>
-          <h2 className="text-xl font-bold mb-1.5 text-center" style={{ color: '#0F172A' }}>{tr.nauka.partnersTitle}</h2>
-          <p className="text-base mb-6 text-center" style={{ color: '#64748B' }}>{tr.nauka.partnersSubtitle}</p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {partners.map((p) => {
-              const card = (
-                <div className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl"
-                  style={{ background: '#FFFFFF', border: '1px solid rgba(21,101,192,0.18)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}>
-                  {p.logo_url && <img src={p.logo_url} alt={p.name} style={{ height: 28, maxWidth: 70, objectFit: 'contain' }} />}
-                  <span className="text-base font-medium" style={{ color: '#1565C0' }}>{p.name}</span>
-                </div>
-              )
-              return p.website_url
-                ? <a key={p.id} href={p.website_url} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>{card}</a>
-                : <div key={p.id}>{card}</div>
-            })}
-          </div>
+        {/* ══ CTA ══ */}
+        <div className="text-center p-10 rounded-2xl"
+          style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)' }}>
+          <h2 className="text-2xl font-bold text-white mb-3">{tr.nauka.ctaTitle}</h2>
+          <p className="text-blue-100 mb-6 text-base">{tr.nauka.ctaSubtitle}</p>
+          <a href="/contacts"
+            className="inline-block px-8 py-3 rounded-xl font-semibold text-base transition-all hover:opacity-90"
+            style={{ background: '#FFFFFF', color: '#1565C0' }}>
+            {tr.nauka.ctaButton}
+          </a>
         </div>
-      )}
-
-      {/* ══ CTA ══ */}
-      <div className="text-center p-10 rounded-2xl"
-        style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)' }}>
-        <h2 className="text-2xl font-bold text-white mb-3">{tr.nauka.ctaTitle}</h2>
-        <p className="text-blue-100 mb-6 text-base">{tr.nauka.ctaSubtitle}</p>
-        <a href="/contacts"
-          className="inline-block px-8 py-3 rounded-xl font-semibold text-base transition-all hover:opacity-90"
-          style={{ background: '#FFFFFF', color: '#1565C0' }}>
-          {tr.nauka.ctaButton}
-        </a>
-      </div>
 
       </div>
     </div>
