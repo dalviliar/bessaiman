@@ -276,7 +276,7 @@ export default function HomePage() {
           {/* Right — 3D model */}
           <div className="flex justify-center items-center md:-ml-10 lg:-ml-14" style={{ animation: 'fade-up 0.5s 0.12s ease both', marginRight: 'calc(-1 * max(0px, (100vw - 80rem) / 2))' }}>
             <div style={{ width: '100%' }}>
-              <TubeFurnaceRig3D height={440} />
+              <TubeFurnaceRig3D height={440} slogan={tr.nauka.rigSlogan} />
             </div>
           </div>
         </div>

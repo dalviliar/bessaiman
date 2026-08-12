@@ -41,7 +41,10 @@ interface FlyPart {
  * place, then the rig powers on — elements glow, the tube turns, fans spin,
  * rotameter floats lift and the panel lights start sequencing.
  */
-export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) {
+export default function TubeFurnaceRig3D({
+  height = 620,
+  slogan = 'СОЗДАЙ СВОЁ С НАМИ!',
+}: { height?: number; slogan?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [webglFailed, setWebglFailed] = useState(false)
 
@@ -212,17 +215,12 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
         t.anisotropy = 8
         return t
       }
-      const logoDarkM = new THREE.MeshStandardMaterial({
-        map: loadLogo('/logo-full.png'), transparent: true, metalness: 0, roughness: 0.42,
-        depthWrite: false, side: THREE.DoubleSide,
-      })
       const logoWhiteTex = loadLogo('/logo-full-white.png')
       const logoWhiteM = new THREE.MeshStandardMaterial({
         map: logoWhiteTex, transparent: true, metalness: 0, roughness: 0.45,
         emissive: 0xffffff, emissiveMap: logoWhiteTex, emissiveIntensity: 0.3,
         depthWrite: false, side: THREE.DoubleSide,
       })
-      const labelM = P(0xF8FAFC, 0.3, 0.7)
 
       // A plane bent around the X axis, so the decal hugs the round hood while
       // keeping ordinary plane UVs — a cylinder sector would map the logo
@@ -371,16 +369,6 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
         furnHi.add(disc)
       })
       mesh(furnHi, Box(3.6, 0.06, 0.06), steelM, 0, 0.94, 0)       // spine rail
-      // brand label, curved onto the hood
-      {
-        const w = 3.02, h = w / 4.04
-        const plate = new THREE.Mesh(curvedDecal(w + 0.26, h + 0.2, 0.968), labelM)
-        plate.rotation.set(0.7, 0, 0)
-        furnHi.add(plate)
-        const decal = new THREE.Mesh(curvedDecal(w, h, 0.978), logoDarkM)
-        decal.rotation.set(0.7, 0, 0)
-        furnHi.add(decal)
-      }
       // top vent stack + fan
       mesh(furnHi, Cyl(0.19, 0.19, 0.3, 20), steelM, 0.95, 1.02, 0)
       const ventFan = new THREE.Group()
@@ -645,120 +633,134 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       // tongs lying on the bench
       mesh(spawn([0.5, -0.74, 0.82], [0.5, -6, 3], 7.85, 0.5, [0, 0.35, Math.PI / 2], [0.8, 0.9, 1.2]), Cyl(0.018, 0.018, 0.75, 8), steelM)
 
-      // ══ 11. WELDED NAMEPLATE ON THE APRON ═══════════════════════
-      // Two canvases: one for the bead itself, one for how hot each letter
-      // still is — so the name is laid down letter by letter and cools off.
-      const WELD_TEXT = 'BES SAIMAN GROUP'
-      const WELD_W = 2560, WELD_H = 300
-      const makeWeldCanvas = () => {
-        const c = document.createElement('canvas')
-        c.width = WELD_W; c.height = WELD_H
-        return { c, ctx: c.getContext('2d')! }
+      // ══ 11. WELDED MARKINGS ═════════════════════════════════════
+      // Once the rig stands finished a welder signs it: the logo goes onto the
+      // furnace hood, then the slogan onto the bench apron. Each surface keeps
+      // two canvases — one for the bead itself, one for how hot it still is.
+      const weldSurface = (W: number, H: number) => {
+        const mk = () => {
+          const c = document.createElement('canvas')
+          c.width = W; c.height = H
+          return { c, ctx: c.getContext('2d')! }
+        }
+        const bead = mk(), glow = mk(), tint = mk()
+        const beadTex = new THREE.CanvasTexture(bead.c)
+        beadTex.colorSpace = THREE.SRGBColorSpace
+        beadTex.anisotropy = 8
+        const glowTex = new THREE.CanvasTexture(glow.c)
+        glowTex.colorSpace = THREE.SRGBColorSpace
+        const material = new THREE.MeshStandardMaterial({
+          map: beadTex, transparent: true, metalness: 0.75, roughness: 0.5,
+          emissive: 0xffffff, emissiveMap: glowTex, emissiveIntensity: 2.6,
+          depthWrite: false, side: THREE.DoubleSide,
+        })
+        return {
+          W, H, bead, glow, tint, material,
+          clear() { for (const s of [bead, glow]) s.ctx.clearRect(0, 0, W, H) },
+          flush() { beadTex.needsUpdate = true; glowTex.needsUpdate = true },
+        }
       }
-      const beadCv = makeWeldCanvas()
-      const glowCv = makeWeldCanvas()
-      const weldFont = `700 ${Math.round(WELD_H * 0.55)}px "Trebuchet MS", "Segoe UI", sans-serif`
+      type WeldSurface = ReturnType<typeof weldSurface>
 
-      // The dotted mark is taken straight from the logo artwork — hand-placed
-      // tacks never matched it — and swept on left to right like a real bead.
-      const tintCv = makeWeldCanvas()
+      const HOT_BEAD: [string, string, string] = ['#E3EAF0', '#FFD9A0', '#FF8A24']
+      const HOT_GLOW: [string, string, string] = ['#000000', '#7a3f0c', '#FF8A24']
+
+      // an image swept on left to right, molten at the leading edge
+      const sweepImage = (s: WeldSurface, img: HTMLImageElement, progress: number, cold: string) => {
+        const head = s.W * progress
+        const vis = Math.min(Math.max(head, 0), s.W)
+        if (vis <= 0) return
+        for (const [target, stops] of [[s.bead, [cold, HOT_BEAD[1], HOT_BEAD[2]]], [s.glow, HOT_GLOW]] as const) {
+          const t = s.tint.ctx
+          t.clearRect(0, 0, s.W, s.H)
+          t.save(); t.beginPath(); t.rect(0, 0, vis, s.H); t.clip()
+          t.drawImage(img, 0, 0, s.W, s.H)
+          t.restore()
+          t.globalCompositeOperation = 'source-in'
+          const g = t.createLinearGradient(head - s.W * 0.22, 0, head, 0)
+          g.addColorStop(0, stops[0]); g.addColorStop(0.55, stops[1]); g.addColorStop(1, stops[2])
+          t.fillStyle = g
+          t.fillRect(0, 0, s.W, s.H)
+          t.globalCompositeOperation = 'source-over'
+          target.ctx.save()
+          if (target === s.bead) {
+            target.ctx.shadowColor = 'rgba(8,12,16,0.9)'
+            target.ctx.shadowBlur = s.H * 0.02
+          }
+          target.ctx.drawImage(s.tint.c, 0, 0)
+          target.ctx.restore()
+        }
+      }
+
       const logoImg = new Image()
       let logoReady = false
       logoImg.onload = () => { logoReady = true }
       logoImg.src = '/logo-full.png'
-      const MARK_SRC = { w: 196, h: 396 }      // the dot swoosh, before the "B"
-      const MARK_TIME = 1.1
-      const PER_LETTER = 0.15
 
+      // ── logo on the hood ──
+      const hoodS = weldSurface(2048, Math.round(2048 * 396 / 1600))
+      const hoodDecalW = 3.02
+      const hoodDecal = new THREE.Mesh(curvedDecal(hoodDecalW, hoodDecalW * 396 / 1600, 0.978), hoodS.material)
+      hoodDecal.rotation.set(1.0, 0, 0)      // tipped toward the viewer, not lying flat on top
+      furnHi.add(hoodDecal)
+
+      // ── slogan on the apron ──
+      const apronS = weldSurface(2560, 300)
+      const apronFont = `700 ${Math.round(apronS.H * 0.55)}px "Trebuchet MS", "Segoe UI", sans-serif`
       const letterX: number[] = []
-      let markX = 0
-      const markW = WELD_H * (MARK_SRC.w / MARK_SRC.h)
       {
-        beadCv.ctx.font = weldFont
-        const spacing = WELD_H * 0.08
+        apronS.bead.ctx.font = apronFont
+        const spacing = apronS.H * 0.06
         let textW = 0
-        for (const ch of WELD_TEXT) textW += beadCv.ctx.measureText(ch).width + spacing
-        const gap = WELD_H * 0.1
-        markX = (WELD_W - (markW + gap + textW)) / 2
-        let x = markX + markW + gap
-        for (const ch of WELD_TEXT) {
+        for (const ch of slogan) textW += apronS.bead.ctx.measureText(ch).width + spacing
+        let x = (apronS.W - textW) / 2
+        for (const ch of slogan) {
           letterX.push(x)
-          x += beadCv.ctx.measureText(ch).width + spacing
+          x += apronS.bead.ctx.measureText(ch).width + spacing
         }
       }
-      const weldAt = letterX.map((_, i) => MARK_TIME + i * PER_LETTER)
+      const apronW = 7.0
+      const apronPlate = new THREE.Mesh(
+        new THREE.PlaneGeometry(apronW, apronW * apronS.H / apronS.W),
+        apronS.material,
+      )
+      apronPlate.position.set(0.85, -1.37, 1.165)
+      rig.add(apronPlate)
 
-      const drawMark = (target: typeof beadCv, stops: [string, string, string], head: number, vis: number) => {
-        const t = tintCv.ctx
-        t.clearRect(0, 0, WELD_W, WELD_H)
-        t.save()
-        t.beginPath(); t.rect(markX, 0, vis, WELD_H); t.clip()
-        t.drawImage(logoImg, 0, 0, MARK_SRC.w, MARK_SRC.h, markX, 0, markW, WELD_H)
-        t.restore()
-        t.globalCompositeOperation = 'source-in'
-        const g = t.createLinearGradient(head - markW * 0.4, 0, head, 0)
-        g.addColorStop(0, stops[0]); g.addColorStop(0.55, stops[1]); g.addColorStop(1, stops[2])
-        t.fillStyle = g
-        t.fillRect(0, 0, WELD_W, WELD_H)
-        t.globalCompositeOperation = 'source-over'
-        target.ctx.drawImage(tintCv.c, 0, 0)
-      }
-
-      const drawWeld = (wt: number, heat: number[]) => {
-        for (const { ctx } of [beadCv, glowCv]) {
-          ctx.clearRect(0, 0, WELD_W, WELD_H)
-          ctx.font = weldFont
+      const drawSlogan = (heat: number[]) => {
+        apronS.clear()
+        for (const { ctx } of [apronS.bead, apronS.glow]) {
+          ctx.font = apronFont
           ctx.textBaseline = 'middle'
-        }
-        if (logoReady && wt > 0) {
-          const head = markX + markW * (wt / MARK_TIME)
-          const vis = Math.min(Math.max(head - markX, 0), markW)
-          if (vis > 0) {
-            beadCv.ctx.save()
-            beadCv.ctx.shadowColor = 'rgba(8,12,16,0.95)'
-            beadCv.ctx.shadowBlur = WELD_H * 0.012
-            drawMark(beadCv, ['#E3EAF0', '#FFD9A0', '#FF8A24'], head, vis)
-            beadCv.ctx.restore()
-            drawMark(glowCv, ['#000000', '#7a3f0c', '#FF8A24'], head, vis)
-          }
         }
         letterX.forEach((lx, i) => {
           if (heat[i] < 0) return
           const hot = Math.max(0, Math.min(1, heat[i]))
           // cooled bead: bright crown over a dark oxidised outline
-          beadCv.ctx.lineWidth = WELD_H * 0.16
-          beadCv.ctx.lineJoin = 'round'
-          beadCv.ctx.strokeStyle = '#12171B'
-          beadCv.ctx.strokeText(WELD_TEXT[i], lx, WELD_H / 2)
-          beadCv.ctx.fillStyle = hot > 0
+          apronS.bead.ctx.lineWidth = apronS.H * 0.16
+          apronS.bead.ctx.lineJoin = 'round'
+          apronS.bead.ctx.strokeStyle = '#12171B'
+          apronS.bead.ctx.strokeText(slogan[i], lx, apronS.H / 2)
+          apronS.bead.ctx.fillStyle = hot > 0
             ? `rgb(${Math.round(227 + 28 * hot)},${Math.round(234 - 64 * hot)},${Math.round(240 - 200 * hot)})`
             : '#E3EAF0'
-          beadCv.ctx.fillText(WELD_TEXT[i], lx, WELD_H / 2)
+          apronS.bead.ctx.fillText(slogan[i], lx, apronS.H / 2)
           if (hot > 0.01) {
-            glowCv.ctx.fillStyle = `rgb(${Math.round(255 * hot)},${Math.round(150 * hot)},${Math.round(40 * hot)})`
-            glowCv.ctx.fillText(WELD_TEXT[i], lx, WELD_H / 2)
+            apronS.glow.ctx.fillStyle = `rgb(${Math.round(255 * hot)},${Math.round(150 * hot)},${Math.round(40 * hot)})`
+            apronS.glow.ctx.fillText(slogan[i], lx, apronS.H / 2)
           }
         })
-        beadTex.needsUpdate = true
-        glowTex.needsUpdate = true
+        apronS.flush()
       }
-      const beadTex = new THREE.CanvasTexture(beadCv.c)
-      beadTex.colorSpace = THREE.SRGBColorSpace
-      beadTex.anisotropy = 8
-      const glowTex = new THREE.CanvasTexture(glowCv.c)
-      glowTex.colorSpace = THREE.SRGBColorSpace
-      const weldM = new THREE.MeshStandardMaterial({
-        map: beadTex, transparent: true, metalness: 0.75, roughness: 0.5,
-        emissive: 0xffffff, emissiveMap: glowTex, emissiveIntensity: 2.6, depthWrite: false,
-      })
-      const weldW = 7.0
-      const weldPlate = new THREE.Mesh(new THREE.PlaneGeometry(weldW, weldW * WELD_H / WELD_W), weldM)
-      weldPlate.position.set(0.85, -1.37, 1.165)
-      rig.add(weldPlate)
-      const spark = new THREE.PointLight(0xffb257, 0, 2.2, 2)
+
+      const HOOD_TIME = 2.4
+      const SLOGAN_AT = HOOD_TIME + 0.9
+      const PER_LETTER = 0.12
+      const sloganAt = letterX.map((_, i) => SLOGAN_AT + i * PER_LETTER)
+      const WELD_END = sloganAt[sloganAt.length - 1] + 2.2
+      const sloganHeat = letterX.map(() => -1)
+      const spark = new THREE.PointLight(0xffb257, 0, 2.4, 2)
       rig.add(spark)
-      const weldHeat = letterX.map(() => -1)
-      drawWeld(-1, weldHeat)
 
       // ── Ground shadow ───────────────────────────────────────────
       const shadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(30, 30), new THREE.ShadowMaterial({ opacity: 0.16 }))
@@ -881,25 +883,35 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
           n.rotation.z = -0.8 + power * (1.1 + Math.sin(t * 1.4 + i) * 0.28)
         })
 
-        // the name is welded on last, one letter at a time
-        const weldT = t - (ASSEMBLY_END + 1.6)
-        const weldDone = weldAt[weldAt.length - 1] + 2.2
-        if (weldT > 0 && weldT < weldDone + 0.2) {
-          let tip = -1
-          for (let i = 0; i < weldHeat.length; i++) {
-            if (weldT < weldAt[i]) continue
-            tip = i
-            weldHeat[i] = Math.max(0, 1 - (weldT - weldAt[i]) / 1.9)
+        // signed off once assembled: logo on the hood, then slogan on the apron
+        const weldT = t - (ASSEMBLY_END + 1.3)
+        if (weldT > 0 && weldT < WELD_END + 0.2) {
+          if (logoReady) {
+            hoodS.clear()
+            sweepImage(hoodS, logoImg, weldT / HOOD_TIME, '#5A636D')
+            hoodS.flush()
           }
-          drawWeld(weldT, weldHeat)
-          const head = weldT < MARK_TIME
-            ? markX + markW * (weldT / MARK_TIME)
-            : (tip >= 0 && tip < letterX.length - 1 ? letterX[tip] + 40 : -1)
-          if (head >= 0) {
+          let tip = -1
+          for (let i = 0; i < sloganHeat.length; i++) {
+            if (weldT < sloganAt[i]) continue
+            tip = i
+            sloganHeat[i] = Math.max(0, 1 - (weldT - sloganAt[i]) / 1.9)
+          }
+          drawSlogan(sloganHeat)
+
+          if (weldT < HOOD_TIME) {
+            const u = weldT / HOOD_TIME
             spark.position.set(
-              weldPlate.position.x + (head / WELD_W - 0.5) * weldW,
-              weldPlate.position.y,
-              weldPlate.position.z + 0.3,
+              (u - 0.5) * hoodDecalW,
+              0.02 + 1.02 * Math.cos(hoodDecal.rotation.x),
+              1.02 * Math.sin(hoodDecal.rotation.x) + 0.25,
+            )
+            spark.intensity = 7 + Math.random() * 7
+          } else if (tip >= 0 && tip < letterX.length - 1) {
+            spark.position.set(
+              apronPlate.position.x + ((letterX[tip] + 40) / apronS.W - 0.5) * apronW,
+              apronPlate.position.y,
+              apronPlate.position.z + 0.3,
             )
             spark.intensity = 7 + Math.random() * 7
           } else {
@@ -941,7 +953,7 @@ export default function TubeFurnaceRig3D({ height = 620 }: { height?: number }) 
       if (onResize) window.removeEventListener('resize', onResize)
       renderer?.dispose()
     }
-  }, [height])
+  }, [height, slogan])
 
   if (webglFailed) return <RigFallback height={height} />
 
