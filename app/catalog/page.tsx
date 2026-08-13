@@ -10,10 +10,10 @@ import type { Category, Product } from '@/types'
 
 // ── Уровень 1: типы продукции (из документации) ──────────────────
 const TYPE_DEFS = [
-  { key: 'all', label: 'Все' },
-  { key: 'S',   label: 'Серийные' },
-  { key: 'PA',  label: 'Комплектующие' },
-  { key: 'I',   label: 'Под заказ' },
+  { key: 'all', labelKey: 'typeAll' },
+  { key: 'S',   labelKey: 'typeSerial' },
+  { key: 'PA',  labelKey: 'typeAccessories' },
+  { key: 'I',   labelKey: 'typeCustom' },
 ]
 
 // ── Уровень 2: иконки категорий ──────────────────────────────────
@@ -25,7 +25,7 @@ const CAT_ICONS: Record<string, LucideIcon> = {
 // ── Уровень 3: подтипы по категории ──────────────────────────────
 interface SubcatDef {
   code: string
-  label: string
+  labelKey: string
   modelMatch?: (model: string) => boolean
 }
 
@@ -35,32 +35,32 @@ const CAT_SUBCATS: Record<string, SubcatDef[]> = {
   sftv:      [],
   sftm:      [],
   sm: [
-    { code: 'SM', label: 'Шаровые мельницы', modelMatch: m => m.includes('BALLMILL') || m.includes('PBALL') },
-    { code: 'SV', label: 'Вибросита',         modelMatch: m => m.includes('VIBSIEVE') },
+    { code: 'SM', labelKey: 'subBallMill', modelMatch: m => m.includes('BALLMILL') || m.includes('PBALL') },
+    { code: 'SV', labelKey: 'subSieve', modelMatch: m => m.includes('VIBSIEVE') },
   ],
   ss: [
-    { code: 'SES', label: 'Электроспиннинг', modelMatch: m => m.startsWith('BS-ES') },
-    { code: 'SGB', label: 'Вакуумные боксы', modelMatch: m => m.startsWith('BS-VGB') || m.startsWith('BS-AGB') },
+    { code: 'SES', labelKey: 'subSpinning', modelMatch: m => m.startsWith('BS-ES') },
+    { code: 'SGB', labelKey: 'subGlovebox', modelMatch: m => m.startsWith('BS-VGB') || m.startsWith('BS-AGB') },
   ],
   furniture: [
-    { code: 'FH',  label: 'Вытяжные шкафы', modelMatch: m => m.startsWith('BS-FH') },
-    { code: 'GC',  label: 'Газовые шкафы',  modelMatch: m => m.startsWith('BS-GC') },
-    { code: 'LT',  label: 'Столы',           modelMatch: m => /^BS-(LT|AVT|ILT|T-)/.test(m) },
+    { code: 'FH',  labelKey: 'subFumeHood', modelMatch: m => m.startsWith('BS-FH') },
+    { code: 'GC',  labelKey: 'subGasCabinet', modelMatch: m => m.startsWith('BS-GC') },
+    { code: 'LT',  labelKey: 'subTables', modelMatch: m => /^BS-(LT|AVT|ILT|T-)/.test(m) },
   ],
   pa: [],
 }
 
 // ── Уровень 4: атрибутные фильтры для подтипов ───────────────────
-interface AttrDef { specKey: string; label: string }
+interface AttrDef { specKey: string; labelKey: string }
 const SUBCAT_ATTRS: Record<string, AttrDef[]> = {
   SFM: [
-    { specKey: 'Объём камеры',      label: 'Объём' },
-    { specKey: 'Макс. температура', label: 'Температура' },
+    { specKey: 'Объём камеры',      labelKey: 'specVolume' },
+    { specKey: 'Макс. температура', labelKey: 'specTemperature' },
   ],
   SFTH: [
-    { specKey: 'Кол-во зон',        label: 'Зоны нагрева' },
-    { specKey: 'Диаметр трубы',     label: 'Диаметр трубы' },
-    { specKey: 'Макс. температура', label: 'Температура' },
+    { specKey: 'Кол-во зон',        labelKey: 'specZones' },
+    { specKey: 'Диаметр трубы',     labelKey: 'specTubeDiameter' },
+    { specKey: 'Макс. температура', labelKey: 'specTemperature' },
   ],
 }
 
@@ -106,14 +106,14 @@ function FilterChip({
 
 // ── Блок атрибутного фильтра ─────────────────────────────────────
 function AttrFilterRow({
-  def, values, selected, onSelect,
-}: { def: AttrDef; values: string[]; selected: string; onSelect: (v: string) => void }) {
+  def, values, selected, onSelect, label,
+}: { def: AttrDef; values: string[]; selected: string; onSelect: (v: string) => void; label: string }) {
   if (values.length < 2) return null
   return (
     <div className="flex items-start gap-3 flex-wrap">
       <span className="text-[12px] font-mono font-bold tracking-wider uppercase mt-2 shrink-0 w-24"
         style={{ color: '#94A3B8' }}>
-        {def.label}:
+        {label}:
       </span>
       <div className="flex flex-wrap gap-1.5">
         {values.map(v => (
@@ -135,6 +135,9 @@ function AttrFilterRow({
 // ── Основной компонент ────────────────────────────────────────────
 function CatalogContent() {
   const { lang, tr } = useLang()
+  // filter definitions store translation keys, since their labels are ours
+  // rather than admin-entered content
+  const L = (key: string) => (tr.catalog as Record<string, string>)[key] ?? key
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -287,7 +290,7 @@ function CatalogContent() {
             {tr.catalog.title}
           </h1>
           <p className="text-lg max-w-2xl mx-auto leading-relaxed" style={{ color: '#E2E8F0' }}>
-            Высокоточное лабораторное оборудование казахстанского производства
+            {tr.catalog.subtitle}
           </p>
         </div>
       </section>
@@ -297,11 +300,11 @@ function CatalogContent() {
         {/* ═══ Уровень 1: Тип продукции ═══════════════════════════ */}
         <div className="mb-4">
           <p className="text-[11px] font-mono font-bold tracking-[0.2em] uppercase mb-2" style={{ color: '#94A3B8' }}>
-            ТИП ПРОДУКЦИИ
+            {tr.catalog.typeLabel}
           </p>
           <div className="flex items-center gap-2 flex-wrap">
             {TYPE_DEFS.map(t => (
-              <FilterChip key={t.key} label={t.label} count={typeCount(t.key)}
+              <FilterChip key={t.key} label={L(t.labelKey)} count={typeCount(t.key)}
                 active={selType === t.key} onClick={() => handleTypeSelect(t.key)} />
             ))}
           </div>
@@ -313,7 +316,7 @@ function CatalogContent() {
             <div className="flex items-center gap-2 mb-2">
               {selType !== 'all' && <ChevronRight size={12} style={{ color: '#CBD5E1' }} />}
               <p className="text-[11px] font-mono font-bold tracking-[0.2em] uppercase" style={{ color: '#94A3B8' }}>
-                КАТЕГОРИЯ
+                {tr.catalog.categoryLabel}
               </p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
@@ -358,12 +361,12 @@ function CatalogContent() {
             <div className="flex items-center gap-2 mb-2">
               <ChevronRight size={12} style={{ color: '#CBD5E1' }} />
               <p className="text-[11px] font-mono font-bold tracking-[0.2em] uppercase" style={{ color: '#94A3B8' }}>
-                ПОДТИП
+                {tr.catalog.subtypeLabel}
               </p>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               {visibleSubcats.map(sc => (
-                <FilterChip key={sc.code} label={sc.label} count={subcatCount(sc)}
+                <FilterChip key={sc.code} label={L(sc.labelKey)} count={subcatCount(sc)}
                   active={selSubcat === sc.code} onClick={() => handleSubcatSelect(sc.code)} />
               ))}
             </div>
@@ -381,7 +384,7 @@ function CatalogContent() {
             </div>
             <div className="flex flex-col gap-2.5">
               {attrFilterDefs.map(def => (
-                <AttrFilterRow key={def.specKey} def={def} values={def.values}
+                <AttrFilterRow key={def.specKey} def={def} values={def.values} label={L(def.labelKey)}
                   selected={selAttrs[def.specKey] ?? ''}
                   onSelect={v => setSelAttrs(prev => ({ ...prev, [def.specKey]: v }))} />
               ))}
@@ -414,13 +417,13 @@ function CatalogContent() {
               onClick={() => { setSelType('all'); setSelCat(''); setSelSubcat(''); setSelAttrs({}); setSearchQuery(''); updateUrl({ type: 'all', category: '' }) }}
               className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-base font-semibold transition-all"
               style={{ background: '#FEF2F2', color: '#DC2626', border: '1.5px solid #FECACA' }}>
-              <X size={12} /> Сбросить
+              <X size={12} /> {tr.catalog.reset}
             </button>
           )}
 
           <p className="text-base font-mono shrink-0" style={{ color: '#94A3B8' }}>
             {loading ? '—' : finalProducts.length}{' '}
-            {lang === 'ru' ? 'позиций' : lang === 'kk' ? 'позиция' : 'items'}
+            {tr.catalog.itemsCount}
           </p>
         </div>
 

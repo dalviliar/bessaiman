@@ -192,6 +192,7 @@ export default function NaukaPage() {
   useEffect(() => { setLimit(PAGE_SIZE) }, [sub])
 
   const shown = visible.slice(0, limit)
+  const hasMedia = shown.some(c => c.images.length > 0)
   const rest = visible.length - shown.length
 
   return (
@@ -278,6 +279,49 @@ export default function NaukaPage() {
               </div>
             )}
 
+            {/* Patents, publications and contracts never carry a photo, so they
+                get a document row instead of a card with an empty picture. */}
+            {!hasMedia ? (
+              <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E2E8F0', background: 'white' }}>
+                <div className="divide-y" style={{ borderColor: '#F1F5F9' }}>
+                  {shown.map((card, i) => (
+                    <button key={card.id} type="button" onClick={() => setActive(card)}
+                      onMouseEnter={e => { e.currentTarget.style.background = '#F8FAFC' }}
+                      onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
+                      className="w-full text-left flex items-start gap-4 px-5 py-4 transition-colors">
+                      <span className="shrink-0 w-7 text-sm font-black text-right pt-0.5" style={{ color: '#CBD5E1' }}>
+                        {i + 1}
+                      </span>
+                      <span className="flex-1 min-w-0">
+                        <span className="block font-semibold text-base leading-snug" style={{ color: '#0F172A' }}>
+                          {card.title}
+                        </span>
+                        {(card.subtitle || card.meta.length > 0) && (
+                          <span className="block text-sm mt-1" style={{ color: '#1565C0' }}>
+                            {[card.subtitle, ...card.meta].filter(Boolean).join('  ·  ')}
+                          </span>
+                        )}
+                        {card.body[0] && (
+                          <span className="block text-sm mt-1 line-clamp-2" style={{ color: '#94A3B8' }}>{card.body[0]}</span>
+                        )}
+                      </span>
+                      <span className="flex items-center gap-2 shrink-0 pt-0.5">
+                        {card.badge && (
+                          <span className="px-2.5 py-1 rounded-full text-[12px] font-bold whitespace-nowrap"
+                            style={{ background: '#ECFDF5', color: '#059669' }}>{card.badge}</span>
+                        )}
+                        {card.link && (
+                          <span className="flex items-center gap-1 px-2 py-1 rounded-lg text-[12px] font-bold"
+                            style={{ background: '#EFF6FF', color: '#1565C0' }}>
+                            <ExternalLink size={10} />{card.link.label}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {shown.map(card => {
                 const Icon = card.icon ?? FlaskConical
@@ -333,6 +377,7 @@ export default function NaukaPage() {
                 )
               })}
             </div>
+            )}
 
             {rest > 0 && (
               <div className="text-center mt-7">

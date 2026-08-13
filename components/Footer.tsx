@@ -93,12 +93,7 @@ export default function Footer() {
 
         <div className="mt-10 pt-6 border-t border-steel-border/30 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-steel-silver/60 text-sm">
-            © {new Date().getFullYear()} Bes Saiman Group. All rights reserved.
-            <span className="mx-1.5 text-steel-silver/30">·</span>
-            <a href="https://wa.me/77470636611" target="_blank" rel="noopener noreferrer"
-              className="text-steel-silver/60 hover:text-steel-silver/90 transition-colors">
-              Веб-студия Рауза
-            </a>
+            © {new Date().getFullYear()} Bes Saiman Group. {tr.nav.rights}
           </p>
           <div className="flex items-center gap-3">
             <a
@@ -123,12 +118,21 @@ export default function Footer() {
             >
               <WhatsAppIcon />
             </a>
-            <div className="w-px h-4 bg-steel-border/30" />
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse-slow" />
-              <span className="text-steel-silver/60 text-sm">System operational</span>
-            </div>
           </div>
+        </div>
+
+        {/* Studio credit — its own quiet line, not tacked onto the copyright */}
+        <div className="mt-5 text-center">
+          <a href="https://wa.me/77470636611" target="_blank" rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-[13px] tracking-wide transition-colors"
+            style={{ color: 'rgba(148,163,184,0.45)' }}
+            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(203,213,225,0.85)' }}
+            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(148,163,184,0.45)' }}
+          >
+            {tr.nav.builtBy}
+            <span style={{ color: 'rgba(148,163,184,0.3)' }}>—</span>
+            <span className="font-semibold">Веб-студия Rauza</span>
+          </a>
         </div>
       </div>
     </footer>
