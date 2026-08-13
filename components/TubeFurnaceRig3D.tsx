@@ -685,7 +685,7 @@ export default function TubeFurnaceRig3D({
           target.ctx.save()
           if (target === s.bead) {
             target.ctx.shadowColor = 'rgba(8,12,16,0.9)'
-            target.ctx.shadowBlur = s.H * 0.02
+            target.ctx.shadowBlur = s.H * 0.006
           }
           target.ctx.drawImage(s.tint.c, 0, 0)
           target.ctx.restore()
@@ -738,7 +738,7 @@ export default function TubeFurnaceRig3D({
         new THREE.PlaneGeometry(apronW, apronW * apronS.H / apronS.W),
         apronS.material,
       )
-      apronPlate.position.set(0.85, -1.37, 1.165)
+      apronPlate.position.set(0.15, -1.37, 1.165)
       rig.add(apronPlate)
 
       const drawSlogan = (heat: number[]) => {
@@ -751,9 +751,9 @@ export default function TubeFurnaceRig3D({
           if (heat[i] < 0) return
           const hot = Math.max(0, Math.min(1, heat[i]))
           // cooled bead: bright crown over a dark oxidised outline
-          apronS.bead.ctx.lineWidth = apronS.H * 0.16
+          apronS.bead.ctx.lineWidth = apronS.H * 0.045
           apronS.bead.ctx.lineJoin = 'round'
-          apronS.bead.ctx.strokeStyle = '#12171B'
+          apronS.bead.ctx.strokeStyle = 'rgba(20,26,32,0.75)'
           apronS.bead.ctx.strokeText(slogan[i], lx, apronS.H / 2)
           apronS.bead.ctx.fillStyle = hot > 0
             ? `rgb(${Math.round(227 + 28 * hot)},${Math.round(234 - 64 * hot)},${Math.round(240 - 200 * hot)})`
@@ -902,7 +902,7 @@ export default function TubeFurnaceRig3D({
         if (weldT > 0 && weldT < WELD_END + 0.2) {
           if (logoReady) {
             hoodS.clear()
-            sweepImage(hoodS, logoImg, weldT / HOOD_TIME, '#5A636D')
+            sweepImage(hoodS, logoImg, weldT / HOOD_TIME, '#1E2A3A')
             hoodS.flush()
           }
           let tip = -1

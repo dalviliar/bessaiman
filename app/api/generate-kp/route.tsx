@@ -44,7 +44,6 @@ const s = StyleSheet.create({
   logoSub:  { fontSize: 5, color: 'rgba(255,255,255,0.7)', letterSpacing: 2 },
   logoImg:  { width: 148, height: 36.6, marginRight: 14 },
   headerInfo: { flex: 1 },
-  companyName:    { fontSize: 13, fontWeight: 'bold', color: C.primary, marginBottom: 2 },
   companyTagline: { fontSize: 7.5, color: C.gray, marginBottom: 2 },
   companyContact: { fontSize: 7, color: C.gray },
 
@@ -278,7 +277,6 @@ function KPDocument({
               </View>
             )}
           <View style={s.headerInfo}>
-            <Text style={s.companyName}>ТОО «Bes Saiman Group»</Text>
             <Text style={s.companyTagline}>Научно-производственная компания</Text>
             <Text style={s.companyContact}>
               +7 (707) 620-28-90  ·  bessaimangroup1@gmail.com  ·  г. Алматы, ул. Тулебаева 38/61
