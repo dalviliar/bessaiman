@@ -30,6 +30,8 @@ interface NCard {
   tags?: string | null
   badge?: string
   group?: string
+  /** documents are shown whole; equipment photos fill the frame */
+  fit?: 'cover' | 'contain'
   body: string[]
   link?: { href: string; label: string }
 }
@@ -154,6 +156,7 @@ export default function NaukaPage() {
     subtitle: a.award_name,
     meta: [a.year ? String(a.year) : '', a.organization ?? ''].filter(Boolean),
     images: a.certificate_url ? [a.certificate_url] : [],
+    fit: 'contain' as const,
     icon: Medal,
     accent: '#F59E0B',
     body: [],
@@ -330,10 +333,10 @@ export default function NaukaPage() {
                     }}
                     className="group text-left rounded-xl overflow-hidden flex flex-col transition-[box-shadow,border-color] duration-200"
                     style={{ background: '#FFFFFF', border: '1px solid #E2E8F0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-                    <div className="relative aspect-[4/3] overflow-hidden" style={{ background: '#F1F5F9' }}>
+                    <div className="relative aspect-[4/3] overflow-hidden" style={{ background: card.fit === 'contain' ? '#F8FAFC' : '#F1F5F9' }}>
                       {cover ? (
                         <img src={cover} alt={card.title} draggable={false}
-                          className="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.03]" />
+                          className={`w-full h-full transition-transform duration-500 ease-out group-hover:scale-[1.03] ${card.fit === 'contain' ? 'object-contain p-3' : 'object-cover'}`} />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center"
                           style={{ background: `linear-gradient(135deg, ${card.accent}14, ${card.accent}05)` }}>
@@ -381,7 +384,8 @@ export default function NaukaPage() {
           </div>
         )}
 
-        <ZoomPreviewOverlay preview={preview} scale={1.25} maxHeight="45vh" />
+        <ZoomPreviewOverlay preview={preview} scale={1.25} maxHeight="55vh"
+          objectFit={current?.key === 'awards' ? 'contain' : 'cover'} />
 
         {/* ══ Accreditation — separate section ══ */}
         <div className="mb-14">
