@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import {
-  LayoutDashboard, Users, Shield, Package, Warehouse, FileText, History,
+  LayoutDashboard, Users, Shield, Package, Warehouse, FileText, History, Image as ImageIcon,
   LogOut, Loader2, ExternalLink, Newspaper, Tag, KeyRound, X, Eye, EyeOff, Menu, BarChart3, MessageSquare, Handshake, FlaskConical,
 } from 'lucide-react'
 
@@ -22,6 +22,7 @@ const NAV = [
   { href: '/admin/kp',          label: 'Запросы КП',      icon: FileText,        resource: 'kp_requests' },
   { href: '/admin/contacts',    label: 'Обращения',       icon: MessageSquare,   resource: 'kp_requests' },
   { href: '/admin/analytics',   label: 'Аналитика',       icon: BarChart3,       resource: 'kp_requests' },
+  { href: '/admin/pages',       label: 'Изображения',     icon: ImageIcon,       resource: 'settings' },
   { href: '/admin/audit',       label: 'Журнал действий', icon: History,         resource: 'audit' },
 ]
 

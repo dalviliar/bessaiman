@@ -132,6 +132,9 @@ function AttrFilterRow({
   )
 }
 
+// shipped photo, replaced by whatever the admin uploads
+const HERO_FALLBACK = '/images/catalog-hero-lab.jpg'
+
 // ── Основной компонент ────────────────────────────────────────────
 function CatalogContent() {
   const { lang, tr } = useLang()
@@ -142,6 +145,7 @@ function CatalogContent() {
   const pathname = usePathname()
   const searchParams = useSearchParams()
 
+  const [heroImage, setHeroImage] = useState(HERO_FALLBACK)
   const [categories, setCategories]   = useState<Category[]>([])
   const [allProducts, setAllProducts] = useState<Product[]>([])
   const [loading, setLoading]         = useState(true)
@@ -155,6 +159,7 @@ function CatalogContent() {
 
   // Загружаем всё один раз
   useEffect(() => {
+    fetch('/api/page-images').then(r => r.json()).then(d => { if (d?.catalog) setHeroImage(d.catalog) }).catch(() => {})
     Promise.all([getCategories(), getProducts()])
       .then(([cats, prods]) => {
         setCategories(cats)
@@ -273,7 +278,7 @@ function CatalogContent() {
       <section className="relative overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: 'url(/images/catalog-hero-lab.jpg)' }}
+          style={{ backgroundImage: `url(${heroImage})` }}
           aria-hidden
         />
         <div

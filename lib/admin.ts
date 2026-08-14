@@ -43,6 +43,7 @@ const EDITABLE_PERMISSIONS: Record<string, string[]> = {
   categories:  ['create', 'read', 'update', 'delete'],
   kp_requests: ['read', 'delete'],
   content:     ['create', 'read', 'update', 'delete'],
+  settings:    ['read', 'update'],
 }
 
 export function sanitizePermissions(input: unknown): Permissions {

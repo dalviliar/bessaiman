@@ -38,6 +38,9 @@ interface NCard {
 // not have to upload the same document twice.
 const ACCREDITATION_IMAGE = '/docs/svidetelstvo-akkreditacii-preview.jpg'
 
+// shipped photo, replaced by whatever the admin uploads
+const HERO_FALLBACK = '/images/nauka-hero-lab.jpg'
+
 const PAGE_SIZE = 9
 
 function TagRow({ tags, size = 'sm' }: { tags?: string | null; size?: 'sm' | 'md' }) {
@@ -60,6 +63,7 @@ export default function NaukaPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [contracts, setContracts] = useState<Contract[]>([])
+  const [heroImage, setHeroImage] = useState(HERO_FALLBACK)
 
   const [tab, setTab] = useState('dev')
   const [sub, setSub] = useState('')
@@ -69,6 +73,7 @@ export default function NaukaPage() {
   const { preview, show: showPreview, hide: hidePreview } = useZoomPreview()
 
   useEffect(() => {
+    fetch('/api/page-images').then(r => r.json()).then(d => { if (d?.nauka) setHeroImage(d.nauka) }).catch(() => {})
     fetch('/api/partners').then(r => r.json()).then(d => setPartners(Array.isArray(d) ? d : [])).catch(() => {})
     fetch('/api/science').then(r => r.json()).then(d => {
       setPublications(Array.isArray(d?.publications) ? d.publications : [])
@@ -187,7 +192,7 @@ export default function NaukaPage() {
       <section className="relative overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: 'url(/images/nauka-hero-lab.jpg)' }}
+          style={{ backgroundImage: `url(${heroImage})` }}
           aria-hidden
         />
         <div
