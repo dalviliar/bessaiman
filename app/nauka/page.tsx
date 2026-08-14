@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import {
-  BookOpen, Trophy, ShieldCheck, ExternalLink, Medal, FileSignature, X,
+  BookOpen, ShieldCheck, ExternalLink, Medal, FileSignature, X,
   Calendar, FlaskConical, ChevronLeft, ChevronRight, Image as ImageIcon, type LucideIcon,
 } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
@@ -34,10 +34,8 @@ interface NCard {
   link?: { href: string; label: string }
 }
 
-// Rendered once from the first page of the source PDFs (scripts used to
-// generate these are throwaway - see the diploma/accreditation PDFs in
-// public/docs) so staff don't have to upload the same document twice.
-const COMPANY_DIPLOMA_IMAGE = '/docs/diplom-luchshiy-inzhener-2025-preview.jpg'
+// Rendered once from the first page of the accreditation PDF, so staff do
+// not have to upload the same document twice.
 const ACCREDITATION_IMAGE = '/docs/svidetelstvo-akkreditacii-preview.jpg'
 
 const PAGE_SIZE = 9
@@ -145,29 +143,16 @@ export default function NaukaPage() {
     })),
   ]
 
-  const awardCards: NCard[] = [
-    {
-      id: 'company-diploma',
-      title: tr.nauka.achievTitle,
-      subtitle: 'НИНЖ РК',
-      meta: ['2025'],
-      images: [COMPANY_DIPLOMA_IMAGE],
-      icon: Trophy,
-      accent: '#F59E0B',
-      body: [tr.nauka.achievDesc1, tr.nauka.achievDesc2],
-      link: { href: '/docs/diplom-luchshiy-inzhener-2025.pdf', label: tr.nauka.achievViewDoc },
-    },
-    ...achievements.map(a => ({
-      id: a.id,
-      title: a.full_name,
-      subtitle: a.award_name,
-      meta: [a.year ? String(a.year) : '', a.organization ?? ''].filter(Boolean),
-      images: a.certificate_url ? [a.certificate_url] : [],
-      icon: Medal,
-      accent: '#F59E0B',
-      body: [],
-    })),
-  ]
+  const awardCards: NCard[] = achievements.map(a => ({
+    id: a.id,
+    title: a.full_name,
+    subtitle: a.award_name,
+    meta: [a.year ? String(a.year) : '', a.organization ?? ''].filter(Boolean),
+    images: a.certificate_url ? [a.certificate_url] : [],
+    icon: Medal,
+    accent: '#F59E0B',
+    body: [],
+  }))
 
   const TABS = [
     { key: 'dev', label: tr.nauka.indivDevTitle, intro: tr.nauka.indivDevIntro, cards: devCards },
