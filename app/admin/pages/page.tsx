@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Upload, Loader2, Check } from 'lucide-react'
 
 interface PageImage { page: string; image_url: string }
@@ -85,17 +86,27 @@ export default function AdminPagesPage() {
   const [images, setImages] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(true)
 
+  const router = useRouter()
+
   useEffect(() => {
     fetch('/api/admin/page-images')
-      .then(r => r.json())
-      .then((rows: PageImage[]) => {
+      .then(async r => {
+        // без права раздела не должно быть даже видно — уводим на дашборд
+        if (r.status === 403) { router.replace('/admin'); return null }
+        return r.json()
+      })
+      .then((rows: PageImage[] | null) => {
         if (!Array.isArray(rows)) return
         const map: Record<string, string> = {}
         for (const r of rows) map[r.page] = r.image_url
         setImages(map)
       })
       .finally(() => setLoading(false))
-  }, [])
+  }, [router])
+
+  // ничего не показываем, пока сервер не подтвердил право — иначе заголовок
+  // мелькнёт даже у того, кто просто угадал адрес
+  if (loading) return null
 
   return (
     <div>
@@ -105,17 +116,13 @@ export default function AdminPagesPage() {
         от 1600 px по ширине — изображение обрезается по центру.
       </p>
 
-      {loading ? (
-        <div className="flex justify-center py-12"><Loader2 size={20} className="animate-spin" style={{ color: '#3B82F6' }} /></div>
-      ) : (
-        <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-2">
           {PAGES.map(p => (
             <PageRow key={p.key} page={p.key} title={p.title} hint={p.hint}
               url={images[p.key] ?? null}
               onSaved={url => setImages(prev => ({ ...prev, [p.key]: url }))} />
-          ))}
-        </div>
-      )}
+        ))}
+      </div>
     </div>
   )
 }

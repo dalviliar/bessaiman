@@ -33,50 +33,10 @@ export interface Permissions {
   settings?: { read: boolean; update: boolean }
 }
 
-// Разделы и действия, которые можно назначить пользователю через форму "Индивидуальный доступ".
-// Всё, что сюда не входит (в первую очередь permissions.all и roles.*), нельзя выставить
-// через этот путь — иначе пользователь с правом users.update мог бы выдать кому угодно
-// (включая себя) полный доступ суперадминистратора через прямой запрос к API в обход формы.
-const EDITABLE_PERMISSIONS: Record<string, string[]> = {
-  users:       ['create', 'read', 'update', 'delete'],
-  products:    ['create', 'read', 'update', 'delete'],
-  categories:  ['create', 'read', 'update', 'delete'],
-  kp_requests: ['read', 'delete'],
-  content:     ['create', 'read', 'update', 'delete'],
-}
-
-// Уровень 1 — разделы, которые затрагивают сам сайт, а не его наполнение.
-// Их выдаёт только суперадминистратор: у остальных они не появляются в форме
-// и отбрасываются на сервере, даже если прийти напрямую в API.
-export const LEVEL1_PERMISSIONS: Record<string, string[]> = {
-  settings: ['read', 'update'],
-}
-
 export function isSuperAdmin(role: AdminRole | null | undefined): boolean {
   if (!role) return false
   const p = role.permissions as Permissions
   return p.all === true || role.name === 'super_admin' || role.level === 0
-}
-
-export function sanitizePermissions(input: unknown, allowLevel1 = false): Permissions {
-  const allowed = allowLevel1
-    ? { ...EDITABLE_PERMISSIONS, ...LEVEL1_PERMISSIONS }
-    : EDITABLE_PERMISSIONS
-  const out: Record<string, Record<string, boolean>> = {}
-  if (input && typeof input === 'object') {
-    const src = input as Record<string, unknown>
-    for (const [section, actions] of Object.entries(allowed)) {
-      const sectionSrc = src[section]
-      if (sectionSrc && typeof sectionSrc === 'object') {
-        const clean: Record<string, boolean> = {}
-        for (const action of actions) {
-          clean[action] = (sectionSrc as Record<string, unknown>)[action] === true
-        }
-        out[section] = clean
-      }
-    }
-  }
-  return out as Permissions
 }
 
 export function can(role: AdminRole | null | undefined, resource: string, action: string): boolean {

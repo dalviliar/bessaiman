@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { query, queryOne, pool } from '@/lib/db'
 import { getCurrentAdminUser } from '@/lib/auth'
-import { can, isSuperAdmin, sanitizePermissions } from '@/lib/admin'
+import { can, isSuperAdmin } from '@/lib/admin'
+import { sanitizePermissions } from '@/lib/permissions.server'
 import { hashPassword } from '@/lib/auth'
 import { logAction } from '@/lib/audit'
 

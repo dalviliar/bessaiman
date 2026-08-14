@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 import { query, queryOne } from '@/lib/db'
 import { getCurrentAdminUser, hashPassword } from '@/lib/auth'
-import { can, canManageUser, isSuperAdmin, sanitizePermissions } from '@/lib/admin'
+import { can, canManageUser, isSuperAdmin } from '@/lib/admin'
+import { sanitizePermissions } from '@/lib/permissions.server'
 import { logAction } from '@/lib/audit'
 
 export const runtime = 'nodejs'

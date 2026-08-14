@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import {
-  LayoutDashboard, Users, Shield, Package, Warehouse, FileText, History, Image as ImageIcon,
+  LayoutDashboard, Users, Shield, Package, Warehouse, FileText, History, Image as ImageIcon, type LucideIcon,
   LogOut, Loader2, ExternalLink, Newspaper, Tag, KeyRound, X, Eye, EyeOff, Menu, BarChart3, MessageSquare, Handshake, FlaskConical,
 } from 'lucide-react'
 
@@ -22,7 +22,6 @@ const NAV = [
   { href: '/admin/kp',          label: 'Запросы КП',      icon: FileText,        resource: 'kp_requests' },
   { href: '/admin/contacts',    label: 'Обращения',       icon: MessageSquare,   resource: 'kp_requests' },
   { href: '/admin/analytics',   label: 'Аналитика',       icon: BarChart3,       resource: 'kp_requests' },
-  { href: '/admin/pages',       label: 'Изображения',     icon: ImageIcon,       resource: 'settings' },
   { href: '/admin/audit',       label: 'Журнал действий', icon: History,         resource: 'audit' },
 ]
 
@@ -133,6 +132,14 @@ function ChangePasswordModal({ onClose }: { onClose: () => void }) {
 
 function Sidebar({ onClose }: { onClose?: () => void }) {
   const { user, loading, logout, can } = useAdminAuth()
+  // пункты уровня 1 приходят с сервера только тем, у кого есть право
+  const [extraNav, setExtraNav] = useState<{ href: string; label: string; icon: LucideIcon; resource: string | null }[]>([])
+  useEffect(() => {
+    fetch('/api/admin/level1')
+      .then(r => r.json())
+      .then(d => setExtraNav(Array.isArray(d?.nav) ? d.nav.map((n: { href: string; label: string }) => ({ ...n, icon: ImageIcon, resource: null })) : []))
+      .catch(() => {})
+  }, [])
   const pathname = usePathname()
   const [showPwModal, setShowPwModal] = useState(false)
 
@@ -176,7 +183,7 @@ function Sidebar({ onClose }: { onClose?: () => void }) {
 
       {/* Nav */}
       <nav className="flex-1 px-2 py-3 space-y-0.5 overflow-y-auto">
-        {NAV.map(item => {
+        {[...NAV, ...extraNav].map(item => {
           const { href, label, icon: Icon, resource } = item
           if (resource && !can(resource, 'read')) return null
           const active = pathname === href || (href !== '/admin' && pathname.startsWith(href))
