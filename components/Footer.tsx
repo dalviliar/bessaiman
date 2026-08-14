@@ -26,7 +26,7 @@ export default function Footer() {
   return (
     <footer className="border-t border-steel-border/40 mt-auto"
       style={{ background: 'linear-gradient(180deg, #0A0F1C 0%, #050810 100%)' }}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {/* Brand */}
           <div>
@@ -91,7 +91,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-steel-border/30 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="mt-9 pt-5 border-t border-steel-border/30 flex flex-col sm:flex-row justify-between items-center gap-4">
           <p className="text-steel-silver/60 text-sm">
             © {new Date().getFullYear()} Bes Saiman Group. {tr.nav.rights}
           </p>
@@ -122,7 +122,7 @@ export default function Footer() {
         </div>
 
         {/* Studio credit — its own quiet line, not tacked onto the copyright */}
-        <div className="mt-5 text-center">
+        <div className="mt-4 text-center">
           <a href="https://wa.me/77470636611" target="_blank" rel="noopener noreferrer"
             className="inline-flex items-center gap-1.5 text-[13px] tracking-wide transition-colors"
             style={{ color: 'rgba(148,163,184,0.45)' }}
