@@ -43,14 +43,29 @@ const EDITABLE_PERMISSIONS: Record<string, string[]> = {
   categories:  ['create', 'read', 'update', 'delete'],
   kp_requests: ['read', 'delete'],
   content:     ['create', 'read', 'update', 'delete'],
-  settings:    ['read', 'update'],
 }
 
-export function sanitizePermissions(input: unknown): Permissions {
+// Уровень 1 — разделы, которые затрагивают сам сайт, а не его наполнение.
+// Их выдаёт только суперадминистратор: у остальных они не появляются в форме
+// и отбрасываются на сервере, даже если прийти напрямую в API.
+export const LEVEL1_PERMISSIONS: Record<string, string[]> = {
+  settings: ['read', 'update'],
+}
+
+export function isSuperAdmin(role: AdminRole | null | undefined): boolean {
+  if (!role) return false
+  const p = role.permissions as Permissions
+  return p.all === true || role.name === 'super_admin' || role.level === 0
+}
+
+export function sanitizePermissions(input: unknown, allowLevel1 = false): Permissions {
+  const allowed = allowLevel1
+    ? { ...EDITABLE_PERMISSIONS, ...LEVEL1_PERMISSIONS }
+    : EDITABLE_PERMISSIONS
   const out: Record<string, Record<string, boolean>> = {}
   if (input && typeof input === 'object') {
     const src = input as Record<string, unknown>
-    for (const [section, actions] of Object.entries(EDITABLE_PERMISSIONS)) {
+    for (const [section, actions] of Object.entries(allowed)) {
       const sectionSrc = src[section]
       if (sectionSrc && typeof sectionSrc === 'object') {
         const clean: Record<string, boolean> = {}

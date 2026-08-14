@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { query, queryOne } from '@/lib/db'
 import { getCurrentAdminUser, hashPassword } from '@/lib/auth'
-import { can, canManageUser, sanitizePermissions } from '@/lib/admin'
+import { can, canManageUser, isSuperAdmin, sanitizePermissions } from '@/lib/admin'
 import { logAction } from '@/lib/audit'
 
 export const runtime = 'nodejs'
@@ -61,7 +61,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (permissions !== undefined && t.role_id && !t.is_system) {
     await query(
       `UPDATE admin_roles SET permissions = $1 WHERE id = $2 AND is_system = false`,
-      [JSON.stringify(sanitizePermissions(permissions)), t.role_id],
+      [JSON.stringify(sanitizePermissions(permissions, isSuperAdmin(me.role))), t.role_id],
     )
   }
 

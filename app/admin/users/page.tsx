@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useAdminAuth } from '@/context/AdminAuthContext'
-import { canManageUser, type AdminUser, type AdminRole } from '@/lib/admin'
+import { canManageUser, isSuperAdmin, type AdminUser, type AdminRole } from '@/lib/admin'
 import {
   UserPlus, Search, Shield, CheckCircle, XCircle,
   MoreHorizontal, Loader2, X, Eye, EyeOff, Check, Pencil,
@@ -16,6 +16,12 @@ const PERM_SECTIONS = [
   { key: 'content',     label: 'Новости, партнёры и наука',   actions: ['create', 'read', 'update', 'delete'] },
 ] as const
 
+// Уровень 1 — доступ к самому сайту, а не к его наполнению. Показывается
+// и принимается сервером только у суперадминистратора.
+const LEVEL1_SECTIONS = [
+  { key: 'settings',    label: 'Настройки сайта (изображения страниц)', actions: ['read', 'update'] },
+] as const
+
 const ACTION_LABELS: Record<string, string> = {
   create: 'Добавление', read: 'Чтение', update: 'Редактирование', delete: 'Удаление',
 }
@@ -27,17 +33,18 @@ const ROLE_COLORS: Record<string, string> = {
 }
 
 function PermToggles({
-  perms, setPerms,
+  perms, setPerms, allowLevel1,
 }: {
   perms: Record<string, Record<string, boolean>>
   setPerms: (fn: (p: typeof perms) => typeof perms) => void
+  allowLevel1: boolean
 }) {
   const toggle = (section: string, action: string) =>
     setPerms(p => ({ ...p, [section]: { ...(p[section] ?? {}), [action]: !(p[section]?.[action] ?? false) } }))
 
   return (
     <div className="space-y-3">
-      {PERM_SECTIONS.map(sec => (
+      {[...PERM_SECTIONS, ...(allowLevel1 ? LEVEL1_SECTIONS : [])].map(sec => (
         <div key={sec.key} className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
           <p className="text-xs font-semibold text-white mb-2">{sec.label}</p>
           <div className="flex flex-wrap gap-2">
@@ -65,6 +72,7 @@ function PermToggles({
 }
 
 function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const { user: me } = useAdminAuth()
   const [email, setEmail]       = useState('')
   const [fullName, setFullName] = useState('')
   const [password, setPassword] = useState('')
@@ -129,7 +137,7 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
           </div>
           <div>
             <p className="text-xs font-medium mb-3" style={{ color: 'rgba(255,255,255,0.5)' }}>Права доступа</p>
-            <PermToggles perms={perms} setPerms={setPerms} />
+            <PermToggles perms={perms} setPerms={setPerms} allowLevel1={isSuperAdmin(me?.role)} />
           </div>
           {error && (
             <p className="text-sm px-3 py-2 rounded-lg"
@@ -152,6 +160,7 @@ function CreateUserModal({ onClose, onCreated }: { onClose: () => void; onCreate
 }
 
 function EditUserModal({ user, onClose, onSaved }: { user: AdminUser; onClose: () => void; onSaved: () => void }) {
+  const { user: me } = useAdminAuth()
   const [fullName, setFullName]   = useState(user.full_name || '')
   const [email, setEmail]         = useState(user.email)
   const [newPassword, setNewPw]   = useState('')
@@ -168,6 +177,7 @@ function EditUserModal({ user, onClose, onSaved }: { user: AdminUser; onClose: (
     categories:  existingPerms.categories  ?? {},
     kp_requests: existingPerms.kp_requests ?? {},
     content:     existingPerms.content     ?? {},
+    settings:    existingPerms.settings    ?? {},
   })
 
   const handleSave = async () => {
@@ -242,7 +252,7 @@ function EditUserModal({ user, onClose, onSaved }: { user: AdminUser; onClose: (
           ) : (
             <div>
               <p className="text-xs font-medium mb-3" style={{ color: 'rgba(255,255,255,0.5)' }}>Права доступа</p>
-              <PermToggles perms={perms} setPerms={setPerms} />
+              <PermToggles perms={perms} setPerms={setPerms} allowLevel1={isSuperAdmin(me?.role)} />
             </div>
           )}
 

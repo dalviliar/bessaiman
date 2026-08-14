@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { query, queryOne, pool } from '@/lib/db'
 import { getCurrentAdminUser } from '@/lib/auth'
-import { can, sanitizePermissions } from '@/lib/admin'
+import { can, isSuperAdmin, sanitizePermissions } from '@/lib/admin'
 import { hashPassword } from '@/lib/auth'
 import { logAction } from '@/lib/audit'
 
@@ -55,7 +55,7 @@ export async function POST(request: Request) {
       const role = await client.query(
         `INSERT INTO admin_roles (name, display_name_ru, level, permissions, is_system)
          VALUES ($1, $2, $3, $4, false) RETURNING id`,
-        [roleName, 'Индивидуальный доступ', myLevel + 1, JSON.stringify(sanitizePermissions(permissions))],
+        [roleName, 'Индивидуальный доступ', myLevel + 1, JSON.stringify(sanitizePermissions(permissions, isSuperAdmin(me.role)))],
       )
 
       const user = await client.query(
