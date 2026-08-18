@@ -405,10 +405,10 @@ export default function NaukaPage() {
                 <h3 className="font-black text-lg leading-tight mb-3" style={{ color: '#0F172A' }}>
                   {tr.nauka.accTitle}
                 </h3>
-                <p className="text-base leading-relaxed mb-2" style={{ color: '#334155' }}>
+                <p className="text-base leading-relaxed mb-2" style={{ color: '#334155', textAlign: 'justify' }}>
                   {tr.nauka.accDesc1}
                 </p>
-                <p className="text-base leading-relaxed mb-2" style={{ color: '#64748B' }}>
+                <p className="text-base leading-relaxed mb-2" style={{ color: '#64748B', textAlign: 'justify' }}>
                   {tr.nauka.accDesc2}
                 </p>
                 <p className="text-sm font-semibold mb-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
