@@ -37,7 +37,7 @@ export default function Footer() {
               height={396}
               className="h-20 w-auto mb-4"
             />
-            <p className="text-steel-silver text-base leading-relaxed max-w-xs">
+            <p className="text-steel-silver text-base leading-relaxed max-w-xs" style={{ textAlign: 'justify' }}>
               {tr.about.missionText}
             </p>
           </div>

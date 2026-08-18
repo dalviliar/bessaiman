@@ -68,7 +68,7 @@ function NewsModal({ post, onClose, postTitle, postContent }: {
             {postTitle(post)}
           </h2>
           {postContent(post) && (
-            <p className="text-base leading-relaxed whitespace-pre-line" style={{ color: '#475569' }}>
+            <p className="text-base leading-relaxed whitespace-pre-line" style={{ color: '#475569', textAlign: post.text_align }}>
               {postContent(post)}
             </p>
           )}

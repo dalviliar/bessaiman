@@ -5,6 +5,7 @@ import {
   Plus, Trash2, Upload, Edit2, X, Loader2, ExternalLink, ChevronUp, ChevronDown,
   BookOpen, ShieldCheck, FlaskConical, Trophy, FileSignature,
 } from 'lucide-react'
+import { AlignPicker, type TextAlign } from '@/components/admin/AlignPicker'
 
 // ────────────────────────────────────────────────────────────────
 // Shared bits
@@ -476,10 +477,11 @@ interface Project {
   id: string; title_ru: string; title_kk: string | null; title_en: string | null
   description_ru: string | null; description_kk: string | null; description_en: string | null
   period: string | null; tags: string | null; images: string[] | null; kind: string; sort_order: number
+  text_align: TextAlign
 }
 const EMPTY_PROJECT = {
   title_ru: '', title_kk: '', title_en: '', description_ru: '', description_kk: '', description_en: '',
-  period: '', tags: '', images: [] as string[],
+  period: '', tags: '', images: [] as string[], text_align: 'left' as TextAlign,
 }
 const PROJECT_KINDS = [
   { key: 'individual', label: 'Индивидуальные разработки' },
@@ -508,6 +510,7 @@ function ProjectsTab() {
       title_ru: p.title_ru, title_kk: p.title_kk ?? '', title_en: p.title_en ?? '',
       description_ru: p.description_ru ?? '', description_kk: p.description_kk ?? '', description_en: p.description_en ?? '',
       period: p.period ?? '', tags: p.tags ?? '', images: p.images ?? [],
+      text_align: p.text_align ?? 'left',
     })
     setError('')
   }
@@ -522,7 +525,7 @@ function ProjectsTab() {
         title_ru: form.title_ru.trim(), title_kk: form.title_kk || null, title_en: form.title_en || null,
         description_ru: form.description_ru || null, description_kk: form.description_kk || null, description_en: form.description_en || null,
         period: form.period || null, tags: form.tags || null, images: form.images,
-        kind: editing ? editing.kind : filter,
+        kind: editing ? editing.kind : filter, text_align: form.text_align,
       }
       const res = await fetch(editing ? `/api/admin/science/projects/${editing.id}` : '/api/admin/science/projects', {
         method: editing ? 'PUT' : 'POST',
@@ -598,6 +601,7 @@ function ProjectsTab() {
             <textarea className="steel-input w-full" rows={3} value={form.description_en} onChange={e => setForm(f => ({ ...f, description_en: e.target.value }))} />
           </div>
         </div>
+        <AlignPicker value={form.text_align} onChange={v => setForm(f => ({ ...f, text_align: v }))} />
         <GalleryPicker urls={form.images} onChange={images => setForm(f => ({ ...f, images }))} uploadUrl="/api/admin/science/upload" label="Фото и схемы разработки" />
       </FormShell>
 
@@ -639,8 +643,11 @@ function ProjectsTab() {
 // Contracts (Хоздоговоры)
 // ────────────────────────────────────────────────────────────────
 
-interface Contract { id: string; title: string; customer: string | null; year: number | null; description: string | null; sort_order: number }
-const EMPTY_CONTRACT = { title: '', customer: '', year: '', description: '' }
+interface Contract {
+  id: string; title: string; customer: string | null; year: number | null; description: string | null
+  sort_order: number; text_align: TextAlign
+}
+const EMPTY_CONTRACT = { title: '', customer: '', year: '', description: '', text_align: 'left' as TextAlign }
 
 function ContractsTab() {
   const [items, setItems] = useState<Contract[]>([])
@@ -659,7 +666,7 @@ function ContractsTab() {
 
   const startEdit = (c: Contract) => {
     setEditing(c)
-    setForm({ title: c.title, customer: c.customer ?? '', year: c.year ? String(c.year) : '', description: c.description ?? '' })
+    setForm({ title: c.title, customer: c.customer ?? '', year: c.year ? String(c.year) : '', description: c.description ?? '', text_align: c.text_align ?? 'left' })
     setError('')
   }
   const cancelEdit = () => { setEditing(null); setForm(EMPTY_CONTRACT); setError('') }
@@ -669,7 +676,7 @@ function ContractsTab() {
     if (!form.title.trim()) { setError('Введите тему договора'); return }
     setSaving(true); setError('')
     try {
-      const payload = { title: form.title.trim(), customer: form.customer || null, year: form.year || null, description: form.description || null }
+      const payload = { title: form.title.trim(), customer: form.customer || null, year: form.year || null, description: form.description || null, text_align: form.text_align }
       const res = await fetch(editing ? `/api/admin/science/contracts/${editing.id}` : '/api/admin/science/contracts', {
         method: editing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -710,6 +717,7 @@ function ContractsTab() {
           <FieldLabel>Краткое описание</FieldLabel>
           <textarea className="steel-input w-full" rows={3} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} />
         </div>
+        <AlignPicker value={form.text_align} onChange={v => setForm(f => ({ ...f, text_align: v }))} />
       </FormShell>
 
       {loading ? (

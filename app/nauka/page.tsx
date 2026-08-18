@@ -13,10 +13,10 @@ interface Patent { id: string; title: string; patent_number: string | null; badg
 interface Project {
   id: string; title_ru: string; title_kk: string | null; title_en: string | null
   description_ru: string | null; description_kk: string | null; description_en: string | null
-  period: string | null; tags: string | null; images: string[] | null; kind: string
+  period: string | null; tags: string | null; images: string[] | null; kind: string; text_align: string
 }
 interface Achievement { id: string; full_name: string; award_name: string; year: number | null; organization: string | null; certificate_url: string | null }
-interface Contract { id: string; title: string; customer: string | null; year: number | null; description: string | null }
+interface Contract { id: string; title: string; customer: string | null; year: number | null; description: string | null; text_align: string }
 
 // Every tab renders the same card, so each section is reduced to this shape.
 interface NCard {
@@ -33,6 +33,7 @@ interface NCard {
   /** documents are shown whole; equipment photos fill the frame */
   fit?: 'cover' | 'contain'
   body: string[]
+  bodyAlign?: 'left' | 'center' | 'justify'
   link?: { href: string; label: string }
 }
 
@@ -107,6 +108,7 @@ export default function NaukaPage() {
     accent: '#1565C0',
     tags: p.tags,
     body: [pick(p.description_ru, p.description_kk, p.description_en)].filter(Boolean),
+    bodyAlign: (p.text_align as NCard['bodyAlign']) || 'left',
   })
 
   const devCards = projects.filter(p => p.kind !== 'project').map(projectCard)
@@ -121,6 +123,7 @@ export default function NaukaPage() {
     icon: FileSignature,
     accent: '#0284C7',
     body: c.description ? [c.description] : [],
+    bodyAlign: (c.text_align as NCard['bodyAlign']) || 'left',
   }))
 
   const ipCards: NCard[] = [
@@ -488,7 +491,8 @@ export default function NaukaPage() {
                 {active.tags && <div className="mb-4"><TagRow tags={active.tags} size="md" /></div>}
                 {active.body.length > 0
                   ? active.body.map((p, i) => (
-                    <p key={i} className="text-base leading-relaxed whitespace-pre-line mb-2" style={{ color: i === 0 ? '#334155' : '#64748B' }}>{p}</p>
+                    <p key={i} className="text-base leading-relaxed whitespace-pre-line mb-2"
+                      style={{ color: i === 0 ? '#334155' : '#64748B', textAlign: active.bodyAlign ?? 'left' }}>{p}</p>
                   ))
                   : <p className="text-base" style={{ color: '#94A3B8' }}>{tr.nauka.noDetails}</p>}
                 {active.link && (

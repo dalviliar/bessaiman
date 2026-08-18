@@ -7,6 +7,8 @@ import { logAction } from '@/lib/audit'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+const ALLOWED_ALIGN = ['left', 'center', 'justify']
+
 export async function GET() {
   const me = await getCurrentAdminUser()
   if (!me || !can(me.role, 'content', 'read')) {
@@ -22,13 +24,14 @@ export async function POST(request: Request) {
     if (!me || !can(me.role, 'content', 'create')) {
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
-    const { title, customer, year, description } = await request.json()
+    const { title, customer, year, description, text_align } = await request.json()
     if (!title?.trim()) return NextResponse.json({ error: 'Укажите тему договора' }, { status: 400 })
+    const align = ALLOWED_ALIGN.includes(text_align) ? text_align : 'left'
 
     const row = await queryOne(
-      `INSERT INTO science_contracts (title, customer, year, description, sort_order)
-       VALUES ($1,$2,$3,$4, (SELECT COALESCE(MAX(sort_order),0)+10 FROM science_contracts)) RETURNING *`,
-      [title.trim(), customer || null, year ? Number(year) : null, description || null],
+      `INSERT INTO science_contracts (title, customer, year, description, text_align, sort_order)
+       VALUES ($1,$2,$3,$4,$5, (SELECT COALESCE(MAX(sort_order),0)+10 FROM science_contracts)) RETURNING *`,
+      [title.trim(), customer || null, year ? Number(year) : null, description || null, align],
     )
 
     await logAction({

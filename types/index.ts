@@ -29,6 +29,7 @@ export interface NewsPost {
   is_published: boolean
   published_at: string | null
   created_at: string
+  text_align: 'left' | 'center' | 'justify'
 }
 
 export type ProductType = 'S' | 'PP' | 'PA' | 'I'

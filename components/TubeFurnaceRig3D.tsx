@@ -48,6 +48,21 @@ export default function TubeFurnaceRig3D({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [webglFailed, setWebglFailed] = useState(false)
 
+  // The rig is wide and flat (~3.3:1). A phone's hero column is narrow, so
+  // the desktop height would force the camera far back to fit that width,
+  // leaving the rig a thin band lost in a tall canvas of white space.
+  // Shortening the canvas on narrow viewports keeps it close to the rig's
+  // own proportions instead.
+  const [canvasHeight, setCanvasHeight] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth < 640 ? Math.round(height * 0.5) : height,
+  )
+  useEffect(() => {
+    const compute = () => setCanvasHeight(window.innerWidth < 640 ? Math.round(height * 0.5) : height)
+    compute()
+    window.addEventListener('resize', compute)
+    return () => window.removeEventListener('resize', compute)
+  }, [height])
+
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
@@ -59,7 +74,7 @@ export default function TubeFurnaceRig3D({
     try {
       const scene = new THREE.Scene()
       const w = canvas.clientWidth || 1000
-      const h = canvas.clientHeight || height
+      const h = canvas.clientHeight || canvasHeight
       const camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 200)
 
       // The rig is wide and flat, so the camera distance is derived from the
@@ -967,9 +982,9 @@ export default function TubeFurnaceRig3D({
       if (onResize) window.removeEventListener('resize', onResize)
       renderer?.dispose()
     }
-  }, [height, slogan])
+  }, [canvasHeight, slogan])
 
-  if (webglFailed) return <RigFallback height={height} />
+  if (webglFailed) return <RigFallback height={canvasHeight} />
 
-  return <canvas ref={canvasRef} style={{ width: '100%', height, display: 'block' }} />
+  return <canvas ref={canvasRef} style={{ width: '100%', height: canvasHeight, display: 'block' }} />
 }

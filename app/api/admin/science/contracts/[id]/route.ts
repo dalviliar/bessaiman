@@ -7,6 +7,8 @@ import { logAction } from '@/lib/audit'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+const ALLOWED_ALIGN = ['left', 'center', 'justify']
+
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const me = await getCurrentAdminUser()
@@ -14,13 +16,14 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
     const { id } = await params
-    const { title, customer, year, description } = await request.json()
+    const { title, customer, year, description, text_align } = await request.json()
     if (!title?.trim()) return NextResponse.json({ error: 'Укажите тему договора' }, { status: 400 })
+    const align = ALLOWED_ALIGN.includes(text_align) ? text_align : 'left'
 
     const row = await queryOne(
-      `UPDATE science_contracts SET title=$1, customer=$2, year=$3, description=$4
-       WHERE id=$5 RETURNING *`,
-      [title.trim(), customer || null, year ? Number(year) : null, description || null, id],
+      `UPDATE science_contracts SET title=$1, customer=$2, year=$3, description=$4, text_align=$5
+       WHERE id=$6 RETURNING *`,
+      [title.trim(), customer || null, year ? Number(year) : null, description || null, align, id],
     )
     if (!row) return NextResponse.json({ error: 'Не найдено' }, { status: 404 })
 

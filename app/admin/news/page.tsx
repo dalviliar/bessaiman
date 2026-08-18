@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useAdminAuth } from '@/context/AdminAuthContext'
 import { Loader2, Plus, Pencil, Trash2, Upload, X, Check } from 'lucide-react'
+import { AlignPicker, type TextAlign } from '@/components/admin/AlignPicker'
 import type { NewsPost } from '@/types'
 
 const TYPE_LABELS = { news: 'Новость', announcement: 'Уведомление' }
@@ -22,6 +23,7 @@ const EMPTY_FORM = {
   image_url: '', instagram_url: '',
   type: 'news' as 'news' | 'announcement',
   is_published: false,
+  text_align: 'left' as TextAlign,
 }
 
 type FormState = typeof EMPTY_FORM
@@ -56,6 +58,7 @@ export default function AdminNewsPage() {
       content_ru: post.content_ru ?? '', content_kk: post.content_kk ?? '', content_en: post.content_en ?? '',
       image_url: post.image_url ?? '', instagram_url: post.instagram_url ?? '',
       type: post.type, is_published: post.is_published,
+      text_align: post.text_align ?? 'left',
     })
     setError(''); setActiveLang('ru')
     setModal({ mode: 'edit', post })
@@ -338,6 +341,12 @@ export default function AdminNewsPage() {
                     onChange={e => set(`content_${activeLang}`, e.target.value)}
                     placeholder={activeLang === 'ru' ? 'Введите текст поста...' : activeLang === 'kk' ? 'Пост мәтінін енгізіңіз...' : 'Enter post text...'}
                   />
+                  <p className="text-[10px] mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
+                    Одно оформление для всех языков поста.
+                  </p>
+                  <div className="mt-2">
+                    <AlignPicker value={form.text_align} onChange={v => set('text_align', v)} />
+                  </div>
                 </div>
 
                 {/* Fill indicator */}

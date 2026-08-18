@@ -7,6 +7,8 @@ import { logAction } from '@/lib/audit'
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
 
+const ALLOWED_ALIGN = ['left','center','justify']
+
 export async function GET() {
   const me = await getCurrentAdminUser()
   if (!me || !can(me.role, 'content', 'read')) {
@@ -23,16 +25,17 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
     const { title_ru, title_kk, title_en, content_ru, content_kk, content_en,
-            image_url, instagram_url, type, is_published } = await request.json()
+            image_url, instagram_url, type, is_published, text_align } = await request.json()
+    const align = ALLOWED_ALIGN.includes(text_align) ? text_align : 'left'
     if (!title_ru) return NextResponse.json({ error: 'Заполните заголовок' }, { status: 400 })
 
     const post = await queryOne(
       `INSERT INTO news_posts (title_ru,title_kk,title_en,content_ru,content_kk,content_en,
-         image_url,instagram_url,type,is_published,published_at)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING *`,
+         image_url,instagram_url,type,is_published,published_at,text_align)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING *`,
       [title_ru, title_kk || null, title_en || null, content_ru || null, content_kk || null, content_en || null,
        image_url || null, instagram_url || null, type || 'news', is_published ?? false,
-       is_published ? new Date().toISOString() : null],
+       is_published ? new Date().toISOString() : null, align],
     )
 
     await logAction({
