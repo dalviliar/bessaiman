@@ -3,6 +3,7 @@ import { query } from './db'
 export type AuditEntity = 'product' | 'user' | 'role' | 'category'
   | 'news' | 'partner'
   | 'science_publication' | 'science_patent' | 'science_project' | 'science_achievement' | 'science_contract'
+  | 'science_accreditation'
   | 'page_image'
 export type AuditAction = 'create' | 'update' | 'delete'
 

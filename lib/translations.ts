@@ -207,10 +207,6 @@ const translations = {
       empAchievTitle: 'Достижения сотрудников',
       empAchievIntro: 'Награды, дипломы и профессиональные достижения сотрудников компании.',
       accSectionTitle: 'Аккредитация',
-      accTitle: 'Аккредитация научной деятельности',
-      accDesc1: 'ТОО «Bes Saiman Group» аккредитовано Министерством науки и высшего образования Республики Казахстан в качестве субъекта научной и/или научно-технической деятельности.',
-      accDesc2: 'Свидетельство об аккредитации подтверждает право компании участвовать в конкурсах научных, научно-технических проектов и программ, финансируемых из государственного бюджета.',
-      accDesc3: 'Срок действия аккредитации — до 09 февраля 2029 года.',
       accViewDoc: 'Просмотреть свидетельство',
     },
     contacts: {
@@ -459,10 +455,6 @@ const translations = {
       empAchievTitle: 'Қызметкерлердің жетістіктері',
       empAchievIntro: 'Компания қызметкерлерінің марапаттары, дипломдары және кәсіби жетістіктері.',
       accSectionTitle: 'Аккредитация',
-      accTitle: 'Ғылыми қызметтің аккредитациясы',
-      accDesc1: '«Bes Saiman Group» ЖШС Қазақстан Республикасының Ғылым және жоғары білім министрлігімен ғылыми және/немесе ғылыми-техникалық қызмет субъектісі ретінде аккредиттелген.',
-      accDesc2: 'Аккредитация куәлігі компанияның мемлекеттік бюджет және заңнамамен тыйым салынбаған өзге де көздерден қаржыландырылатын ғылыми, ғылыми-техникалық жобалар мен бағдарламалардың байқауларына қатысу құқығын растайды.',
-      accDesc3: 'Аккредитацияның қолданылу мерзімі — 2029 жылдың 09 ақпанына дейін.',
       accViewDoc: 'Куәлікті қарау',
     },
     contacts: {
@@ -711,10 +703,6 @@ const translations = {
       empAchievTitle: 'Employee Achievements',
       empAchievIntro: 'Awards, diplomas and professional achievements of company employees.',
       accSectionTitle: 'Accreditation',
-      accTitle: 'Scientific Activity Accreditation',
-      accDesc1: 'Bes Saiman Group LLP is accredited by the Ministry of Science and Higher Education of the Republic of Kazakhstan as a subject of scientific and/or scientific-technical activity.',
-      accDesc2: 'The accreditation certificate confirms the company\'s right to participate in competitions for scientific and scientific-technical projects and programs funded from the state budget.',
-      accDesc3: 'Accreditation is valid until February 9, 2029.',
       accViewDoc: 'View certificate',
     },
     contacts: {

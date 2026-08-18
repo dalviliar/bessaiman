@@ -12,6 +12,7 @@ const CONTENT_TYPES: Record<string, string> = {
   webp: 'image/webp',
   avif: 'image/avif',
   svg: 'image/svg+xml',
+  pdf: 'application/pdf',
 }
 
 const UPLOADS_ROOT = path.join(process.cwd(), 'uploads')

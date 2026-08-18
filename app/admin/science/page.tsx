@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   Plus, Trash2, Upload, Edit2, X, Loader2, ExternalLink, ChevronUp, ChevronDown,
-  BookOpen, ShieldCheck, FlaskConical, Trophy, FileSignature,
+  BookOpen, ShieldCheck, FlaskConical, Trophy, FileSignature, Award,
 } from 'lucide-react'
 import { AlignPicker, type TextAlign } from '@/components/admin/AlignPicker'
 
@@ -17,6 +17,7 @@ const TABS = [
   { key: 'projects',     label: 'Проекты и разработки',              icon: FlaskConical },
   { key: 'contracts',    label: 'Хоздоговоры',                       icon: FileSignature },
   { key: 'achievements', label: 'Достижения сотрудников',            icon: Trophy },
+  { key: 'accreditation', label: 'Аккредитация',                     icon: Award },
 ] as const
 
 type TabKey = typeof TABS[number]['key']
@@ -863,6 +864,181 @@ function AchievementsTab() {
 }
 
 // ────────────────────────────────────────────────────────────────
+// Accreditation — a single editable record, not a list
+// ────────────────────────────────────────────────────────────────
+
+function FilePicker({
+  url, onChange, uploadUrl, accept, label,
+}: {
+  url: string
+  onChange: (url: string) => void
+  uploadUrl: string
+  accept: string
+  label: string
+}) {
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const handleUpload = async (files: FileList | null) => {
+    if (!files?.length) return
+    setUploading(true); setError('')
+    try {
+      const fd = new FormData()
+      fd.append('file', files[0])
+      const res = await fetch(uploadUrl, { method: 'POST', body: fd })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      onChange(data.url)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка загрузки')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  return (
+    <div>
+      <FieldLabel>{label}</FieldLabel>
+      <div className="flex items-center gap-3">
+        {url && (
+          <a href={url} target="_blank" rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg"
+            style={{ background: 'rgba(255,255,255,0.05)', color: '#93C5FD' }}>
+            <ExternalLink size={12} />Открыть файл
+          </a>
+        )}
+        <button type="button"
+          onClick={() => fileRef.current?.click()}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium"
+          style={{ background: 'rgba(59,130,246,0.1)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.2)' }}>
+          {uploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+          {uploading ? 'Загрузка...' : url ? 'Заменить' : 'Загрузить'}
+        </button>
+        {url && (
+          <button type="button" onClick={() => onChange('')} className="text-xs" style={{ color: '#F87171' }}>
+            Убрать
+          </button>
+        )}
+      </div>
+      {error && <p className="text-xs mt-1.5" style={{ color: '#F87171' }}>{error}</p>}
+      <input ref={fileRef} type="file" accept={accept} className="hidden"
+        onChange={e => handleUpload(e.target.files)} />
+    </div>
+  )
+}
+
+const EMPTY_ACCREDITATION = {
+  title_ru: '', title_kk: '', title_en: '',
+  description_ru: '', description_kk: '', description_en: '',
+  issuer: '', valid_until: '', image_url: '', pdf_url: '', text_align: 'left' as TextAlign,
+}
+
+function AccreditationTab() {
+  const [form, setForm] = useState(EMPTY_ACCREDITATION)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/admin/science/accreditation').then(r => r.json())
+      .then(d => setForm({
+        title_ru: d.title_ru ?? '', title_kk: d.title_kk ?? '', title_en: d.title_en ?? '',
+        description_ru: d.description_ru ?? '', description_kk: d.description_kk ?? '', description_en: d.description_en ?? '',
+        issuer: d.issuer ?? '', valid_until: d.valid_until ?? '',
+        image_url: d.image_url ?? '', pdf_url: d.pdf_url ?? '', text_align: d.text_align ?? 'left',
+      }))
+      .finally(() => setLoading(false))
+  }, [])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!form.title_ru.trim()) { setError('Введите заголовок'); return }
+    setSaving(true); setError(''); setSaved(false)
+    try {
+      const res = await fetch('/api/admin/science/accreditation', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2500)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка сохранения')
+    } finally { setSaving(false) }
+  }
+
+  if (loading) {
+    return <div className="flex justify-center py-12"><Loader2 size={20} className="animate-spin" style={{ color: '#3B82F6' }} /></div>
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="p-5 rounded-xl space-y-4" style={cardStyle}>
+      <div className="flex items-center justify-between mb-1">
+        <h2 className="text-sm font-bold text-white">Аккредитация научной деятельности</h2>
+      </div>
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <FieldLabel>Заголовок (рус) *</FieldLabel>
+          <input className="steel-input w-full" value={form.title_ru} onChange={e => setForm(f => ({ ...f, title_ru: e.target.value }))} />
+        </div>
+        <div>
+          <FieldLabel>Заголовок (қаз)</FieldLabel>
+          <input className="steel-input w-full" value={form.title_kk} onChange={e => setForm(f => ({ ...f, title_kk: e.target.value }))} />
+        </div>
+        <div>
+          <FieldLabel>Заголовок (eng)</FieldLabel>
+          <input className="steel-input w-full" value={form.title_en} onChange={e => setForm(f => ({ ...f, title_en: e.target.value }))} />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <FieldLabel>Кем выдано</FieldLabel>
+          <input className="steel-input w-full" value={form.issuer} onChange={e => setForm(f => ({ ...f, issuer: e.target.value }))} placeholder="МОН РК" />
+        </div>
+        <div>
+          <FieldLabel>Срок действия</FieldLabel>
+          <input className="steel-input w-full" value={form.valid_until} onChange={e => setForm(f => ({ ...f, valid_until: e.target.value }))} placeholder="до 09.02.2029" />
+        </div>
+      </div>
+      <div>
+        <FieldLabel>Описание (рус)</FieldLabel>
+        <textarea className="steel-input w-full" rows={5} value={form.description_ru} onChange={e => setForm(f => ({ ...f, description_ru: e.target.value }))} />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <FieldLabel>Описание (қаз)</FieldLabel>
+          <textarea className="steel-input w-full" rows={4} value={form.description_kk} onChange={e => setForm(f => ({ ...f, description_kk: e.target.value }))} />
+        </div>
+        <div>
+          <FieldLabel>Описание (eng)</FieldLabel>
+          <textarea className="steel-input w-full" rows={4} value={form.description_en} onChange={e => setForm(f => ({ ...f, description_en: e.target.value }))} />
+        </div>
+      </div>
+      <AlignPicker value={form.text_align} onChange={v => setForm(f => ({ ...f, text_align: v }))} />
+      <div className="grid grid-cols-2 gap-4">
+        <ImagePicker url={form.image_url} onChange={url => setForm(f => ({ ...f, image_url: url }))} uploadUrl="/api/admin/science/upload" label="Превью свидетельства (фото)" />
+        <FilePicker url={form.pdf_url} onChange={url => setForm(f => ({ ...f, pdf_url: url }))} uploadUrl="/api/admin/science/upload-pdf" accept="application/pdf" label="Свидетельство (PDF)" />
+      </div>
+      <div className="flex items-center gap-4">
+        <div className="flex-1" />
+        {error && <p className="text-xs" style={{ color: '#F87171' }}>{error}</p>}
+        {saved && !error && <p className="text-xs" style={{ color: '#34D399' }}>Сохранено</p>}
+        <button type="submit" disabled={saving}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-50"
+          style={{ background: 'linear-gradient(135deg,#1D4ED8,#3B82F6)', color: 'white' }}>
+          {saving ? <Loader2 size={14} className="animate-spin" /> : null}
+          Сохранить
+        </button>
+      </div>
+    </form>
+  )
+}
+
+// ────────────────────────────────────────────────────────────────
 // Page
 // ────────────────────────────────────────────────────────────────
 
@@ -900,6 +1076,7 @@ export default function ScienceAdminPage() {
       {tab === 'projects' && <ProjectsTab />}
       {tab === 'contracts' && <ContractsTab />}
       {tab === 'achievements' && <AchievementsTab />}
+      {tab === 'accreditation' && <AccreditationTab />}
     </div>
   )
 }

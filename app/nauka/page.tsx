@@ -17,6 +17,12 @@ interface Project {
 }
 interface Achievement { id: string; full_name: string; award_name: string; year: number | null; organization: string | null; certificate_url: string | null }
 interface Contract { id: string; title: string; customer: string | null; year: number | null; description: string | null; text_align: string }
+interface Accreditation {
+  title_ru: string; title_kk: string | null; title_en: string | null
+  description_ru: string | null; description_kk: string | null; description_en: string | null
+  issuer: string | null; valid_until: string | null
+  image_url: string | null; pdf_url: string | null; text_align: string
+}
 
 // Every tab renders the same card, so each section is reduced to this shape.
 interface NCard {
@@ -36,10 +42,6 @@ interface NCard {
   bodyAlign?: 'left' | 'center' | 'justify'
   link?: { href: string; label: string }
 }
-
-// Rendered once from the first page of the accreditation PDF, so staff do
-// not have to upload the same document twice.
-const ACCREDITATION_IMAGE = '/docs/svidetelstvo-akkreditacii-preview.jpg'
 
 // shipped photo, replaced by whatever the admin uploads
 const HERO_FALLBACK = '/images/nauka-hero-lab.jpg'
@@ -66,6 +68,7 @@ export default function NaukaPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [contracts, setContracts] = useState<Contract[]>([])
+  const [accreditation, setAccreditation] = useState<Accreditation | null>(null)
   const [heroImage, setHeroImage] = useState(HERO_FALLBACK)
 
   const [tab, setTab] = useState('dev')
@@ -84,6 +87,7 @@ export default function NaukaPage() {
       setProjects(Array.isArray(d?.projects) ? d.projects : [])
       setAchievements(Array.isArray(d?.achievements) ? d.achievements : [])
       setContracts(Array.isArray(d?.contracts) ? d.contracts : [])
+      setAccreditation(d?.accreditation ?? null)
     }).catch(() => {})
   }, [])
 
@@ -390,43 +394,49 @@ export default function NaukaPage() {
         <ZoomPreviewOverlay preview={preview} scale={1.25} maxHeight="55vh"
           objectFit={current?.key === 'awards' ? 'contain' : 'cover'} />
 
-        {/* ══ Accreditation — separate section ══ */}
-        <div className="mb-14">
-          <h2 className="text-xl font-bold mb-4" style={{ color: '#0F172A' }}>{tr.nauka.accSectionTitle}</h2>
-          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E2E8F0', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
-            <div className="grid grid-cols-1 sm:grid-cols-[220px_1fr]">
-              <div className="overflow-hidden" style={{ background: '#F1F5F9' }}>
-                <img src={ACCREDITATION_IMAGE} alt={tr.nauka.accTitle} className="w-full h-full object-cover" style={{ minHeight: 160 }} />
-              </div>
-              <div className="p-6">
-                <div className="text-[12px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>
-                  МОН РК · до 09.02.2029
+        {/* ══ Accreditation — separate section, a single editable record ══ */}
+        {accreditation && accreditation.title_ru && (
+          <div className="mb-14">
+            <h2 className="text-xl font-bold mb-4" style={{ color: '#0F172A' }}>{tr.nauka.accSectionTitle}</h2>
+            <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E2E8F0', boxShadow: '0 2px 12px rgba(0,0,0,0.05)' }}>
+              <div className="grid grid-cols-1 sm:grid-cols-[220px_1fr]">
+                <div className="overflow-hidden" style={{ background: '#F1F5F9' }}>
+                  {accreditation.image_url && (
+                    <img src={accreditation.image_url} alt={pick(accreditation.title_ru, accreditation.title_kk, accreditation.title_en)}
+                      className="w-full h-full object-cover" style={{ minHeight: 160 }} />
+                  )}
                 </div>
-                <h3 className="font-black text-lg leading-tight mb-3" style={{ color: '#0F172A' }}>
-                  {tr.nauka.accTitle}
-                </h3>
-                <p className="text-base leading-relaxed mb-2" style={{ color: '#334155', textAlign: 'justify' }}>
-                  {tr.nauka.accDesc1}
-                </p>
-                <p className="text-base leading-relaxed mb-2" style={{ color: '#64748B', textAlign: 'justify' }}>
-                  {tr.nauka.accDesc2}
-                </p>
-                <p className="text-sm font-semibold mb-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg"
-                  style={{ background: '#EFF6FF', color: '#1565C0' }}>
-                  📅 {tr.nauka.accDesc3}
-                </p>
-                <div>
-                  <a href="/docs/svidetelstvo-akkreditacii.pdf" target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-base transition-all hover:-translate-y-0.5"
-                    style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', color: 'white', boxShadow: '0 4px 12px rgba(21,101,192,0.25)' }}>
-                    <ExternalLink size={13} />
-                    {tr.nauka.accViewDoc}
-                  </a>
+                <div className="p-6">
+                  {(accreditation.issuer || accreditation.valid_until) && (
+                    <div className="text-[12px] font-mono tracking-widest mb-1" style={{ color: '#94A3B8' }}>
+                      {[accreditation.issuer, accreditation.valid_until].filter(Boolean).join(' · ')}
+                    </div>
+                  )}
+                  <h3 className="font-black text-lg leading-tight mb-3" style={{ color: '#0F172A' }}>
+                    {pick(accreditation.title_ru, accreditation.title_kk, accreditation.title_en)}
+                  </h3>
+                  {pick(accreditation.description_ru, accreditation.description_kk, accreditation.description_en)
+                    .split(/\n{2,}/).filter(Boolean).map((para, i) => (
+                      <p key={i} className="text-base leading-relaxed mb-2"
+                        style={{ color: i === 0 ? '#334155' : '#64748B', textAlign: accreditation.text_align as React.CSSProperties['textAlign'] }}>
+                        {para}
+                      </p>
+                    ))}
+                  {accreditation.pdf_url && (
+                    <div className="mt-2">
+                      <a href={accreditation.pdf_url} target="_blank" rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-base transition-all hover:-translate-y-0.5"
+                        style={{ background: 'linear-gradient(135deg,#1565C0,#0284C7)', color: 'white', boxShadow: '0 4px 12px rgba(21,101,192,0.25)' }}>
+                        <ExternalLink size={13} />
+                        {tr.nauka.accViewDoc}
+                      </a>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* ══ Card detail modal ══ */}
         {active && (
