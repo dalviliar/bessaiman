@@ -88,9 +88,7 @@ export default function Footer() {
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(203,213,225,0.85)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = 'rgba(148,163,184,0.45)' }}
           >
-            {tr.nav.builtBy}
-            <span style={{ color: 'rgba(148,163,184,0.3)' }}>—</span>
-            <span className="font-semibold">Веб-студия Rauza</span>
+            <span className="font-semibold">Rauza</span>
           </a>
         </div>
       </div>

@@ -9,7 +9,6 @@ const translations = {
       about: 'О нас',
       contacts: 'Контакты',
       rights: 'Все права защищены.',
-      builtBy: 'Разработка сайта',
       warehouse: 'Склад',
     },
     hero: {
@@ -262,7 +261,6 @@ const translations = {
       about: 'Біз туралы',
       contacts: 'Байланыс',
       rights: 'Барлық құқықтар қорғалған.',
-      builtBy: 'Сайтты әзірлеу',
       warehouse: 'Қойма',
     },
     hero: {
@@ -515,7 +513,6 @@ const translations = {
       about: 'About',
       contacts: 'Contacts',
       rights: 'All rights reserved.',
-      builtBy: 'Website by',
       warehouse: 'Warehouse',
     },
     hero: {
