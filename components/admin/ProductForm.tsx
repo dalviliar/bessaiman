@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Plus, X, Upload, Image as ImageIcon, Search, Package } from 'lucide-react'
+import { Loader2, Plus, X, Upload, Image as ImageIcon, Search, Package, FileSignature, ExternalLink } from 'lucide-react'
 import type { Category, Product, ProductType } from '@/types'
 
 interface AccessoryItem {
@@ -556,6 +556,23 @@ export default function ProductForm({ product }: { product?: Product }) {
           </button>
         </div>
       </Section>
+
+      {/* Сама формулировка условий поставки — общая для всех КП, поэтому не
+          дублируется в каждой карточке товара, а редактируется в одном месте */}
+      <a href="/admin/kp-terms" target="_blank" rel="noopener noreferrer"
+        className="flex items-center gap-3 p-4 rounded-xl transition-colors"
+        style={{ background: 'rgba(59,130,246,0.06)', border: '1px dashed rgba(59,130,246,0.3)' }}>
+        <span className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(59,130,246,0.12)' }}>
+          <FileSignature size={16} style={{ color: '#60A5FA' }} />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block text-sm font-semibold text-white">Условия поставки в КП</span>
+          <span className="block text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            Срок поставки, гарантия, оплата и срок действия КП — один общий текст для всех товаров, не для этой карточки. Откроется в новой вкладке.
+          </span>
+        </span>
+        <ExternalLink size={14} style={{ color: 'rgba(255,255,255,0.3)' }} className="shrink-0" />
+      </a>
 
       {/* Аксессуары — ручная привязка */}
       <Section title="Аксессуары (ручная привязка)">
