@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import {
   LayoutDashboard, Users, Shield, Package, Warehouse, FileText, History, Image as ImageIcon, type LucideIcon,
   LogOut, Loader2, ExternalLink, Newspaper, Tag, KeyRound, X, Eye, EyeOff, Menu, BarChart3, MessageSquare, Handshake, FlaskConical,
+  FileSignature,
 } from 'lucide-react'
 
 const NAV = [
@@ -20,6 +21,7 @@ const NAV = [
   { href: '/admin/partners',    label: 'Партнёры',        icon: Handshake,       resource: 'content' },
   { href: '/admin/science',     label: 'Наука',            icon: FlaskConical,    resource: 'content' },
   { href: '/admin/kp',          label: 'Запросы КП',      icon: FileText,        resource: 'kp_requests' },
+  { href: '/admin/kp-terms',    label: 'Условия поставки', icon: FileSignature,  resource: 'content' },
   { href: '/admin/contacts',    label: 'Обращения',       icon: MessageSquare,   resource: 'kp_requests' },
   { href: '/admin/analytics',   label: 'Аналитика',       icon: BarChart3,       resource: 'kp_requests' },
   { href: '/admin/audit',       label: 'Журнал действий', icon: History,         resource: 'audit' },

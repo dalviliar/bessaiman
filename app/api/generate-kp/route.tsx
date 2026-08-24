@@ -4,6 +4,7 @@ import { readFileSync, statSync, existsSync } from 'fs'
 import { NextResponse } from 'next/server'
 import { renderToBuffer, Font, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 import { query } from '@/lib/db'
+import { getKpTerms, type KpTerms } from '@/lib/kp-terms'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -206,13 +207,13 @@ interface ProductData {
   images?: string[]
 }
 
-function getConditions(availability?: string): [string, string][] {
+function getConditions(availability: string | undefined, terms: KpTerms): [string, string][] {
   const inStock = availability === 'in_stock'
   return [
-    ['Срок поставки:',   inStock ? 'Товар в наличии на складе — отгрузка в течение 1–3 рабочих дней' : 'По согласованию, в зависимости от наличия на складе'],
-    ['Гарантия:',        '12 месяцев с момента поставки'],
-    ['Условия оплаты:',  inStock ? 'Оплата 100% по факту выставления счёта' : 'Предоплата 50%, остаток — по факту готовности товара'],
-    ['Действие КП:',     '30 календарных дней с даты выставления'],
+    ['Срок поставки:',   inStock ? terms.delivery_in_stock : terms.delivery_on_order],
+    ['Гарантия:',        terms.warranty],
+    ['Условия оплаты:',  inStock ? terms.payment_in_stock : terms.payment_on_order],
+    ['Действие КП:',     terms.validity],
   ]
 }
 
@@ -237,7 +238,7 @@ function parseDescriptionLines(text: string): { type: 'heading' | 'bullet' | 'te
 }
 
 function KPDocument({
-  product, clientInfo, lang, kpNumber, dateStr, stampDataUri, signatureDataUri, productImageDataUri, logoDataUri,
+  product, clientInfo, lang, kpNumber, dateStr, stampDataUri, signatureDataUri, productImageDataUri, logoDataUri, terms,
 }: {
   product: ProductData
   clientInfo: ClientInfo
@@ -248,6 +249,7 @@ function KPDocument({
   signatureDataUri: string | null
   productImageDataUri: string | null
   logoDataUri: string | null
+  terms: KpTerms
 }) {
   const productName =
     (lang === 'kk' ? product.name_kk : lang === 'en' ? product.name_en : null) || product.name_ru
@@ -419,7 +421,7 @@ function KPDocument({
         {/* CONDITIONS */}
         <Text style={s.sectionTitle}>Условия поставки</Text>
         <View style={{ marginBottom: 8 }}>
-          {getConditions(product.availability).map(([label, value]: [string, string]) => (
+          {getConditions(product.availability, terms).map(([label, value]: [string, string]) => (
             <View key={label} style={s.condRow}>
               <Text style={s.condBullet}>•</Text>
               <Text style={s.condLabel}>{label}</Text>
@@ -580,6 +582,7 @@ export async function POST(request: Request) {
     const signatureDataUri = loadSignatureDataUri()
     const logoDataUri = loadLogoDataUri()
     const productImageDataUri = await loadProductImageDataUri(product.images?.[0])
+    const terms = await getKpTerms()
 
     const kpNumber = generateKPNumber()
     const dateStr = formatDate(new Date())
@@ -603,6 +606,7 @@ export async function POST(request: Request) {
         signatureDataUri={signatureDataUri}
         productImageDataUri={productImageDataUri}
         logoDataUri={logoDataUri}
+        terms={terms}
       />
     )
 

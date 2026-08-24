@@ -390,7 +390,7 @@ export default function KPCartPage() {
                 </p>
 
                 {[
-                  { field: 'name',    label: 'Ваше имя',        type: 'text',  placeholder: 'Иван Иванов' },
+                  { field: 'name',    label: 'Ваше имя',        type: 'text',  placeholder: 'Асхат Ахметов' },
                   { field: 'company', label: 'Организация',      type: 'text',  placeholder: 'ТОО «Компания»' },
                   { field: 'phone',   label: 'Телефон',          type: 'tel',   placeholder: '+7 (7xx) xxx-xx-xx' },
                   { field: 'email',   label: 'Email',            type: 'email', placeholder: 'email@company.kz' },

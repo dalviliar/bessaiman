@@ -135,7 +135,7 @@ export default function KPModal({ product, onClose }: Props) {
                 type="text"
                 value={form.name}
                 onChange={set('name')}
-                placeholder="Иван Иванов"
+                placeholder="Асхат Ахметов"
                 className="steel-input w-full"
               />
             </div>

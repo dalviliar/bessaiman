@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server'
 import { renderToBuffer, Font, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 import { query } from '@/lib/db'
 import { formatKzt } from '@/lib/format'
+import { getKpTerms, type KpTerms } from '@/lib/kp-terms'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -162,6 +163,7 @@ interface CartItem {
   description_ru?: string
   specs?: Record<string, string>
   imageDataUri?: string | null
+  availability?: string
 }
 
 interface ClientInfo {
@@ -172,12 +174,18 @@ interface ClientInfo {
   note?: string
 }
 
-const CONDITIONS = [
-  ['Срок поставки:',  'По согласованию, в зависимости от наличия на складе'],
-  ['Гарантия:',       '12 месяцев с момента поставки'],
-  ['Условия оплаты:', 'Предоплата 50%, остаток — по факту готовности товара'],
-  ['Действие КП:',    '30 календарных дней с даты выставления'],
-]
+// Delivery/payment wording depends on stock: an order counts as "in stock"
+// only if every line item is — a single backordered part means the whole
+// shipment waits, so the on-order phrasing applies.
+function getConditions(items: CartItem[], terms: KpTerms): [string, string][] {
+  const inStock = items.length > 0 && items.every(i => i.availability === 'in_stock')
+  return [
+    ['Срок поставки:',   inStock ? terms.delivery_in_stock : terms.delivery_on_order],
+    ['Гарантия:',        terms.warranty],
+    ['Условия оплаты:',  inStock ? terms.payment_in_stock : terms.payment_on_order],
+    ['Действие КП:',     terms.validity],
+  ]
+}
 
 const BANK_ROWS = [
   ['Наименование:', 'ТОО «Bes Saiman Group»'],
@@ -200,7 +208,7 @@ function parseDescriptionLines(text: string): { type: 'heading' | 'bullet' | 'te
 }
 
 function KPBasketDocument({
-  items, clientInfo, kpNumber, dateStr, stampDataUri, signatureDataUri, logoDataUri,
+  items, clientInfo, kpNumber, dateStr, stampDataUri, signatureDataUri, logoDataUri, terms,
 }: {
   items: CartItem[]
   clientInfo: ClientInfo
@@ -209,6 +217,7 @@ function KPBasketDocument({
   stampDataUri: string | null
   signatureDataUri: string | null
   logoDataUri: string | null
+  terms: KpTerms
 }) {
   const totalKnown = items.reduce((s, i) => s + (i.price ?? 0) * i.quantity, 0)
   const hasUnknown = items.some(i => !i.price)
@@ -420,7 +429,7 @@ function KPBasketDocument({
         {/* CONDITIONS */}
         <Text style={s.sectionTitle}>Условия поставки</Text>
         <View style={{ marginBottom: 8 }}>
-          {CONDITIONS.map(([label, value]) => (
+          {getConditions(items, terms).map(([label, value]) => (
             <View key={label} style={s.condRow}>
               <Text style={s.condBullet}>•</Text>
               <Text style={s.condLabel}>{label}</Text>
@@ -583,6 +592,7 @@ export async function POST(request: Request) {
     const stampDataUri = loadStampDataUri()
     const signatureDataUri = loadSignatureDataUri()
     const logoDataUri = loadLogoDataUri()
+    const terms = await getKpTerms()
 
     const kpNumber = generateKPNumber()
     const dateStr = formatDate(new Date())
@@ -594,8 +604,9 @@ export async function POST(request: Request) {
             description_ru: string | null
             specs: Record<string, string> | null
             images: string[] | null
+            availability: string | null
           }>(
-            `SELECT description_ru, specs, images FROM products WHERE id = $1 OR slug = $2 LIMIT 1`,
+            `SELECT description_ru, specs, images, availability FROM products WHERE id = $1 OR slug = $2 LIMIT 1`,
             [item.id ?? null, item.slug],
           )
           const row = rows[0]
@@ -607,6 +618,7 @@ export async function POST(request: Request) {
             description_ru: row?.description_ru ?? undefined,
             specs: row?.specs ?? undefined,
             imageDataUri,
+            availability: row?.availability ?? undefined,
           }
         } catch {
           return item
@@ -631,6 +643,7 @@ export async function POST(request: Request) {
         stampDataUri={stampDataUri}
         signatureDataUri={signatureDataUri}
         logoDataUri={logoDataUri}
+        terms={terms}
       />
     )
 

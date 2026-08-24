@@ -5,6 +5,7 @@ export type AuditEntity = 'product' | 'user' | 'role' | 'category'
   | 'science_publication' | 'science_patent' | 'science_project' | 'science_achievement' | 'science_contract'
   | 'science_accreditation'
   | 'page_image'
+  | 'kp_terms'
 export type AuditAction = 'create' | 'update' | 'delete'
 
 export async function logAction(params: {
