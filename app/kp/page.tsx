@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 import { getProductBySlug } from '@/lib/supabase'
+import { formatKzt } from '@/lib/format'
 import type { Product } from '@/types'
 
 interface Form {
@@ -266,7 +267,7 @@ export default function KPCartPage() {
                     {/* Цена */}
                     <div className="col-span-2 text-right">
                       <span className="text-sm font-semibold" style={{ color: product.price ? '#0F172A' : '#94A3B8' }}>
-                        {product.price ? `${product.price.toLocaleString('ru-RU')} ₸` : 'По запросу'}
+                        {product.price ? `${formatKzt(product.price)} ₸` : 'По запросу'}
                       </span>
                     </div>
 
@@ -339,7 +340,7 @@ export default function KPCartPage() {
                         <div className="flex items-center gap-2 shrink-0">
                           {accessory.price && (
                             <span className="text-sm font-semibold" style={{ color: '#64748B' }}>
-                              {accessory.price.toLocaleString('ru-RU')} ₸
+                              {formatKzt(accessory.price)} ₸
                             </span>
                           )}
                           <button

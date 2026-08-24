@@ -19,7 +19,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
 
-  const [documents, accForward, accReverse] = await Promise.all([
+  const classificationCode = (product.category as { classification_code?: string } | null)?.classification_code
+
+  const [documents, accForward, accReverse, accByCode] = await Promise.all([
     query('SELECT * FROM product_documents WHERE product_id = $1', [product.id]),
     query(
       `SELECT acc.*,
@@ -39,10 +41,22 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
        WHERE pa.accessory_id = $1`,
       [product.id],
     ),
+    // Accessories auto-linked by category code (set on the accessory itself,
+    // under "Совместимость"), rather than picked one by one on this product.
+    classificationCode
+      ? query(
+          `SELECT acc.*,
+             CASE WHEN c.id IS NOT NULL THEN row_to_json(c) END AS category
+           FROM products acc
+           LEFT JOIN categories c ON c.id = acc.category_id
+           WHERE acc.product_type = 'PA' AND $1 = ANY(acc.compatible_with) AND acc.id != $2`,
+          [classificationCode, product.id],
+        )
+      : Promise.resolve([]),
   ])
 
   const seen = new Set<string>()
-  const accessories = [...accForward, ...accReverse].filter(a => {
+  const accessories = [...accForward, ...accReverse, ...accByCode].filter(a => {
     if (seen.has(a.id)) return false
     seen.add(a.id)
     return true

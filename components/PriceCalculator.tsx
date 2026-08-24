@@ -84,13 +84,18 @@ export default function PriceCalculator({ product }: { product: Product }) {
     )
   }
 
-  const bulkQty    = product.bulk_threshold      ?? 3
-  const discountPct = product.bulk_discount_percent ?? 5
-  const isBulk     = qty >= bulkQty
-  const basePrice  = product.price
-  const unitPrice  = isBulk ? basePrice * (1 - discountPct / 100) : basePrice
-  const total      = unitPrice * qty
-  const savings    = isBulk ? (basePrice - unitPrice) * qty : 0
+  // Postgres numeric columns (price, bulk_discount_percent) come back from
+  // the driver as strings, not numbers — left uncoerced, basePrice skipped
+  // .toLocaleString formatting entirely (a string's toLocaleString is a
+  // no-op) and any zero/blank discount still counted as "bulk pricing".
+  const basePrice   = Number(product.price)
+  const bulkQty     = Number(product.bulk_threshold ?? 3)
+  const discountPct = Number(product.bulk_discount_percent ?? 5)
+  const hasBulkPricing = bulkQty > 0 && discountPct > 0
+  const isBulk      = hasBulkPricing && qty >= bulkQty
+  const unitPrice   = isBulk ? basePrice * (1 - discountPct / 100) : basePrice
+  const total       = unitPrice * qty
+  const savings     = isBulk ? (basePrice - unitPrice) * qty : 0
 
   const changeQty = (delta: number) => setQty(q => Math.max(1, q + delta))
 
@@ -163,7 +168,7 @@ export default function PriceCalculator({ product }: { product: Product }) {
       </div>
 
       {/* ── Скидка (hint or applied) ── */}
-      {product.bulk_threshold && !isBulk && (
+      {hasBulkPricing && !isBulk && (
         <div style={{ margin: '0 16px 4px', padding: '10px 12px', borderRadius: 10,
           background: 'linear-gradient(135deg,#FFFBEB,#FEF3C7)',
           border: '1px solid #FDE68A',
@@ -184,7 +189,7 @@ export default function PriceCalculator({ product }: { product: Product }) {
         </div>
       )}
 
-      {product.bulk_threshold && isBulk && (
+      {hasBulkPricing && isBulk && (
         <div style={{ margin: '0 16px 4px', padding: '10px 12px', borderRadius: 10,
           background: 'linear-gradient(135deg,#ECFDF5,#D1FAE5)',
           border: '1px solid #6EE7B7',

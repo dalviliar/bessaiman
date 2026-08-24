@@ -157,11 +157,17 @@ export default function ProductForm({ product }: { product?: Product }) {
     setForm(f => ({ ...f, [key]: value }))
 
   const handleCategoryChange = (categoryId: string) => {
-    set('category_id', categoryId)
     const cat = categories.find(c => c.id === categoryId)
-    if (cat?.classification_code) {
-      set('classification_code', cat.classification_code)
-    }
+    setForm(f => ({
+      ...f,
+      category_id: categoryId,
+      classification_code: cat?.classification_code || f.classification_code,
+      // "Комплектующие" is both a category (this grouping) and a product type
+      // (the top-level catalog tab) — picking the category here used to leave
+      // the type on its default "Серийный", so the product landed under the
+      // wrong tab and its accessory-compatibility section never appeared.
+      product_type: cat?.slug === 'pa' ? 'PA' : f.product_type,
+    }))
   }
 
   const handleUpload = async (files: FileList | null) => {
@@ -282,6 +288,11 @@ export default function ProductForm({ product }: { product?: Product }) {
             <select className="steel-input w-full" value={form.product_type} onChange={e => set('product_type', e.target.value as ProductType)}>
               {PRODUCT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
+            {categories.find(c => c.id === form.category_id)?.slug === 'pa' && form.product_type !== 'PA' && (
+              <p className="text-[11px] mt-1" style={{ color: '#FBBF24' }}>
+                Категория «Комплектующие» обычно идёт с этим же типом товара — иначе он не попадёт на вкладку «Комплектующие» в каталоге.
+              </p>
+            )}
           </Field>
           <Field label="Модель / артикул">
             <input className="steel-input w-full" value={form.model} onChange={e => set('model', e.target.value)} />
@@ -304,27 +315,30 @@ export default function ProductForm({ product }: { product?: Product }) {
 
       {/* Совместимость (для аксессуаров PA) */}
       {form.product_type === 'PA' && (
-        <Section title="Совместимость — коды серий">
+        <Section title="Совместимость — по категориям">
           <p className="text-[11px] mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            Этот аксессуар будет автоматически показываться на страницах всех товаров с выбранными кодами. Установите коды в разделе «Категории».
+            Этот аксессуар будет автоматически показываться на страницах всех товаров из выбранных категорий. Категория попадает сюда, если для неё задан код классификации в разделе «Категории».
           </p>
           <div className="flex flex-wrap gap-2">
-            {Array.from(new Set(
-              categories.filter(c => c.classification_code).map(c => c.classification_code!)
-            )).sort().map(code => {
+            {Object.entries(
+              categories.filter(c => c.classification_code).reduce<Record<string, string[]>>((acc, c) => {
+                (acc[c.classification_code!] ??= []).push(c.name_ru)
+                return acc
+              }, {}),
+            ).sort(([, a], [, b]) => a.join().localeCompare(b.join())).map(([code, names]) => {
               const isSelected = form.compatible_with.includes(code)
               return (
-                <button key={code} type="button"
+                <button key={code} type="button" title={code}
                   onClick={() => set('compatible_with',
                     isSelected ? form.compatible_with.filter(c => c !== code) : [...form.compatible_with, code]
                   )}
-                  className="px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all"
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
                   style={{
                     background: isSelected ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.05)',
                     color: isSelected ? '#60A5FA' : 'rgba(255,255,255,0.35)',
                     border: `1px solid ${isSelected ? '#3B82F6' : 'rgba(255,255,255,0.1)'}`,
                   }}>
-                  {isSelected ? '✓ ' : '+ '}{code}
+                  {isSelected ? '✓ ' : '+ '}{names.join(' / ')}
                 </button>
               )
             })}
@@ -336,7 +350,9 @@ export default function ProductForm({ product }: { product?: Product }) {
           </div>
           {form.compatible_with.length > 0 && (
             <p className="text-[10px] mt-2" style={{ color: 'rgba(255,255,255,0.35)' }}>
-              Совместим с {form.compatible_with.length} кодом(-ами): {form.compatible_with.join(', ')}
+              Совместим с категориями: {categories
+                .filter(c => c.classification_code && form.compatible_with.includes(c.classification_code))
+                .map(c => c.name_ru).join(', ')}
             </p>
           )}
         </Section>
@@ -544,7 +560,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       {/* Аксессуары — ручная привязка */}
       <Section title="Аксессуары (ручная привязка)">
         <p className="text-[11px] mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          Выберите конкретные товары, которые всегда будут показываться как аксессуары к этому товару — независимо от кодов.
+          Для точечных случаев — привяжите конкретные товары как аксессуары к этому товару, отдельно от автоматической привязки по категориям. Можно добавить сколько угодно.
         </p>
 
         {accObjects.length > 0 && (

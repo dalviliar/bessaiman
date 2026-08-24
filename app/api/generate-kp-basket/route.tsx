@@ -4,6 +4,7 @@ import { readFileSync, statSync, existsSync } from 'fs'
 import { NextResponse } from 'next/server'
 import { renderToBuffer, Font, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 import { query } from '@/lib/db'
+import { formatKzt } from '@/lib/format'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -299,7 +300,7 @@ function KPBasketDocument({
               <Text style={s.tdQty}>{item.quantity}</Text>
               <Text style={s.tdUnit}>шт.</Text>
               <Text style={s.tdPrice}>
-                {item.price ? `${item.price.toLocaleString('ru-RU')} T` : 'По запросу'}
+                {item.price ? `${formatKzt(item.price)} T` : 'По запросу'}
               </Text>
               <Text style={s.tdTotal}>
                 {item.price ? `${(item.price * item.quantity).toLocaleString('ru-RU')} T` : '—'}

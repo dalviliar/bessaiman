@@ -187,6 +187,7 @@ export default function AdminWarehousePage() {
   const [items, setItems] = useState<WarehouseItem[]>([])
   const [transactions, setTransactions] = useState<WarehouseTransaction[]>([])
   const [search, setSearch] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
   const [view, setView] = useState<View>('all')
   const [loading, setLoading] = useState(true)
   const [restockItem, setRestockItem] = useState<WarehouseItem | null>(null)
@@ -209,18 +210,24 @@ export default function AdminWarehousePage() {
   const lowStock   = items.filter(i => i.quantity > 0 && i.quantity < 3)
   const outStock   = items.filter(i => i.quantity === 0)
 
+  // Every category actually present on the shelf, so the filter never
+  // offers a category with nothing in it.
+  const categories = Array.from(
+    new Map(
+      items
+        .map(i => (i.product as { category_id?: string; category_name?: string } | undefined))
+        .filter((p): p is { category_id: string; category_name: string } => !!p?.category_id && !!p?.category_name)
+        .map(p => [p.category_id, p.category_name]),
+    ).entries(),
+  ).sort(([, a], [, b]) => a.localeCompare(b))
+
   const filtered = items.filter(i => {
-    if (view === 'low') return i.quantity > 0 && i.quantity < 3
-    if (view === 'out') return i.quantity === 0
+    if (view === 'low' && !(i.quantity > 0 && i.quantity < 3)) return false
+    if (view === 'out' && i.quantity !== 0) return false
+    const p = i.product as { name_ru?: string; model?: string; category_id?: string } | undefined
+    if (categoryFilter && p?.category_id !== categoryFilter) return false
     const q = search.toLowerCase()
     if (!q) return true
-    const p = i.product as { name_ru?: string; model?: string } | undefined
-    return p?.name_ru?.toLowerCase().includes(q) || p?.model?.toLowerCase().includes(q) || i.barcode?.includes(q)
-  }).filter(i => {
-    if (view !== 'all') return true
-    const q = search.toLowerCase()
-    if (!q) return true
-    const p = i.product as { name_ru?: string; model?: string } | undefined
     return p?.name_ru?.toLowerCase().includes(q) || p?.model?.toLowerCase().includes(q) || i.barcode?.includes(q)
   })
 
@@ -296,13 +303,22 @@ export default function AdminWarehousePage() {
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Stock table */}
         <div className="lg:col-span-3">
-          {view === 'all' && (
-            <div className="relative mb-4">
-              <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.3)' }} />
-              <input type="text" placeholder="Поиск по названию, артикулу..." value={search} onChange={e => setSearch(e.target.value)}
-                className="steel-input w-full pl-10" />
-            </div>
-          )}
+          <div className="flex flex-col sm:flex-row gap-2 mb-4">
+            {view === 'all' && (
+              <div className="relative flex-1">
+                <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: 'rgba(255,255,255,0.3)' }} />
+                <input type="text" placeholder="Поиск по названию, артикулу..." value={search} onChange={e => setSearch(e.target.value)}
+                  className="steel-input w-full pl-10" />
+              </div>
+            )}
+            {categories.length > 1 && (
+              <select value={categoryFilter} onChange={e => setCategoryFilter(e.target.value)}
+                className="steel-input sm:w-56 shrink-0">
+                <option value="">Все категории</option>
+                {categories.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
+              </select>
+            )}
+          </div>
 
           <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
             <table className="w-full text-sm">

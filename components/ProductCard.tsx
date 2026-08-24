@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowRight, Package, Zap, ShoppingCart, Check } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 import { useCart } from '@/context/CartContext'
+import { formatKzt } from '@/lib/format'
 import type { Product } from '@/types'
 
 const TYPE_META = {
@@ -148,7 +149,7 @@ export default function ProductCard({ product }: { product: Product }) {
         {/* Bottom */}
         <div className="flex items-center justify-between mt-auto pt-2.5" style={{ borderTop: '1px solid #F1F5F9' }}>
           <span className="text-sm font-semibold" style={{ color: product.price ? '#0F172A' : '#94A3B8' }}>
-            {product.price ? `${product.price.toLocaleString('ru-RU')} ₸` : tr.catalog.priceOnRequest}
+            {product.price ? `${formatKzt(product.price)} ₸` : tr.catalog.priceOnRequest}
           </span>
           <Link href={`/catalog/${product.slug}`}
             className="flex items-center gap-1 text-[13px] font-semibold group-hover:gap-2 transition-all"
