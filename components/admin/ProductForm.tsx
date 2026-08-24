@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Plus, X, Upload, Image as ImageIcon, Search, Package, FileSignature, ExternalLink } from 'lucide-react'
+import { Loader2, Plus, X, Upload, Image as ImageIcon, Search, Package } from 'lucide-react'
 import type { Category, Product, ProductType } from '@/types'
 
 interface AccessoryItem {
@@ -52,6 +52,7 @@ interface FormState {
   length_cm: string
   width_cm: string
   height_cm: string
+  kp_terms_override: { label: string; value: string }[]
 }
 
 const EMPTY: FormState = {
@@ -74,6 +75,7 @@ const EMPTY: FormState = {
   length_cm: '',
   width_cm: '',
   height_cm: '',
+  kp_terms_override: [],
 }
 
 type DescLang = 'ru' | 'kk' | 'en'
@@ -118,6 +120,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       length_cm: product.length_cm?.toString() ?? '',
       width_cm: product.width_cm?.toString() ?? '',
       height_cm: product.height_cm?.toString() ?? '',
+      kp_terms_override: product.kp_terms_override ?? [],
     })
     if (product.accessories?.length) {
       setAccObjects(product.accessories.map(a => ({
@@ -202,6 +205,35 @@ export default function ProductForm({ product }: { product?: Product }) {
     set('specs', form.specs.map((s, idx) => idx === i ? { ...s, [field]: value } : s))
   const removeSpec = (i: number) => set('specs', form.specs.filter((_, idx) => idx !== i))
 
+  const [kpTermsLoading, setKpTermsLoading] = useState(false)
+  const handleKpTermsToggle = async (enabled: boolean) => {
+    if (!enabled) { set('kp_terms_override', []); return }
+    if (form.kp_terms_override.length > 0) return
+    setKpTermsLoading(true)
+    try {
+      const res = await fetch('/api/admin/kp-terms')
+      const t = res.ok ? await res.json() : null
+      const inStock = form.availability === 'in_stock'
+      set('kp_terms_override', [
+        { label: 'Срок поставки:', value: (inStock ? t?.delivery_in_stock : t?.delivery_on_order) ?? '' },
+        { label: 'Гарантия:', value: t?.warranty ?? '' },
+        { label: 'Условия оплаты:', value: (inStock ? t?.payment_in_stock : t?.payment_on_order) ?? '' },
+        { label: 'Действие КП:', value: t?.validity ?? '' },
+      ])
+    } catch {
+      set('kp_terms_override', [
+        { label: 'Срок поставки:', value: '' }, { label: 'Гарантия:', value: '' },
+        { label: 'Условия оплаты:', value: '' }, { label: 'Действие КП:', value: '' },
+      ])
+    } finally {
+      setKpTermsLoading(false)
+    }
+  }
+  const addKpTermRow = () => set('kp_terms_override', [...form.kp_terms_override, { label: '', value: '' }])
+  const updateKpTermRow = (i: number, field: 'label' | 'value', value: string) =>
+    set('kp_terms_override', form.kp_terms_override.map((r, idx) => idx === i ? { ...r, [field]: value } : r))
+  const removeKpTermRow = (i: number) => set('kp_terms_override', form.kp_terms_override.filter((_, idx) => idx !== i))
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.name_ru || !form.category_id) {
@@ -238,6 +270,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       length_cm: form.length_cm ? Number(form.length_cm) : null,
       width_cm: form.width_cm ? Number(form.width_cm) : null,
       height_cm: form.height_cm ? Number(form.height_cm) : null,
+      kp_terms_override: form.kp_terms_override.filter(r => r.label.trim() && r.value.trim()),
     }
 
     try {
@@ -557,22 +590,50 @@ export default function ProductForm({ product }: { product?: Product }) {
         </div>
       </Section>
 
-      {/* Сама формулировка условий поставки — общая для всех КП, поэтому не
-          дублируется в каждой карточке товара, а редактируется в одном месте */}
-      <a href="/admin/kp-terms" target="_blank" rel="noopener noreferrer"
-        className="flex items-center gap-3 p-4 rounded-xl transition-colors"
-        style={{ background: 'rgba(59,130,246,0.06)', border: '1px dashed rgba(59,130,246,0.3)' }}>
-        <span className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(59,130,246,0.12)' }}>
-          <FileSignature size={16} style={{ color: '#60A5FA' }} />
-        </span>
-        <span className="flex-1 min-w-0">
-          <span className="block text-sm font-semibold text-white">Условия поставки в КП</span>
-          <span className="block text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>
-            Срок поставки, гарантия, оплата и срок действия КП — один общий текст для всех товаров, не для этой карточки. Откроется в новой вкладке.
+      {/* Условия поставки в КП — по умолчанию берутся общие (редактируются
+          на /admin/kp-terms), но для этого товара можно задать свои */}
+      <Section title="Условия поставки в КП">
+        <label className="flex items-center gap-2.5 cursor-pointer mb-3">
+          <input
+            type="checkbox"
+            className="w-4 h-4"
+            checked={form.kp_terms_override.length > 0}
+            disabled={kpTermsLoading}
+            onChange={e => handleKpTermsToggle(e.target.checked)}
+          />
+          <span className="text-sm text-white font-medium">
+            Свои условия для этого товара{kpTermsLoading && '…'}
           </span>
-        </span>
-        <ExternalLink size={14} style={{ color: 'rgba(255,255,255,0.3)' }} className="shrink-0" />
-      </a>
+        </label>
+        {form.kp_terms_override.length === 0 ? (
+          <p className="text-[11px]" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            Пока используются общие условия по умолчанию (срок поставки, гарантия, оплата, срок действия КП — одинаковые для всех товаров).{' '}
+            <a href="/admin/kp-terms" target="_blank" rel="noopener noreferrer" className="underline" style={{ color: '#60A5FA' }}>
+              Изменить общие условия
+            </a>
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {form.kp_terms_override.map((row, i) => (
+              <div key={i} className="flex gap-2">
+                <input className="steel-input flex-1" placeholder="Пункт (напр. Срок поставки:)" value={row.label} onChange={e => updateKpTermRow(i, 'label', e.target.value)} />
+                <input className="steel-input flex-[2]" placeholder="Значение" value={row.value} onChange={e => updateKpTermRow(i, 'value', e.target.value)} />
+                <button type="button" onClick={() => removeKpTermRow(i)} className="px-2.5 rounded-lg" style={{ color: '#F87171', background: 'rgba(239,68,68,0.08)' }}>
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+            <button type="button" onClick={addKpTermRow}
+              className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-medium"
+              style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)' }}>
+              <Plus size={13} /> Добавить пункт
+            </button>
+            <p className="text-[11px] pt-1" style={{ color: 'rgba(255,255,255,0.3)' }}>
+              Эти пункты заменят общие условия только в КП для этого товара.
+            </p>
+          </div>
+        )}
+      </Section>
 
       {/* Аксессуары — ручная привязка */}
       <Section title="Аксессуары (ручная привязка)">

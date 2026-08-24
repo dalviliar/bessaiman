@@ -13,6 +13,10 @@ export async function logAction(params: {
   adminEmail: string
   action: AuditAction
   entityType: AuditEntity
+  // admin_audit_log.entity_id is a uuid column — pass a real row id or
+  // null, never a slug/constant like 'main' (Postgres will reject the
+  // insert with "invalid input syntax for type uuid", which surfaces to
+  // the admin as their save failing even though it already went through).
   entityId?: string | null
   entityLabel?: string | null
   details?: Record<string, unknown>

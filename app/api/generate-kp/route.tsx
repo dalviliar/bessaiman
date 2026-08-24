@@ -205,6 +205,7 @@ interface ProductData {
   slug: string
   availability?: string
   images?: string[]
+  kp_terms_override?: { label: string; value: string }[] | null
 }
 
 function getConditions(availability: string | undefined, terms: KpTerms): [string, string][] {
@@ -258,6 +259,10 @@ function KPDocument({
     (lang === 'kk' ? product.description_kk : lang === 'en' ? product.description_en : null) ||
     product.description_ru
   const descLines = description ? parseDescriptionLines(description) : []
+  const conditions: [string, string][] =
+    product.kp_terms_override && product.kp_terms_override.length > 0
+      ? product.kp_terms_override.map(r => [r.label, r.value])
+      : getConditions(product.availability, terms)
 
   return (
     <Document>
@@ -421,7 +426,7 @@ function KPDocument({
         {/* CONDITIONS */}
         <Text style={s.sectionTitle}>Условия поставки</Text>
         <View style={{ marginBottom: 8 }}>
-          {getConditions(product.availability, terms).map(([label, value]: [string, string]) => (
+          {conditions.map(([label, value]) => (
             <View key={label} style={s.condRow}>
               <Text style={s.condBullet}>•</Text>
               <Text style={s.condLabel}>{label}</Text>

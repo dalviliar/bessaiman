@@ -167,7 +167,9 @@ export default function AdminProductsPage() {
                 <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Наличие</th>
                 <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Остаток</th>
                 <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Фото</th>
-                <th className="px-5 py-3" />
+                {/* Fixed width so the edit/delete icons keep breathing room from
+                    the card's right edge even as other columns grow wider. */}
+                <th className="px-5 py-3 w-28" />
               </tr>
             </thead>
             <tbody>
@@ -225,7 +227,7 @@ export default function AdminProductsPage() {
                         <Package size={14} style={{ color: 'rgba(255,255,255,0.2)', margin: '0 auto' }} />
                       )}
                     </td>
-                    <td className="px-5 py-3 text-center">
+                    <td className="px-5 py-3 text-center whitespace-nowrap">
                       <div className="flex items-center justify-center gap-1.5">
                         <Link href={`/catalog/${p.slug}`} target="_blank"
                           className="p-1.5 rounded-lg transition-colors"

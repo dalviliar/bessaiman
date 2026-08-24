@@ -55,6 +55,8 @@ export interface Product {
   video_url: string | null
   instagram_url: string | null
   specs: Record<string, string> | null
+  /** Overrides the shared "УСЛОВИЯ ПОСТАВКИ" default on this product's КП when set. */
+  kp_terms_override: { label: string; value: string }[] | null
   product_type: ProductType
   classification_code: string | null
   compatible_with: string[]

@@ -46,7 +46,7 @@ export async function PUT(request: Request) {
 
     await logAction({
       adminId: me.id, adminEmail: me.email, action: 'update',
-      entityType: 'kp_terms', entityId: 'main', entityLabel: 'Условия поставки (КП)',
+      entityType: 'kp_terms', entityId: null, entityLabel: 'Условия поставки (КП)',
     })
 
     return NextResponse.json(row)

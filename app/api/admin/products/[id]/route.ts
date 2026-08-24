@@ -47,7 +47,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       price, price_with_discount, bulk_threshold, bulk_discount_percent,
       availability, barcode, images, video_url, instagram_url, specs, product_type, classification_code,
       compatible_with, weight_kg, unit, length_cm, width_cm, height_cm,
-      accessory_ids,
+      accessory_ids, kp_terms_override,
     } = body
 
     if (!name_ru || !category_id) {
@@ -62,7 +62,9 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       specs ? JSON.stringify(specs) : null,
       product_type ?? 'S', classification_code ?? null, compatible_with ?? [],
       weight_kg ?? null, unit ?? 'шт',
-      length_cm ?? null, width_cm ?? null, height_cm ?? null, id,
+      length_cm ?? null, width_cm ?? null, height_cm ?? null,
+      Array.isArray(kp_terms_override) && kp_terms_override.length > 0 ? JSON.stringify(kp_terms_override) : null,
+      id,
     ]
 
     let product
@@ -74,8 +76,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
            price = $9, price_with_discount = $10, bulk_threshold = $11, bulk_discount_percent = $12,
            availability = $13, barcode = $14, images = $15, video_url = $16, instagram_url = $17, specs = $18, product_type = $19,
            classification_code = $20, compatible_with = $21, weight_kg = $22, unit = $23,
-           length_cm = $24, width_cm = $25, height_cm = $26
-         WHERE id = $27 RETURNING *`,
+           length_cm = $24, width_cm = $25, height_cm = $26, kp_terms_override = $27
+         WHERE id = $28 RETURNING *`,
         [...baseArgs.slice(0, 15), video_url ?? null, instagram_url ?? null, ...baseArgs.slice(15)],
       )
     } catch (e: unknown) {
@@ -87,8 +89,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
              price = $9, price_with_discount = $10, bulk_threshold = $11, bulk_discount_percent = $12,
              availability = $13, barcode = $14, images = $15, video_url = $16, specs = $17, product_type = $18,
              classification_code = $19, compatible_with = $20, weight_kg = $21, unit = $22,
-             length_cm = $23, width_cm = $24, height_cm = $25
-           WHERE id = $26 RETURNING *`,
+             length_cm = $23, width_cm = $24, height_cm = $25, kp_terms_override = $26
+           WHERE id = $27 RETURNING *`,
           [...baseArgs.slice(0, 15), video_url ?? null, ...baseArgs.slice(15)],
         )
       } else if (e instanceof Error && e.message.includes('video_url')) {
@@ -99,8 +101,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
              price = $9, price_with_discount = $10, bulk_threshold = $11, bulk_discount_percent = $12,
              availability = $13, barcode = $14, images = $15, specs = $16, product_type = $17,
              classification_code = $18, compatible_with = $19, weight_kg = $20, unit = $21,
-             length_cm = $22, width_cm = $23, height_cm = $24
-           WHERE id = $25 RETURNING *`,
+             length_cm = $22, width_cm = $23, height_cm = $24, kp_terms_override = $25
+           WHERE id = $26 RETURNING *`,
           baseArgs,
         )
       } else { throw e }

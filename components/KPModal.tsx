@@ -51,6 +51,7 @@ export default function KPModal({ product, onClose }: Props) {
             slug: product.slug,
             availability: product.availability,
             images: product.images,
+            kp_terms_override: product.kp_terms_override,
           },
           clientInfo: {
             name: form.name.trim() || 'Не указано',

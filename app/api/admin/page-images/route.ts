@@ -37,7 +37,7 @@ export async function PUT(request: Request) {
 
     await logAction({
       adminId: me.id, adminEmail: me.email, action: 'update',
-      entityType: 'page_image', entityId: page, entityLabel: page,
+      entityType: 'page_image', entityId: null, entityLabel: page,
     })
 
     return NextResponse.json(row)

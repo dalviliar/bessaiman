@@ -55,7 +55,7 @@ export async function PUT(request: Request) {
 
     await logAction({
       adminId: me.id, adminEmail: me.email, action: 'update',
-      entityType: 'science_accreditation', entityId: 'main', entityLabel: row.title_ru,
+      entityType: 'science_accreditation', entityId: null, entityLabel: row.title_ru,
     })
 
     return NextResponse.json(row)

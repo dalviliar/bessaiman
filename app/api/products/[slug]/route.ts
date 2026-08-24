@@ -21,7 +21,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
 
   const classificationCode = (product.category as { classification_code?: string } | null)?.classification_code
 
-  const [documents, accForward, accReverse, accByCode] = await Promise.all([
+  const [documents, accForward, accReverse, accByCode, accByCodeReverse] = await Promise.all([
     query('SELECT * FROM product_documents WHERE product_id = $1', [product.id]),
     query(
       `SELECT acc.*,
@@ -43,6 +43,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     ),
     // Accessories auto-linked by category code (set on the accessory itself,
     // under "Совместимость"), rather than picked one by one on this product.
+    // Direction: this product is the "main" item, we're looking for PA
+    // accessories whose code list contains this product's own category code.
     classificationCode
       ? query(
           `SELECT acc.*,
@@ -53,10 +55,25 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
           [classificationCode, product.id],
         )
       : Promise.resolve([]),
+    // Reverse direction: this product IS the accessory (has its own code
+    // list under "Совместимость"), so on its own page show which main
+    // products it declares itself compatible with — otherwise the link
+    // only ever showed up on the main product's page, never on the
+    // accessory's own page.
+    product.compatible_with?.length
+      ? query(
+          `SELECT acc.*,
+             CASE WHEN c.id IS NOT NULL THEN row_to_json(c) END AS category
+           FROM products acc
+           JOIN categories c ON c.id = acc.category_id
+           WHERE c.classification_code = ANY($1) AND acc.id != $2`,
+          [product.compatible_with, product.id],
+        )
+      : Promise.resolve([]),
   ])
 
   const seen = new Set<string>()
-  const accessories = [...accForward, ...accReverse, ...accByCode].filter(a => {
+  const accessories = [...accForward, ...accReverse, ...accByCode, ...accByCodeReverse].filter(a => {
     if (seen.has(a.id)) return false
     seen.add(a.id)
     return true
