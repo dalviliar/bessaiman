@@ -205,3 +205,19 @@ body {
   animation: scanLine 2s ease-in-out infinite;
   box-shadow: 0 0 8px #00B0FF;
 }
+
+/* ── Admin panel: staff reported the text as too small to read comfortably.
+   Sizes were set with dozens of one-off Tailwind classes scattered across
+   every admin page rather than a shared component, so bumping each call
+   site individually isn't practical — this reaches all of them at once by
+   overriding the exact utility classes in use, scoped to .admin-shell so
+   the public site is untouched. Unlayered + !important is deliberate: it
+   has to outrank Tailwind's own utilities, which Next.js registers inside
+   `@layer utilities`. */
+.admin-shell .text-\[9px\]  { font-size: 11px !important; }
+.admin-shell .text-\[10px\] { font-size: 12px !important; }
+.admin-shell .text-\[11px\] { font-size: 13px !important; }
+.admin-shell .text-\[12px\] { font-size: 14px !important; }
+.admin-shell .text-\[13px\] { font-size: 15px !important; }
+.admin-shell .text-xs { font-size: 13px !important; line-height: 1.4rem !important; }
+.admin-shell .text-sm { font-size: 15px !important; line-height: 1.5rem !important; }

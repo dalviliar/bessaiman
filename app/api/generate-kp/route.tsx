@@ -24,7 +24,7 @@ const C = {
 const s = StyleSheet.create({
   page: {
     fontFamily: 'Roboto',
-    fontSize: 9,
+    fontSize: 9.5,
     color: C.text,
     paddingTop: 32,
     paddingBottom: 56,
@@ -45,8 +45,8 @@ const s = StyleSheet.create({
   logoSub:  { fontSize: 5, color: 'rgba(255,255,255,0.7)', letterSpacing: 2 },
   logoImg:  { width: 148, height: 36.6, marginRight: 14 },
   headerInfo: { flex: 1 },
-  companyTagline: { fontSize: 7.5, color: C.gray, marginBottom: 2 },
-  companyContact: { fontSize: 7, color: C.gray },
+  companyTagline: { fontSize: 8, color: C.gray, marginBottom: 2 },
+  companyContact: { fontSize: 7.5, color: C.gray },
 
   // ── Dividers ──
   dividerBlue: { height: 2, backgroundColor: C.primary, marginVertical: 10 },
@@ -76,8 +76,8 @@ const s = StyleSheet.create({
     borderRadius: 2,
   },
   partyLabel: { fontSize: 6.5, fontWeight: 'bold', color: C.primary, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 4 },
-  partyName:   { fontSize: 9, fontWeight: 'bold', color: C.primaryDark, marginBottom: 2 },
-  partyDetail: { fontSize: 7.5, color: C.gray, marginBottom: 1.5 },
+  partyName:   { fontSize: 9.5, fontWeight: 'bold', color: C.primaryDark, marginBottom: 2 },
+  partyDetail: { fontSize: 8, color: C.gray, marginBottom: 1.5 },
 
   // ── Section title ──
   sectionTitle: {
@@ -101,8 +101,8 @@ const s = StyleSheet.create({
   thPrice: { width: 78, fontSize: 7, fontWeight: 'bold', color: C.white, textAlign: 'right' },
 
   tdN:     { width: 16, fontSize: 8, color: C.gray },
-  tdName:  { flex: 3,   fontSize: 8, fontWeight: 'bold', color: C.primaryDark },
-  tdModel: { flex: 1.2, fontSize: 7.5, color: C.gray },
+  tdName:  { flex: 3,   fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark },
+  tdModel: { flex: 1.2, fontSize: 8, color: C.gray },
   tdQty:   { width: 30, fontSize: 8, textAlign: 'center', color: C.text },
   tdUnit:  { width: 26, fontSize: 8, textAlign: 'center', color: C.gray },
   tdPrice: { width: 78, fontSize: 8, fontWeight: 'bold', textAlign: 'right', color: C.primary },
@@ -112,8 +112,8 @@ const s = StyleSheet.create({
   // ── Description ──
   descSection: { flexDirection: 'row', gap: 10, marginBottom: 8 },
   descText:    { flex: 1 },
-  descLine:    { fontSize: 8, color: C.text, marginBottom: 2, lineHeight: 1.4 },
-  descHeading: { fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark, marginBottom: 2, marginTop: 4 },
+  descLine:    { fontSize: 9, color: C.text, marginBottom: 3, lineHeight: 1.45, textAlign: 'justify' },
+  descHeading: { fontSize: 9.5, fontWeight: 'bold', color: C.primaryDark, marginBottom: 3, marginTop: 5 },
   descProductImg: { width: 110, height: 110, objectFit: 'contain', borderWidth: 0.5, borderColor: C.border, borderRadius: 2 },
 
   // ── Specs ──
@@ -121,14 +121,14 @@ const s = StyleSheet.create({
   specRow:     { flexDirection: 'row', paddingVertical: 4, paddingHorizontal: 8, borderBottomWidth: 0.5, borderBottomColor: C.border },
   specRowLast: { borderBottomWidth: 0 },
   specRowAlt:  { backgroundColor: C.lightGray },
-  specKey: { width: '44%', fontSize: 7.5, color: C.gray },
-  specVal: { flex: 1, fontSize: 8, fontWeight: 'bold', color: C.primaryDark },
+  specKey: { width: '44%', fontSize: 8, color: C.gray },
+  specVal: { flex: 1, fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark },
 
   // ── Conditions ──
   condRow:    { flexDirection: 'row', marginBottom: 3.5, alignItems: 'flex-start' },
   condBullet: { width: 10, fontSize: 8, color: C.primary },
-  condLabel:  { width: 130, fontSize: 7.5, color: C.gray },
-  condValue:  { flex: 1, fontSize: 7.5, fontWeight: 'bold', color: C.primaryDark },
+  condLabel:  { width: 130, fontSize: 8, color: C.gray },
+  condValue:  { flex: 1, fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark },
 
   // ── Bank ──
   bankBox: {
@@ -141,7 +141,7 @@ const s = StyleSheet.create({
   bankGrid:  { flexDirection: 'row', flexWrap: 'wrap' },
   bankRow:   { width: '50%', flexDirection: 'row', marginBottom: 3 },
   bankLabel: { width: 68, fontSize: 7, color: C.gray },
-  bankValue: { flex: 1, fontSize: 7.5, fontWeight: 'bold', color: C.primaryDark },
+  bankValue: { flex: 1, fontSize: 8, fontWeight: 'bold', color: C.primaryDark },
 
   // ── Signature ──
   // Whole block is centered on the page as a unit; stamp overlaps the tail of
@@ -150,8 +150,8 @@ const s = StyleSheet.create({
   sigSection: { marginTop: 10, alignItems: 'center' },
   sigInner: { position: 'relative', width: 220 },
   sigBox:  { width: 220 },
-  sigRole: { fontSize: 7.5, color: C.gray, marginBottom: 3 },
-  sigOrg:  { fontSize: 8, fontWeight: 'bold', color: C.primaryDark, marginBottom: 8 },
+  sigRole: { fontSize: 8, color: C.gray, marginBottom: 3 },
+  sigOrg:  { fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark, marginBottom: 8 },
   sigLine: { borderBottomWidth: 0.5, borderBottomColor: '#888', marginBottom: 4, marginRight: 60, width: 90 },
   sigName: { fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark },
   sigDate: { fontSize: 7, color: C.gray, marginTop: 2 },

@@ -40,7 +40,7 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4"
+    <div className="admin-shell min-h-screen flex items-center justify-center px-4"
       style={{ background: 'linear-gradient(135deg, #060E1A 0%, #0A1520 50%, #060E1A 100%)' }}>
 
       {/* Background grid */}

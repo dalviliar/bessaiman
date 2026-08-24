@@ -259,7 +259,7 @@ function AdminShell({ children }: { children: React.ReactNode }) {
   )?.[1] ?? ''
 
   return (
-    <div className="fixed inset-0 z-[100] flex" style={{ fontFamily: 'Inter, sans-serif' }}>
+    <div className="admin-shell fixed inset-0 z-[100] flex" style={{ fontFamily: 'Inter, sans-serif' }}>
 
       {/* Mobile backdrop */}
       {sidebarOpen && (

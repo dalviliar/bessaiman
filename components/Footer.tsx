@@ -2,11 +2,17 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { Phone, Mail, MapPin } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 
 export default function Footer() {
   const { tr } = useLang()
+  const pathname = usePathname()
+
+  // See Navbar.tsx — the admin login screen is the one admin route not
+  // covered by the panel's own fixed full-screen shell.
+  if (pathname?.startsWith('/admin')) return null
 
   return (
     <footer className="border-t border-steel-border/40 mt-auto"

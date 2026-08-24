@@ -1,6 +1,14 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
+
 export default function WhatsAppFloat() {
+  const pathname = usePathname()
+
+  // See Navbar.tsx — the admin login screen is the one admin route not
+  // covered by the panel's own fixed full-screen shell.
+  if (pathname?.startsWith('/admin')) return null
+
   return (
     <a
       href="https://wa.me/77076202890"

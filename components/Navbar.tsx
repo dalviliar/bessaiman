@@ -39,6 +39,11 @@ export default function Navbar() {
   const [langOpen, setLangOpen] = useState(false)
   const [season] = useState(seasonTheme)
 
+  // The admin panel is a fixed full-screen overlay everywhere except its
+  // login screen (which sits in normal document flow), so this is the one
+  // admin route the public chrome would otherwise show through on.
+  if (pathname?.startsWith('/admin')) return null
+
   const links = [
     { href: '/',         label: tr.nav.home },
     { href: '/catalog',  label: tr.nav.catalog },
