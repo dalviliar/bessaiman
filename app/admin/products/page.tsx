@@ -167,9 +167,10 @@ export default function AdminProductsPage() {
                 <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Наличие</th>
                 <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Остаток</th>
                 <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Фото</th>
-                {/* Fixed width so the edit/delete icons keep breathing room from
-                    the card's right edge even as other columns grow wider. */}
-                <th className="px-5 py-3 w-28" />
+                {/* Pinned to the visible edge of the horizontal scroll area —
+                    with wider admin fonts the table can exceed the card width,
+                    and a plain trailing column just scrolls out of view. */}
+                <th className="sticky right-0 px-5 py-3 w-28" style={{ background: '#0D1421', boxShadow: '-6px 0 8px -6px rgba(0,0,0,0.5)' }} />
               </tr>
             </thead>
             <tbody>
@@ -227,7 +228,8 @@ export default function AdminProductsPage() {
                         <Package size={14} style={{ color: 'rgba(255,255,255,0.2)', margin: '0 auto' }} />
                       )}
                     </td>
-                    <td className="px-5 py-3 text-center whitespace-nowrap">
+                    <td className="sticky right-0 px-5 py-3 text-center whitespace-nowrap"
+                      style={{ background: i % 2 === 1 ? '#151B2A' : '#111827', boxShadow: '-6px 0 8px -6px rgba(0,0,0,0.5)' }}>
                       <div className="flex items-center justify-center gap-1.5">
                         <Link href={`/catalog/${p.slug}`} target="_blank"
                           className="p-1.5 rounded-lg transition-colors"

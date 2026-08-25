@@ -121,7 +121,7 @@ const s = StyleSheet.create({
   specVal: { flex: 1, fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark },
 
   condRow:    { flexDirection: 'row', marginBottom: 3.5, alignItems: 'flex-start' },
-  condBullet: { width: 10, fontSize: 8, color: C.primary },
+  condBullet: { width: 10, paddingTop: 4 },
   condLabel:  { width: 130, fontSize: 8, color: C.gray },
   condValue:  { flex: 1, fontSize: 8.5, fontWeight: 'bold', color: C.primaryDark },
 
@@ -376,7 +376,9 @@ function KPBasketDocument({
                               if (line.type === 'heading') return <Text key={li} style={s.descHeading}>{line.content}</Text>
                               if (line.type === 'bullet') return (
                                 <View key={li} style={{ flexDirection: 'row', marginBottom: 1.5 }}>
-                                  <Text style={{ width: 10, fontSize: 8, color: C.primary }}>•</Text>
+                                  <View style={{ width: 10, paddingTop: 4.5 }}>
+                                    <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: C.primary }} />
+                                  </View>
                                   <Text style={s.descLine}>{line.content}</Text>
                                 </View>
                               )
@@ -431,7 +433,9 @@ function KPBasketDocument({
         <View style={{ marginBottom: 8 }}>
           {getConditions(items, terms).map(([label, value]) => (
             <View key={label} style={s.condRow}>
-              <Text style={s.condBullet}>•</Text>
+              <View style={s.condBullet}>
+                <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: C.primary }} />
+              </View>
               <Text style={s.condLabel}>{label}</Text>
               <Text style={s.condValue}>{value}</Text>
             </View>
