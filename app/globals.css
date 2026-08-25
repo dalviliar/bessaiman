@@ -52,6 +52,11 @@ body {
   to   { opacity: 1; transform: translate(-50%, -14%) scale(1); }
 }
 
+@keyframes devPreviewScrimIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 /* Steel card component */
 @layer components {
   .steel-card {

@@ -25,31 +25,39 @@ export function useZoomPreview() {
   return { preview, show, hide }
 }
 
-export function ZoomPreviewOverlay({ preview, maxHeight = '65vh', scale = 1.7, objectFit = 'cover' }: { preview: ZoomPreview | null; maxHeight?: string; scale?: number; objectFit?: 'cover' | 'contain' }) {
+export function ZoomPreviewOverlay({ preview, maxHeight = '45vh', maxWidth = '30vw', scale = 1.15, objectFit = 'cover' }: { preview: ZoomPreview | null; maxHeight?: string; maxWidth?: string; scale?: number; objectFit?: 'cover' | 'contain' }) {
   if (!preview?.src || typeof document === 'undefined') return null
   // Portaled to <body> so a transformed ancestor (e.g. a card's hover:-translate-y-1)
   // can't turn this fixed-position element into one positioned relative to itself
   // instead of the viewport.
   return createPortal(
-    <div
-      className="hidden md:block fixed z-[90] pointer-events-none animate-[devPreviewIn_0.18s_ease-out]"
-      style={{
-        left: preview.rect.left + preview.rect.width / 2,
-        top: Math.max(preview.rect.top, 16),
-        width: preview.rect.width * scale,
-        transform: 'translate(-50%, -14%)',
-      }}
-    >
-      <img src={preview.src} alt="" draggable={false}
-        className="w-full rounded-2xl"
+    <>
+      {/* Soft scrim lifts the enlarged photo off the page instead of it just
+          floating over the grid — reads as an intentional preview, not a
+          raw image slapped on top. */}
+      <div className="hidden md:block fixed inset-0 z-[89] pointer-events-none animate-[devPreviewScrimIn_0.2s_ease-out]"
+        style={{ background: 'rgba(15,23,42,0.28)', backdropFilter: 'blur(2px)' }} />
+      <div
+        className="hidden md:block fixed z-[90] pointer-events-none animate-[devPreviewIn_0.2s_ease-out]"
         style={{
-          border: '5px solid white',
-          boxShadow: '0 25px 60px -10px rgba(15,23,42,0.45), 0 0 0 1px rgba(0,0,0,0.05)',
-          maxHeight,
-          objectFit,
-          background: 'white',
-        }} />
-    </div>,
+          left: preview.rect.left + preview.rect.width / 2,
+          top: Math.max(preview.rect.top, 16),
+          width: preview.rect.width * scale,
+          maxWidth,
+          transform: 'translate(-50%, -14%)',
+        }}
+      >
+        <img src={preview.src} alt="" draggable={false}
+          className="w-full rounded-3xl"
+          style={{
+            border: '4px solid white',
+            boxShadow: '0 30px 70px -14px rgba(15,23,42,0.5), 0 0 0 1px rgba(15,23,42,0.06)',
+            maxHeight,
+            objectFit,
+            background: 'white',
+          }} />
+      </div>
+    </>,
     document.body,
   )
 }

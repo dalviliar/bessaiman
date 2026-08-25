@@ -45,10 +45,7 @@ export default function AboutPage() {
           <h1 className="text-4xl sm:text-5xl font-black mb-4 text-white" style={{ textShadow: '0 2px 24px rgba(0,0,0,0.45)' }}>
             {tr.about.title}
           </h1>
-          <p className="text-lg font-medium mb-4" style={{ color: '#93C5FD' }}>{tr.about.subtitle}</p>
-          <p className="text-lg leading-relaxed max-w-2xl mx-auto" style={{ color: '#E2E8F0' }}>
-            {tr.about.missionText}
-          </p>
+          <p className="text-lg font-medium" style={{ color: '#93C5FD' }}>{tr.about.subtitle}</p>
         </div>
       </section>
 

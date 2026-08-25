@@ -126,7 +126,7 @@ function ImageGallery({ images, name, videoUrl }: { images: string[]; name: stri
         )}
       </div>
 
-      <ZoomPreviewOverlay preview={preview} scale={1.25} maxHeight="60vh" objectFit="contain" />
+      <ZoomPreviewOverlay preview={preview} scale={1.1} maxHeight="42vh" maxWidth="28vw" objectFit="contain" />
 
       {/* Thumbnail strip */}
       {totalCount > 1 && (

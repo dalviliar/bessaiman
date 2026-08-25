@@ -391,7 +391,7 @@ export default function NaukaPage() {
           </div>
         )}
 
-        <ZoomPreviewOverlay preview={preview} scale={1.25} maxHeight="55vh"
+        <ZoomPreviewOverlay preview={preview} scale={1.1} maxHeight="40vh" maxWidth="28vw"
           objectFit={current?.key === 'awards' ? 'contain' : 'cover'} />
 
         {/* ══ Accreditation — separate section, a single editable record ══ */}
