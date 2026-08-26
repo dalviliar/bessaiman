@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
+import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import {
   BookOpen, ShieldCheck, ExternalLink, Medal, FileSignature, X,
   Calendar, FlaskConical, ChevronLeft, ChevronRight, Image as ImageIcon, type LucideIcon,
@@ -68,6 +69,14 @@ function TagRow({ tags, size = 'sm' }: { tags?: string | null; size?: 'sm' | 'md
 }
 
 export default function NaukaPage() {
+  return (
+    <Suspense fallback={null}>
+      <NaukaPageInner />
+    </Suspense>
+  )
+}
+
+function NaukaPageInner() {
   const { tr, lang } = useLang()
   const [partners, setPartners] = useState<{ id: string; name: string; logo_url: string | null; website_url: string | null }[]>([])
   const [publications, setPublications] = useState<Publication[]>([])
@@ -78,7 +87,16 @@ export default function NaukaPage() {
   const [accreditation, setAccreditation] = useState<Accreditation | null>(null)
   const [heroImage, setHeroImage] = useState(HERO_FALLBACK)
 
-  const [tab, setTab] = useState('dev')
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  // Reflected in the URL so a page refresh (or a shared link) lands back on
+  // the same tab instead of always resetting to "Индивидуальные разработки".
+  const [tab, setTab] = useState(() => searchParams.get('tab') || 'dev')
+  const changeTab = (key: string) => {
+    setTab(key)
+    router.replace(key === 'dev' ? pathname : `${pathname}?tab=${key}`, { scroll: false })
+  }
   const [limit, setLimit] = useState(PAGE_SIZE)
   const [active, setActive] = useState<NCard | null>(null)
   const [shot, setShot] = useState(0)
@@ -234,7 +252,7 @@ export default function NaukaPage() {
               {TABS.map(t => {
                 const on = t.key === current.key
                 return (
-                  <button key={t.key} type="button" onClick={() => setTab(t.key)}
+                  <button key={t.key} type="button" onClick={() => changeTab(t.key)}
                     className="flex-none inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-base font-semibold transition-all"
                     style={{
                       background: on ? 'linear-gradient(135deg,#1565C0,#0284C7)' : 'white',
