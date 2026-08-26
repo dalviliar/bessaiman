@@ -9,13 +9,21 @@ import { useLang } from '@/context/LanguageContext'
 import { useZoomPreview, ZoomPreviewOverlay } from '@/components/HoverZoomPreview'
 
 interface Publication { id: string; title: string; authors: string | null; journal: string | null; year: number | null; doi: string | null }
-interface Patent { id: string; title: string; patent_number: string | null; badge_label: string; image_url: string | null; description: string | null }
+interface Patent {
+  id: string; title_ru: string; title_kk: string | null; title_en: string | null
+  patent_number: string | null; badge_label: string; image_url: string | null
+  description_ru: string | null; description_kk: string | null; description_en: string | null; text_align: string
+}
 interface Project {
   id: string; title_ru: string; title_kk: string | null; title_en: string | null
   description_ru: string | null; description_kk: string | null; description_en: string | null
   period: string | null; tags: string | null; images: string[] | null; kind: string; text_align: string
 }
-interface Achievement { id: string; full_name: string; award_name: string; year: number | null; organization: string | null; certificate_url: string | null; description: string | null }
+interface Achievement {
+  id: string; full_name: string; award_name_ru: string; award_name_kk: string | null; award_name_en: string | null
+  year: number | null; organization: string | null; certificate_url: string | null
+  description_ru: string | null; description_kk: string | null; description_en: string | null; text_align: string
+}
 interface Contract { id: string; title: string; customer: string | null; year: number | null; description: string | null; text_align: string }
 interface Accreditation {
   title_ru: string; title_kk: string | null; title_en: string | null
@@ -130,7 +138,7 @@ export default function NaukaPage() {
 
   const patentCards: NCard[] = patents.map(p => ({
     id: `pat-${p.id}`,
-    title: p.title,
+    title: pick(p.title_ru, p.title_kk, p.title_en),
     subtitle: p.patent_number ?? undefined,
     meta: [],
     images: p.image_url ? [p.image_url] : [],
@@ -138,7 +146,8 @@ export default function NaukaPage() {
     icon: ShieldCheck,
     accent: '#059669',
     badge: p.badge_label,
-    body: p.description ? [p.description] : [],
+    body: [pick(p.description_ru, p.description_kk, p.description_en)].filter(Boolean),
+    bodyAlign: (p.text_align as NCard['bodyAlign']) || 'left',
   }))
 
   const publicationCards: NCard[] = publications.map(p => ({
@@ -156,13 +165,14 @@ export default function NaukaPage() {
   const awardCards: NCard[] = achievements.map(a => ({
     id: a.id,
     title: a.full_name,
-    subtitle: a.award_name,
+    subtitle: pick(a.award_name_ru, a.award_name_kk, a.award_name_en),
     meta: [a.year ? String(a.year) : '', a.organization ?? ''].filter(Boolean),
     images: a.certificate_url ? [a.certificate_url] : [],
     fit: 'contain' as const,
     icon: Medal,
     accent: '#F59E0B',
-    body: a.description ? [a.description] : [],
+    body: [pick(a.description_ru, a.description_kk, a.description_en)].filter(Boolean),
+    bodyAlign: (a.text_align as NCard['bodyAlign']) || 'left',
   }))
 
   const TABS = [

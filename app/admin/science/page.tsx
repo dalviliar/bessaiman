@@ -374,8 +374,16 @@ function PublicationsTab() {
 // Patents
 // ────────────────────────────────────────────────────────────────
 
-interface Patent { id: string; title: string; patent_number: string | null; badge_label: string; image_url: string | null; description: string | null; sort_order: number }
-const EMPTY_PATENT = { title: '', patent_number: '', badge_label: 'Патент', image_url: '', description: '' }
+interface Patent {
+  id: string; title_ru: string; title_kk: string | null; title_en: string | null
+  patent_number: string | null; badge_label: string; image_url: string | null
+  description_ru: string | null; description_kk: string | null; description_en: string | null
+  text_align: TextAlign; sort_order: number
+}
+const EMPTY_PATENT = {
+  title_ru: '', title_kk: '', title_en: '', patent_number: '', badge_label: 'Патент', image_url: '',
+  description_ru: '', description_kk: '', description_en: '', text_align: 'left' as TextAlign,
+}
 
 function PatentsTab() {
   const [items, setItems] = useState<Patent[]>([])
@@ -394,17 +402,27 @@ function PatentsTab() {
 
   const startEdit = (p: Patent) => {
     setEditing(p)
-    setForm({ title: p.title, patent_number: p.patent_number ?? '', badge_label: p.badge_label, image_url: p.image_url ?? '', description: p.description ?? '' })
+    setForm({
+      title_ru: p.title_ru, title_kk: p.title_kk ?? '', title_en: p.title_en ?? '',
+      patent_number: p.patent_number ?? '', badge_label: p.badge_label, image_url: p.image_url ?? '',
+      description_ru: p.description_ru ?? '', description_kk: p.description_kk ?? '', description_en: p.description_en ?? '',
+      text_align: p.text_align ?? 'left',
+    })
     setError('')
   }
   const cancelEdit = () => { setEditing(null); setForm(EMPTY_PATENT); setError('') }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.title.trim()) { setError('Введите название патента'); return }
+    if (!form.title_ru.trim()) { setError('Введите название патента'); return }
     setSaving(true); setError('')
     try {
-      const payload = { title: form.title.trim(), patent_number: form.patent_number || null, badge_label: form.badge_label || 'Патент', image_url: form.image_url || null, description: form.description || null }
+      const payload = {
+        title_ru: form.title_ru.trim(), title_kk: form.title_kk || null, title_en: form.title_en || null,
+        patent_number: form.patent_number || null, badge_label: form.badge_label || 'Патент', image_url: form.image_url || null,
+        description_ru: form.description_ru || null, description_kk: form.description_kk || null, description_en: form.description_en || null,
+        text_align: form.text_align,
+      }
       const res = await fetch(editing ? `/api/admin/science/patents/${editing.id}` : '/api/admin/science/patents', {
         method: editing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -427,9 +445,19 @@ function PatentsTab() {
   return (
     <>
       <FormShell title={editing ? 'Редактирование патента' : 'Добавить патент'} editing={!!editing} onCancel={cancelEdit} error={error} saving={saving} onSubmit={handleSubmit}>
-        <div>
-          <FieldLabel>Название *</FieldLabel>
-          <input className="steel-input w-full" value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="Способ получения керамического анодного материала" />
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <FieldLabel>Название (рус) *</FieldLabel>
+            <input className="steel-input w-full" value={form.title_ru} onChange={e => setForm(f => ({ ...f, title_ru: e.target.value }))} placeholder="Способ получения керамического анодного материала" />
+          </div>
+          <div>
+            <FieldLabel>Название (қаз)</FieldLabel>
+            <input className="steel-input w-full" value={form.title_kk} onChange={e => setForm(f => ({ ...f, title_kk: e.target.value }))} />
+          </div>
+          <div>
+            <FieldLabel>Название (eng)</FieldLabel>
+            <input className="steel-input w-full" value={form.title_en} onChange={e => setForm(f => ({ ...f, title_en: e.target.value }))} />
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
@@ -445,9 +473,20 @@ function PatentsTab() {
           </div>
         </div>
         <div>
-          <FieldLabel>Описание — показывается по клику на карточку</FieldLabel>
-          <textarea className="steel-input w-full" rows={4} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Что это за патент, что он покрывает, где применяется..." />
+          <FieldLabel>Описание (рус) — показывается по клику на карточку</FieldLabel>
+          <textarea className="steel-input w-full" rows={4} value={form.description_ru} onChange={e => setForm(f => ({ ...f, description_ru: e.target.value }))} placeholder="Что это за патент, что он покрывает, где применяется..." />
         </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <FieldLabel>Описание (қаз)</FieldLabel>
+            <textarea className="steel-input w-full" rows={3} value={form.description_kk} onChange={e => setForm(f => ({ ...f, description_kk: e.target.value }))} />
+          </div>
+          <div>
+            <FieldLabel>Описание (eng)</FieldLabel>
+            <textarea className="steel-input w-full" rows={3} value={form.description_en} onChange={e => setForm(f => ({ ...f, description_en: e.target.value }))} />
+          </div>
+        </div>
+        <AlignPicker value={form.text_align} onChange={v => setForm(f => ({ ...f, text_align: v }))} />
         <ImagePicker url={form.image_url} onChange={url => setForm(f => ({ ...f, image_url: url }))} uploadUrl="/api/admin/science/upload" label="Фото патента / свидетельства" />
       </FormShell>
 
@@ -464,7 +503,7 @@ function PatentsTab() {
                 {p.image_url ? <img src={p.image_url} alt="" className="w-full h-full object-cover" /> : <ShieldCheck size={16} style={{ color: 'rgba(255,255,255,0.2)' }} />}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">{p.title}</p>
+                <p className="text-sm font-semibold text-white truncate">{p.title_ru}</p>
                 {p.patent_number && <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>{p.patent_number}</p>}
               </div>
               <span className="text-[10px] font-bold px-2 py-1 rounded-full shrink-0" style={{ background: 'rgba(16,185,129,0.12)', color: '#34D399' }}>{p.badge_label}</span>
@@ -760,10 +799,15 @@ function ContractsTab() {
 // ────────────────────────────────────────────────────────────────
 
 interface Achievement {
-  id: string; full_name: string; award_name: string; year: number | null
-  organization: string | null; certificate_url: string | null; description: string | null; sort_order: number
+  id: string; full_name: string; award_name_ru: string; award_name_kk: string | null; award_name_en: string | null
+  year: number | null; organization: string | null; certificate_url: string | null
+  description_ru: string | null; description_kk: string | null; description_en: string | null
+  text_align: TextAlign; sort_order: number
 }
-const EMPTY_ACH = { full_name: '', award_name: '', year: '', organization: '', certificate_url: '', description: '' }
+const EMPTY_ACH = {
+  full_name: '', award_name_ru: '', award_name_kk: '', award_name_en: '', year: '', organization: '', certificate_url: '',
+  description_ru: '', description_kk: '', description_en: '', text_align: 'left' as TextAlign,
+}
 
 function AchievementsTab() {
   const [items, setItems] = useState<Achievement[]>([])
@@ -782,19 +826,26 @@ function AchievementsTab() {
 
   const startEdit = (a: Achievement) => {
     setEditing(a)
-    setForm({ full_name: a.full_name, award_name: a.award_name, year: a.year ? String(a.year) : '', organization: a.organization ?? '', certificate_url: a.certificate_url ?? '', description: a.description ?? '' })
+    setForm({
+      full_name: a.full_name, award_name_ru: a.award_name_ru, award_name_kk: a.award_name_kk ?? '', award_name_en: a.award_name_en ?? '',
+      year: a.year ? String(a.year) : '', organization: a.organization ?? '', certificate_url: a.certificate_url ?? '',
+      description_ru: a.description_ru ?? '', description_kk: a.description_kk ?? '', description_en: a.description_en ?? '',
+      text_align: a.text_align ?? 'left',
+    })
     setError('')
   }
   const cancelEdit = () => { setEditing(null); setForm(EMPTY_ACH); setError('') }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.full_name.trim() || !form.award_name.trim()) { setError('Введите ФИО и название награды'); return }
+    if (!form.full_name.trim() || !form.award_name_ru.trim()) { setError('Введите ФИО и название награды'); return }
     setSaving(true); setError('')
     try {
       const payload = {
-        full_name: form.full_name.trim(), award_name: form.award_name.trim(), year: form.year || null,
-        organization: form.organization || null, certificate_url: form.certificate_url || null, description: form.description || null,
+        full_name: form.full_name.trim(), award_name_ru: form.award_name_ru.trim(), award_name_kk: form.award_name_kk || null, award_name_en: form.award_name_en || null,
+        year: form.year || null, organization: form.organization || null, certificate_url: form.certificate_url || null,
+        description_ru: form.description_ru || null, description_kk: form.description_kk || null, description_en: form.description_en || null,
+        text_align: form.text_align,
       }
       const res = await fetch(editing ? `/api/admin/science/achievements/${editing.id}` : '/api/admin/science/achievements', {
         method: editing ? 'PUT' : 'POST',
@@ -824,24 +875,43 @@ function AchievementsTab() {
             <input className="steel-input w-full" value={form.full_name} onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))} placeholder="Елеуов М.А." />
           </div>
           <div>
-            <FieldLabel>Название награды / диплома *</FieldLabel>
-            <input className="steel-input w-full" value={form.award_name} onChange={e => setForm(f => ({ ...f, award_name: e.target.value }))} placeholder="Лучший инженер года" />
-          </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div>
             <FieldLabel>Год</FieldLabel>
             <input type="number" className="steel-input w-full" value={form.year} onChange={e => setForm(f => ({ ...f, year: e.target.value }))} placeholder="2025" />
           </div>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
           <div>
-            <FieldLabel>Организация</FieldLabel>
-            <input className="steel-input w-full" value={form.organization} onChange={e => setForm(f => ({ ...f, organization: e.target.value }))} placeholder="НИНЖ РК" />
+            <FieldLabel>Название награды (рус) *</FieldLabel>
+            <input className="steel-input w-full" value={form.award_name_ru} onChange={e => setForm(f => ({ ...f, award_name_ru: e.target.value }))} placeholder="Лучший инженер года" />
+          </div>
+          <div>
+            <FieldLabel>Название награды (қаз)</FieldLabel>
+            <input className="steel-input w-full" value={form.award_name_kk} onChange={e => setForm(f => ({ ...f, award_name_kk: e.target.value }))} />
+          </div>
+          <div>
+            <FieldLabel>Название награды (eng)</FieldLabel>
+            <input className="steel-input w-full" value={form.award_name_en} onChange={e => setForm(f => ({ ...f, award_name_en: e.target.value }))} />
           </div>
         </div>
         <div>
-          <FieldLabel>Описание — показывается по клику на карточку</FieldLabel>
-          <textarea className="steel-input w-full" rows={4} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="За что получена награда, детали..." />
+          <FieldLabel>Организация</FieldLabel>
+          <input className="steel-input w-full" value={form.organization} onChange={e => setForm(f => ({ ...f, organization: e.target.value }))} placeholder="НИНЖ РК" />
         </div>
+        <div>
+          <FieldLabel>Описание (рус) — показывается по клику на карточку</FieldLabel>
+          <textarea className="steel-input w-full" rows={4} value={form.description_ru} onChange={e => setForm(f => ({ ...f, description_ru: e.target.value }))} placeholder="За что получена награда, детали..." />
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <FieldLabel>Описание (қаз)</FieldLabel>
+            <textarea className="steel-input w-full" rows={3} value={form.description_kk} onChange={e => setForm(f => ({ ...f, description_kk: e.target.value }))} />
+          </div>
+          <div>
+            <FieldLabel>Описание (eng)</FieldLabel>
+            <textarea className="steel-input w-full" rows={3} value={form.description_en} onChange={e => setForm(f => ({ ...f, description_en: e.target.value }))} />
+          </div>
+        </div>
+        <AlignPicker value={form.text_align} onChange={v => setForm(f => ({ ...f, text_align: v }))} />
         <ImagePicker url={form.certificate_url} onChange={url => setForm(f => ({ ...f, certificate_url: url }))} uploadUrl="/api/admin/science/upload" label="Скан диплома / награды" />
       </FormShell>
 
@@ -859,7 +929,7 @@ function AchievementsTab() {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white truncate">{a.full_name}</p>
-                <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>{a.award_name}</p>
+                <p className="text-[11px] mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>{a.award_name_ru}</p>
                 <div className="flex flex-wrap items-center gap-2 mt-1">
                   {a.year && <span className="text-[11px]" style={{ color: 'rgba(255,255,255,0.35)' }}>{a.year}</span>}
                   {a.organization && <span className="text-[11px]" style={{ color: '#60A5FA' }}>{a.organization}</span>}

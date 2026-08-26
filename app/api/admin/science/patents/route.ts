@@ -22,18 +22,19 @@ export async function POST(request: Request) {
     if (!me || !can(me.role, 'content', 'create')) {
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
-    const { title, patent_number, badge_label, image_url, description } = await request.json()
-    if (!title?.trim()) return NextResponse.json({ error: 'Укажите название патента' }, { status: 400 })
+    const { title_ru, title_kk, title_en, patent_number, badge_label, image_url, description_ru, description_kk, description_en, text_align } = await request.json()
+    if (!title_ru?.trim()) return NextResponse.json({ error: 'Укажите название патента' }, { status: 400 })
 
     const row = await queryOne(
-      `INSERT INTO science_patents (title, patent_number, badge_label, image_url, description, sort_order)
-       VALUES ($1,$2,$3,$4,$5, (SELECT COALESCE(MAX(sort_order),0)+10 FROM science_patents)) RETURNING *`,
-      [title.trim(), patent_number || null, badge_label?.trim() || 'Патент', image_url || null, description || null],
+      `INSERT INTO science_patents (title_ru, title_kk, title_en, patent_number, badge_label, image_url, description_ru, description_kk, description_en, text_align, sort_order)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10, (SELECT COALESCE(MAX(sort_order),0)+10 FROM science_patents)) RETURNING *`,
+      [title_ru.trim(), title_kk || null, title_en || null, patent_number || null, badge_label?.trim() || 'Патент', image_url || null,
+        description_ru || null, description_kk || null, description_en || null, text_align || 'left'],
     )
 
     await logAction({
       adminId: me.id, adminEmail: me.email, action: 'create',
-      entityType: 'science_patent', entityId: row.id, entityLabel: row.title,
+      entityType: 'science_patent', entityId: row.id, entityLabel: row.title_ru,
     })
 
     return NextResponse.json(row)
