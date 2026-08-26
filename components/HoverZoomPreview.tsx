@@ -33,10 +33,11 @@ export function ZoomPreviewOverlay({ preview, maxHeight = '45vh', maxWidth = '30
   return createPortal(
     <>
       {/* Soft scrim lifts the enlarged photo off the page instead of it just
-          floating over the grid — reads as an intentional preview, not a
-          raw image slapped on top. */}
-      <div className="hidden md:block fixed inset-0 z-[89] pointer-events-none animate-[devPreviewScrimIn_0.2s_ease-out]"
-        style={{ background: 'rgba(15,23,42,0.28)', backdropFilter: 'blur(2px)' }} />
+          floating over the grid. No blur here — backdrop-filter over a
+          full-viewport layer is expensive to repaint on every hover and
+          made the rest of the page look smeared and feel sluggish. */}
+      <div className="hidden md:block fixed inset-0 z-[89] pointer-events-none animate-[devPreviewScrimIn_0.15s_ease-out]"
+        style={{ background: 'rgba(15,23,42,0.16)' }} />
       <div
         className="hidden md:block fixed z-[90] pointer-events-none animate-[devPreviewIn_0.2s_ease-out]"
         style={{

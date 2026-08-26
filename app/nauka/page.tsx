@@ -9,7 +9,7 @@ import { useLang } from '@/context/LanguageContext'
 import { useZoomPreview, ZoomPreviewOverlay } from '@/components/HoverZoomPreview'
 
 interface Publication { id: string; title: string; authors: string | null; journal: string | null; year: number | null; doi: string | null }
-interface Patent { id: string; title: string; patent_number: string | null; badge_label: string }
+interface Patent { id: string; title: string; patent_number: string | null; badge_label: string; image_url: string | null; description: string | null }
 interface Project {
   id: string; title_ru: string; title_kk: string | null; title_en: string | null
   description_ru: string | null; description_kk: string | null; description_en: string | null
@@ -35,7 +35,6 @@ interface NCard {
   accent?: string
   tags?: string | null
   badge?: string
-  group?: string
   /** documents are shown whole; equipment photos fill the frame */
   fit?: 'cover' | 'contain'
   body: string[]
@@ -72,7 +71,6 @@ export default function NaukaPage() {
   const [heroImage, setHeroImage] = useState(HERO_FALLBACK)
 
   const [tab, setTab] = useState('dev')
-  const [sub, setSub] = useState('')
   const [limit, setLimit] = useState(PAGE_SIZE)
   const [active, setActive] = useState<NCard | null>(null)
   const [shot, setShot] = useState(0)
@@ -130,32 +128,30 @@ export default function NaukaPage() {
     bodyAlign: (c.text_align as NCard['bodyAlign']) || 'left',
   }))
 
-  const ipCards: NCard[] = [
-    ...patents.map(p => ({
-      id: `pat-${p.id}`,
-      title: p.title,
-      subtitle: p.patent_number ?? undefined,
-      meta: [],
-      images: [],
-      icon: ShieldCheck,
-      accent: '#059669',
-      badge: p.badge_label,
-      group: 'patent',
-      body: [],
-    })),
-    ...publications.map(p => ({
-      id: `pub-${p.id}`,
-      title: p.title,
-      subtitle: p.journal ?? undefined,
-      meta: p.year ? [String(p.year)] : [],
-      images: [],
-      icon: BookOpen,
-      accent: '#1565C0',
-      group: 'publication',
-      body: p.authors ? [p.authors] : [],
-      link: p.doi ? { href: `https://doi.org/${p.doi}`, label: 'DOI' } : undefined,
-    })),
-  ]
+  const patentCards: NCard[] = patents.map(p => ({
+    id: `pat-${p.id}`,
+    title: p.title,
+    subtitle: p.patent_number ?? undefined,
+    meta: [],
+    images: p.image_url ? [p.image_url] : [],
+    fit: 'contain' as const,
+    icon: ShieldCheck,
+    accent: '#059669',
+    badge: p.badge_label,
+    body: p.description ? [p.description] : [],
+  }))
+
+  const publicationCards: NCard[] = publications.map(p => ({
+    id: `pub-${p.id}`,
+    title: p.title,
+    subtitle: p.journal ?? undefined,
+    meta: p.year ? [String(p.year)] : [],
+    images: [],
+    icon: BookOpen,
+    accent: '#1565C0',
+    body: p.authors ? [p.authors] : [],
+    link: p.doi ? { href: `https://doi.org/${p.doi}`, label: 'DOI' } : undefined,
+  }))
 
   const awardCards: NCard[] = achievements.map(a => ({
     id: a.id,
@@ -173,23 +169,15 @@ export default function NaukaPage() {
     { key: 'dev', label: tr.nauka.indivDevTitle, intro: tr.nauka.indivDevIntro, cards: devCards },
     { key: 'projects', label: tr.nauka.projectsTitle, intro: tr.nauka.projectsIntro, cards: projectCards },
     { key: 'contracts', label: tr.nauka.contractsTitle, intro: tr.nauka.contractsIntro, cards: contractCards },
-    { key: 'ip', label: tr.nauka.ipTitle, intro: tr.nauka.ipIntro, cards: ipCards },
+    { key: 'patents', label: tr.nauka.patentsTitle, intro: tr.nauka.patentsIntro, cards: patentCards },
+    { key: 'publications', label: tr.nauka.pubTitle, intro: tr.nauka.pubIntro, cards: publicationCards },
     { key: 'awards', label: tr.nauka.achievementsTitle, intro: tr.nauka.achievementsIntro, cards: awardCards },
   ].filter(t => t.cards.length > 0)
 
   const current = TABS.find(t => t.key === tab) ?? TABS[0]
+  const visible = current ? current.cards : []
 
-  const groups = current
-    ? Array.from(new Set(current.cards.map(c => c.group).filter(Boolean))) as string[]
-    : []
-  const groupLabel: Record<string, string> = {
-    patent: tr.nauka.patentsTitle,
-    publication: tr.nauka.pubTitle,
-  }
-  const visible = current ? current.cards.filter(c => !sub || c.group === sub) : []
-
-  useEffect(() => { setLimit(PAGE_SIZE); setSub('') }, [tab])
-  useEffect(() => { setLimit(PAGE_SIZE) }, [sub])
+  useEffect(() => { setLimit(PAGE_SIZE) }, [tab])
 
   const shown = visible.slice(0, limit)
   const hasMedia = shown.some(c => c.images.length > 0)
@@ -256,28 +244,6 @@ export default function NaukaPage() {
             </div>
 
             <p className="text-base mb-5" style={{ color: '#64748B' }}>{current.intro}</p>
-
-            {groups.length > 1 && (
-              <div className="flex flex-wrap gap-2 mb-6">
-                {[{ key: '', label: tr.nauka.allFilter }, ...groups.map(g => ({ key: g, label: groupLabel[g] ?? g }))].map(g => {
-                  const on = g.key === sub
-                  return (
-                    <button key={g.key || 'all'} type="button" onClick={() => setSub(g.key)}
-                      className="px-3.5 py-1.5 rounded-full text-sm font-semibold transition-colors"
-                      style={{
-                        background: on ? '#EFF6FF' : 'white',
-                        color: on ? '#1565C0' : '#64748B',
-                        border: `1px solid ${on ? '#BFDBFE' : '#E2E8F0'}`,
-                      }}>
-                      {g.label}
-                      <span className="ml-1.5" style={{ color: '#94A3B8' }}>
-                        {g.key ? current.cards.filter(c => c.group === g.key).length : current.cards.length}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            )}
 
             {/* Patents, publications and contracts never carry a photo, so they
                 get a document row instead of a card with an empty picture. */}

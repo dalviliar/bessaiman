@@ -374,8 +374,8 @@ function PublicationsTab() {
 // Patents
 // ────────────────────────────────────────────────────────────────
 
-interface Patent { id: string; title: string; patent_number: string | null; badge_label: string; sort_order: number }
-const EMPTY_PATENT = { title: '', patent_number: '', badge_label: 'Патент' }
+interface Patent { id: string; title: string; patent_number: string | null; badge_label: string; image_url: string | null; description: string | null; sort_order: number }
+const EMPTY_PATENT = { title: '', patent_number: '', badge_label: 'Патент', image_url: '', description: '' }
 
 function PatentsTab() {
   const [items, setItems] = useState<Patent[]>([])
@@ -394,7 +394,7 @@ function PatentsTab() {
 
   const startEdit = (p: Patent) => {
     setEditing(p)
-    setForm({ title: p.title, patent_number: p.patent_number ?? '', badge_label: p.badge_label })
+    setForm({ title: p.title, patent_number: p.patent_number ?? '', badge_label: p.badge_label, image_url: p.image_url ?? '', description: p.description ?? '' })
     setError('')
   }
   const cancelEdit = () => { setEditing(null); setForm(EMPTY_PATENT); setError('') }
@@ -404,7 +404,7 @@ function PatentsTab() {
     if (!form.title.trim()) { setError('Введите название патента'); return }
     setSaving(true); setError('')
     try {
-      const payload = { title: form.title.trim(), patent_number: form.patent_number || null, badge_label: form.badge_label || 'Патент' }
+      const payload = { title: form.title.trim(), patent_number: form.patent_number || null, badge_label: form.badge_label || 'Патент', image_url: form.image_url || null, description: form.description || null }
       const res = await fetch(editing ? `/api/admin/science/patents/${editing.id}` : '/api/admin/science/patents', {
         method: editing ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -444,6 +444,11 @@ function PatentsTab() {
             </select>
           </div>
         </div>
+        <div>
+          <FieldLabel>Описание — показывается по клику на карточку</FieldLabel>
+          <textarea className="steel-input w-full" rows={4} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Что это за патент, что он покрывает, где применяется..." />
+        </div>
+        <ImagePicker url={form.image_url} onChange={url => setForm(f => ({ ...f, image_url: url }))} uploadUrl="/api/admin/science/upload" label="Фото патента / свидетельства" />
       </FormShell>
 
       {loading ? (
@@ -455,6 +460,9 @@ function PatentsTab() {
           {items.map((p, i) => (
             <div key={p.id} className="flex items-center gap-4 px-4 py-3 rounded-xl" style={rowStyle}>
               <MoveButtons index={i} count={items.length} onMove={dir => moveItem(items, i, dir, '/api/admin/science/patents/reorder', setItems)} />
+              <div className="w-10 h-10 rounded-lg overflow-hidden flex items-center justify-center shrink-0" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                {p.image_url ? <img src={p.image_url} alt="" className="w-full h-full object-cover" /> : <ShieldCheck size={16} style={{ color: 'rgba(255,255,255,0.2)' }} />}
+              </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-white truncate">{p.title}</p>
                 {p.patent_number && <p className="text-[11px] mt-1" style={{ color: 'rgba(255,255,255,0.35)' }}>{p.patent_number}</p>}
