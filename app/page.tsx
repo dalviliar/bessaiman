@@ -3,7 +3,7 @@
 import dynamic from 'next/dynamic'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import type { NewsPost } from '@/types'
+import type { NewsPost, Category } from '@/types'
 import { useLang } from '@/context/LanguageContext'
 
 const TubeFurnaceRig3D = dynamic(() => import('@/components/TubeFurnaceRig3D'), {
@@ -165,10 +165,27 @@ export default function HomePage() {
   const [news, setNews] = useState<NewsPost[]>([])
   const [selectedPost, setSelectedPost] = useState<NewsPost | null>(null)
   const [siteStats, setSiteStats] = useState({ products: 0, categories: 0, clients: 0, years: 5 })
+  const [categories, setCategories] = useState<Category[]>([])
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({})
 
   useEffect(() => {
     fetch('/api/site-stats').then(r => r.json()).then(d => setSiteStats(d)).catch(() => {})
   }, [])
+
+  // Pulled straight from the catalog instead of a fixed list, so a category
+  // added/renamed/removed in admin shows up here without a code change.
+  useEffect(() => {
+    fetch('/api/categories').then(r => r.json()).then(d => setCategories(Array.isArray(d) ? d : [])).catch(() => {})
+    fetch('/api/products').then(r => r.json()).then(d => {
+      if (!Array.isArray(d)) return
+      const counts: Record<string, number> = {}
+      for (const p of d) if (p.category_id) counts[p.category_id] = (counts[p.category_id] ?? 0) + 1
+      setCategoryCounts(counts)
+    }).catch(() => {})
+  }, [])
+
+  const catName = (c: Category) => (lang === 'kk' ? c.name_kk : lang === 'en' ? c.name_en : null) || c.name_ru
+  const catDesc = (c: Category) => (lang === 'kk' ? c.description_kk : lang === 'en' ? c.description_en : null) || c.description_ru
 
   const postTitle = (p: NewsPost) =>
     (lang === 'kk' ? p.title_kk : lang === 'en' ? p.title_en : null) || p.title_ru
@@ -178,15 +195,6 @@ export default function HomePage() {
   useEffect(() => {
     fetch('/api/news?limit=5').then(r => r.json()).then(d => setNews(Array.isArray(d) ? d : []))
   }, [])
-
-  const categories = [
-    { code: 'SFM',  title: tr.home.cat_sfm_title,  spec: tr.home.cat_sfm_spec,  desc: tr.home.cat_sfm_desc,  stat: tr.home.cat_sfm_stat,  href: '/catalog?category=sfm' },
-    { code: 'SFTH', title: tr.home.cat_sfth_title, spec: tr.home.cat_sfth_spec, desc: tr.home.cat_sfth_desc, stat: tr.home.cat_sfth_stat, href: '/catalog?category=sfth' },
-    { code: 'SM',   title: tr.home.cat_sm_title,   spec: tr.home.cat_sm_spec,   desc: tr.home.cat_sm_desc,   stat: tr.home.cat_sm_stat,   href: '/catalog?category=sm' },
-    { code: 'SS',   title: tr.home.cat_ss_title,   spec: tr.home.cat_ss_spec,   desc: tr.home.cat_ss_desc,   stat: tr.home.cat_ss_stat,   href: '/catalog?category=ss' },
-    { code: 'FUR',  title: tr.home.cat_fur_title,  spec: tr.home.cat_fur_spec,  desc: tr.home.cat_fur_desc,  stat: tr.home.cat_fur_stat,  href: '/catalog?category=furniture' },
-    { code: 'PA',   title: tr.home.cat_pa_title,   spec: tr.home.cat_pa_spec,   desc: tr.home.cat_pa_desc,   stat: tr.home.cat_pa_stat,   href: '/catalog?category=pa' },
-  ]
 
   return (
     <div style={{ background: '#F8FAFC', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
@@ -444,10 +452,12 @@ export default function HomePage() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {categories.map((cat) => {
-              const hov = hovCard === cat.code
+              const hov = hovCard === cat.id
+              const count = categoryCounts[cat.id] ?? 0
+              const desc = catDesc(cat)
               return (
-                <Link key={cat.code} href={cat.href}
-                  onMouseEnter={() => setHovCard(cat.code)}
+                <Link key={cat.id} href={`/catalog?category=${cat.slug}`}
+                  onMouseEnter={() => setHovCard(cat.id)}
                   onMouseLeave={() => setHovCard(null)}
                   className="flex flex-col gap-3.5 p-5 rounded-xl transition-all duration-200"
                   style={{
@@ -464,25 +474,24 @@ export default function HomePage() {
                         color: hov ? 'white' : '#475569',
                         transition: 'all 0.2s',
                       }}>
-                      {cat.code}
+                      {cat.classification_code || cat.slug.toUpperCase()}
                     </div>
                     <span className="text-[12px] font-mono px-2 py-0.5 rounded-full"
                       style={{ background: '#F8FAFC', color: '#94A3B8', border: '1px solid #E2E8F0' }}>
-                      {cat.stat}
+                      {count} {tr.home.modelsCountSuffix}
                     </span>
                   </div>
 
-                  <div>
-                    <h3 className="font-bold text-base mb-1"
-                      style={{ color: hov ? '#1565C0' : '#0F172A', transition: 'color 0.2s' }}>
-                      {cat.title}
-                    </h3>
-                    <p className="text-[13px] font-mono" style={{ color: '#94A3B8' }}>{cat.spec}</p>
-                  </div>
+                  <h3 className="font-bold text-base"
+                    style={{ color: hov ? '#1565C0' : '#0F172A', transition: 'color 0.2s' }}>
+                    {catName(cat)}
+                  </h3>
 
-                  <p className="text-[14px] leading-relaxed" style={{ color: '#64748B' }}>
-                    {cat.desc}
-                  </p>
+                  {desc && (
+                    <p className="text-[14px] leading-relaxed" style={{ color: '#64748B' }}>
+                      {desc}
+                    </p>
+                  )}
 
                   <div className="flex items-center gap-1.5 mt-auto pt-1 text-sm font-semibold"
                     style={{ color: hov ? '#1565C0' : '#94A3B8', transition: 'color 0.2s' }}>

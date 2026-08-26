@@ -26,11 +26,22 @@ interface AccessorySuggestion {
   accessory: Product
 }
 
+// Instagram/Facebook/TikTok open links in their own stripped-down in-app
+// browser, which often can't run a file download at all — the click fires
+// but nothing lands on the device, with no error to show for it.
+const isInAppBrowser = () =>
+  typeof navigator !== 'undefined' && /Instagram|FBAN|FBAV|FB_IAB|TikTok|Line\//i.test(navigator.userAgent)
+
 export default function KPCartPage() {
   const { items, removeItem, updateQty, addItem, isInCart, clear } = useCart()
   const [form, setForm] = useState<Form>({ name: '', company: '', phone: '', email: '', note: '' })
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [suggestions, setSuggestions] = useState<AccessorySuggestion[]>([])
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const [pdfName, setPdfName] = useState('')
+  const [inAppBrowser] = useState(isInAppBrowser)
+
+  useEffect(() => () => { if (pdfUrl) URL.revokeObjectURL(pdfUrl) }, [pdfUrl])
 
   // Стабильный ключ — только S-товары, чтобы не дёргать API при изменении кол-ва/добавлении аксессуаров
   const mainProductKey = items
@@ -104,13 +115,19 @@ export default function KPCartPage() {
 
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
+      const filename = `КП_BesS_${new Date().toISOString().slice(0, 10)}.pdf`
+      // Kept alive (not revoked here) so the fallback "Открыть PDF" link
+      // still works if the automatic download silently did nothing —
+      // which is exactly what happens in in-app browsers.
+      setPdfUrl(url)
+      setPdfName(filename)
+
       const a = document.createElement('a')
       a.href = url
-      a.download = `КП_BesS_${new Date().toISOString().slice(0, 10)}.pdf`
+      a.download = filename
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
-      URL.revokeObjectURL(url)
 
       setStatus('done')
     } catch (err) {
@@ -151,7 +168,20 @@ export default function KPCartPage() {
             <CheckCircle size={40} style={{ color: '#16A34A' }} />
           </div>
           <h1 className="text-2xl font-black mb-3" style={{ color: '#0F172A' }}>КП сформировано!</h1>
-          <p className="text-base mb-8" style={{ color: '#64748B' }}>PDF загружен на ваш компьютер</p>
+          <p className="text-base mb-4" style={{ color: '#64748B' }}>PDF загружен на ваше устройство</p>
+          {pdfUrl && (
+            <a href={pdfUrl} download={pdfName} target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg mb-4"
+              style={{ color: '#1565C0', background: '#EFF6FF' }}>
+              <FileText size={14} /> Файл не появился? Открыть PDF
+            </a>
+          )}
+          {inAppBrowser && (
+            <p className="text-[13px] max-w-md mx-auto px-3 py-2 rounded-lg mb-6 text-left"
+              style={{ background: '#FFFBEB', color: '#B45309', border: '1px solid #FDE68A' }}>
+              Вы открыли сайт через встроенный браузер приложения (Instagram и т.п.) — в нём скачивание файлов часто не работает. Откройте страницу через «⋮» → «Открыть в браузере» (Chrome/Safari) и повторите.
+            </p>
+          )}
           <div className="flex items-center justify-center gap-3">
             <button onClick={() => { clear(); setStatus('idle') }}
               className="px-6 py-3 rounded-lg font-semibold text-base"

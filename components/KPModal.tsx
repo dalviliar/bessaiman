@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { X, FileText, Loader2, CheckCircle, Download } from 'lucide-react'
 import type { Product } from '@/types'
 import { useLang } from '@/context/LanguageContext'
@@ -19,10 +19,22 @@ interface Form {
   note: string
 }
 
+// Instagram/Facebook/TikTok open links in their own stripped-down in-app
+// browser, which often can't run a file download at all — the click fires
+// but nothing lands on the device, with no error to show for it. Flagging
+// it up front saves the "where did my PDF go" support message.
+const isInAppBrowser = () =>
+  typeof navigator !== 'undefined' && /Instagram|FBAN|FBAV|FB_IAB|TikTok|Line\//i.test(navigator.userAgent)
+
 export default function KPModal({ product, onClose }: Props) {
   const { lang } = useLang()
   const [form, setForm] = useState<Form>({ name: '', company: '', phone: '', email: '', quantity: 1, note: '' })
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null)
+  const [pdfName, setPdfName] = useState('')
+  const [inAppBrowser] = useState(isInAppBrowser)
+
+  useEffect(() => () => { if (pdfUrl) URL.revokeObjectURL(pdfUrl) }, [pdfUrl])
 
   const set = (field: keyof Form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm((prev) => ({ ...prev, [field]: field === 'quantity' ? Number(e.target.value) || 1 : e.target.value }))
@@ -69,13 +81,19 @@ export default function KPModal({ product, onClose }: Props) {
 
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
+      const filename = `КП_BesS_${product.model || product.slug}.pdf`
+      // Kept alive (not revoked here) so the fallback "Открыть PDF" link in
+      // the success state still works if the automatic download silently
+      // did nothing — which is exactly what happens in in-app browsers.
+      setPdfUrl(url)
+      setPdfName(filename)
+
       const a = document.createElement('a')
       a.href = url
-      a.download = `КП_BesS_${product.model || product.slug}.pdf`
+      a.download = filename
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
-      URL.revokeObjectURL(url)
 
       setStatus('done')
     } catch (err) {
@@ -117,8 +135,20 @@ export default function KPModal({ product, onClose }: Props) {
               <CheckCircle size={32} style={{ color: '#34d399' }} />
             </div>
             <p className="text-white font-semibold text-lg">КП сформировано!</p>
-            <p className="text-base" style={{ color: 'rgba(255,255,255,0.45)' }}>PDF загружен на ваш компьютер</p>
-            <button onClick={onClose} className="btn-primary mt-4">Закрыть</button>
+            <p className="text-base" style={{ color: 'rgba(255,255,255,0.45)' }}>PDF загружен на ваше устройство</p>
+            {pdfUrl && (
+              <a href={pdfUrl} download={pdfName} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
+                style={{ color: '#60A5FA', background: 'rgba(59,130,246,0.1)' }}>
+                <Download size={14} /> Файл не появился? Открыть PDF
+              </a>
+            )}
+            {inAppBrowser && (
+              <p className="text-[13px] px-3 py-2 rounded-lg text-left" style={{ background: 'rgba(251,191,36,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
+                Вы открыли сайт через встроенный браузер приложения (Instagram и т.п.) — в нём скачивание файлов часто не работает. Откройте страницу через «⋮» → «Открыть в браузере» (Chrome/Safari) и повторите.
+              </p>
+            )}
+            <button onClick={onClose} className="btn-primary mt-2">Закрыть</button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
@@ -126,6 +156,12 @@ export default function KPModal({ product, onClose }: Props) {
             <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
               КП с реквизитами Bes Saiman Group скачается в PDF. Данные компании — необязательно.
             </p>
+
+            {inAppBrowser && (
+              <p className="text-[13px] px-3 py-2 rounded-lg" style={{ background: 'rgba(251,191,36,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
+                Похоже, страница открыта во встроенном браузере приложения — скачивание PDF может не сработать. Для надёжности откройте сайт через «⋮» → «Открыть в браузере».
+              </p>
+            )}
 
             {/* Name */}
             <div>
