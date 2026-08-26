@@ -15,7 +15,7 @@ interface Project {
   description_ru: string | null; description_kk: string | null; description_en: string | null
   period: string | null; tags: string | null; images: string[] | null; kind: string; text_align: string
 }
-interface Achievement { id: string; full_name: string; award_name: string; year: number | null; organization: string | null; certificate_url: string | null }
+interface Achievement { id: string; full_name: string; award_name: string; year: number | null; organization: string | null; certificate_url: string | null; description: string | null }
 interface Contract { id: string; title: string; customer: string | null; year: number | null; description: string | null; text_align: string }
 interface Accreditation {
   title_ru: string; title_kk: string | null; title_en: string | null
@@ -162,7 +162,7 @@ export default function NaukaPage() {
     fit: 'contain' as const,
     icon: Medal,
     accent: '#F59E0B',
-    body: [],
+    body: a.description ? [a.description] : [],
   }))
 
   const TABS = [
@@ -243,7 +243,7 @@ export default function NaukaPage() {
               </div>
             </div>
 
-            <p className="text-base mb-5" style={{ color: '#64748B' }}>{current.intro}</p>
+            <p className="text-base font-bold text-center mb-5" style={{ color: '#1E293B' }}>{current.intro}</p>
 
             {/* Patents, publications and contracts never carry a photo, so they
                 get a document row instead of a card with an empty picture. */}

@@ -14,15 +14,15 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
     const { id } = await params
-    const { full_name, award_name, year, organization, certificate_url } = await request.json()
+    const { full_name, award_name, year, organization, certificate_url, description } = await request.json()
     if (!full_name?.trim() || !award_name?.trim()) {
       return NextResponse.json({ error: 'Укажите ФИО и название награды' }, { status: 400 })
     }
 
     const row = await queryOne(
-      `UPDATE science_achievements SET full_name=$1, award_name=$2, year=$3, organization=$4, certificate_url=$5
-       WHERE id=$6 RETURNING *`,
-      [full_name.trim(), award_name.trim(), year ? Number(year) : null, organization || null, certificate_url || null, id],
+      `UPDATE science_achievements SET full_name=$1, award_name=$2, year=$3, organization=$4, certificate_url=$5, description=$6
+       WHERE id=$7 RETURNING *`,
+      [full_name.trim(), award_name.trim(), year ? Number(year) : null, organization || null, certificate_url || null, description || null, id],
     )
     if (!row) return NextResponse.json({ error: 'Не найдено' }, { status: 404 })
 

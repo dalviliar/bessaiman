@@ -761,9 +761,9 @@ function ContractsTab() {
 
 interface Achievement {
   id: string; full_name: string; award_name: string; year: number | null
-  organization: string | null; certificate_url: string | null; sort_order: number
+  organization: string | null; certificate_url: string | null; description: string | null; sort_order: number
 }
-const EMPTY_ACH = { full_name: '', award_name: '', year: '', organization: '', certificate_url: '' }
+const EMPTY_ACH = { full_name: '', award_name: '', year: '', organization: '', certificate_url: '', description: '' }
 
 function AchievementsTab() {
   const [items, setItems] = useState<Achievement[]>([])
@@ -782,7 +782,7 @@ function AchievementsTab() {
 
   const startEdit = (a: Achievement) => {
     setEditing(a)
-    setForm({ full_name: a.full_name, award_name: a.award_name, year: a.year ? String(a.year) : '', organization: a.organization ?? '', certificate_url: a.certificate_url ?? '' })
+    setForm({ full_name: a.full_name, award_name: a.award_name, year: a.year ? String(a.year) : '', organization: a.organization ?? '', certificate_url: a.certificate_url ?? '', description: a.description ?? '' })
     setError('')
   }
   const cancelEdit = () => { setEditing(null); setForm(EMPTY_ACH); setError('') }
@@ -794,7 +794,7 @@ function AchievementsTab() {
     try {
       const payload = {
         full_name: form.full_name.trim(), award_name: form.award_name.trim(), year: form.year || null,
-        organization: form.organization || null, certificate_url: form.certificate_url || null,
+        organization: form.organization || null, certificate_url: form.certificate_url || null, description: form.description || null,
       }
       const res = await fetch(editing ? `/api/admin/science/achievements/${editing.id}` : '/api/admin/science/achievements', {
         method: editing ? 'PUT' : 'POST',
@@ -837,6 +837,10 @@ function AchievementsTab() {
             <FieldLabel>Организация</FieldLabel>
             <input className="steel-input w-full" value={form.organization} onChange={e => setForm(f => ({ ...f, organization: e.target.value }))} placeholder="НИНЖ РК" />
           </div>
+        </div>
+        <div>
+          <FieldLabel>Описание — показывается по клику на карточку</FieldLabel>
+          <textarea className="steel-input w-full" rows={4} value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="За что получена награда, детали..." />
         </div>
         <ImagePicker url={form.certificate_url} onChange={url => setForm(f => ({ ...f, certificate_url: url }))} uploadUrl="/api/admin/science/upload" label="Скан диплома / награды" />
       </FormShell>
