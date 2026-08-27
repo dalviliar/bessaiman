@@ -156,21 +156,23 @@ export default function AdminProductsPage() {
 
       <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm min-w-[700px]">
+          {/* table-fixed + explicit widths on every column except "Название"
+              (which absorbs the remainder) — an auto-layout table combined
+              with a sticky last column let content from other columns render
+              underneath and get visually painted over by it. Fixed widths
+              give the actions column a genuinely reserved slot instead. */}
+          <table className="w-full table-fixed text-sm min-w-[700px]">
             <thead>
               <tr style={{ background: '#0D1421', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                {canReorder && <th className="px-5 py-3 w-12" />}
-                <th className="px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Код / Модель</th>
+                {canReorder && <th className="w-10 px-5 py-3" />}
+                <th className="w-32 px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Код / Модель</th>
                 <th className="px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Название</th>
-                <th className="px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Категория</th>
-                <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Тип</th>
-                <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Наличие</th>
-                <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Остаток</th>
-                <th className="px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Фото</th>
-                {/* Pinned to the visible edge of the horizontal scroll area —
-                    with wider admin fonts the table can exceed the card width,
-                    and a plain trailing column just scrolls out of view. */}
-                <th className="sticky right-0 px-5 py-3 w-28" style={{ background: '#0D1421', boxShadow: '-6px 0 8px -6px rgba(0,0,0,0.5)' }} />
+                <th className="w-40 px-5 py-3 text-left text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Категория</th>
+                <th className="w-24 px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Тип</th>
+                <th className="w-24 px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Наличие</th>
+                <th className="w-20 px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Остаток</th>
+                <th className="w-16 px-5 py-3 text-center text-xs font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>Фото</th>
+                <th className="w-28 px-5 py-3" />
               </tr>
             </thead>
             <tbody>
@@ -205,7 +207,7 @@ export default function AdminProductsPage() {
                       )}
                       <span className="font-mono text-[10px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{p.model}</span>
                     </td>
-                    <td className="px-5 py-3 text-white text-xs font-medium max-w-xs truncate">{p.name_ru}</td>
+                    <td className="px-5 py-3 text-white text-xs font-medium truncate">{p.name_ru}</td>
                     <td className="px-5 py-3 text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
                       {(p.category as { name_ru?: string } | undefined)?.name_ru || '—'}
                     </td>
@@ -228,8 +230,7 @@ export default function AdminProductsPage() {
                         <Package size={14} style={{ color: 'rgba(255,255,255,0.2)', margin: '0 auto' }} />
                       )}
                     </td>
-                    <td className="sticky right-0 px-5 py-3 text-center whitespace-nowrap"
-                      style={{ background: i % 2 === 1 ? '#151B2A' : '#111827', boxShadow: '-6px 0 8px -6px rgba(0,0,0,0.5)' }}>
+                    <td className="px-5 py-3 text-center">
                       <div className="flex items-center justify-center gap-1.5">
                         <Link href={`/catalog/${p.slug}`} target="_blank"
                           className="p-1.5 rounded-lg transition-colors"
