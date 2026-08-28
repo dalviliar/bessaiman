@@ -55,6 +55,8 @@ export interface Product {
   video_url: string | null
   instagram_url: string | null
   specs: Record<string, string> | null
+  /** Spec keys chosen to show as badges on the catalog card. Empty falls back to an auto-pick. */
+  featured_specs: string[]
   /** Overrides the shared "УСЛОВИЯ ПОСТАВКИ" default on this product's КП when set. */
   kp_terms_override: { label: string; value: string }[] | null
   product_type: ProductType

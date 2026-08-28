@@ -42,7 +42,7 @@ interface FormState {
   images: string[]
   video_url: string
   instagram_url: string
-  specs: { key: string; value: string }[]
+  specs: { key: string; value: string; featured: boolean }[]
   product_type: ProductType
   classification_code: string
   compatible_with: string[]
@@ -110,7 +110,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       images: product.images ?? [],
       video_url: product.video_url ?? '',
       instagram_url: product.instagram_url ?? '',
-      specs: product.specs ? Object.entries(product.specs).map(([key, value]) => ({ key, value: String(value) })) : [],
+      specs: product.specs ? Object.entries(product.specs).map(([key, value]) => ({ key, value: String(value), featured: (product.featured_specs ?? []).includes(key) })) : [],
       product_type: product.product_type,
       classification_code: product.classification_code ?? '',
       compatible_with: product.compatible_with ?? [],
@@ -196,13 +196,15 @@ export default function ProductForm({ product }: { product?: Product }) {
 
   const removeImage = (url: string) => set('images', form.images.filter(i => i !== url))
 
-  const addSpec = () => set('specs', [...form.specs, { key: '', value: '' }])
+  const addSpec = () => set('specs', [...form.specs, { key: '', value: '', featured: false }])
   const addPresetSpec = (key: string) => {
     if (form.specs.some(s => s.key === key)) return
-    set('specs', [...form.specs, { key, value: '' }])
+    set('specs', [...form.specs, { key, value: '', featured: false }])
   }
   const updateSpec = (i: number, field: 'key' | 'value', value: string) =>
     set('specs', form.specs.map((s, idx) => idx === i ? { ...s, [field]: value } : s))
+  const toggleSpecFeatured = (i: number) =>
+    set('specs', form.specs.map((s, idx) => idx === i ? { ...s, featured: !s.featured } : s))
   const removeSpec = (i: number) => set('specs', form.specs.filter((_, idx) => idx !== i))
 
   const [kpTermsLoading, setKpTermsLoading] = useState(false)
@@ -260,6 +262,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       video_url: form.video_url || null,
       instagram_url: form.instagram_url || null,
       specs: Object.keys(specsObj).length ? specsObj : null,
+      featured_specs: form.specs.filter(s => s.featured && s.key.trim()).map(s => s.key.trim()),
       product_type: form.product_type,
       classification_code: form.classification_code || null,
       compatible_with: form.compatible_with,
@@ -559,8 +562,9 @@ export default function ProductForm({ product }: { product?: Product }) {
       {/* Характеристики */}
       <Section title="Технические характеристики">
         <p className="text-[11px] mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          Это пары «параметр — значение», которые покажутся в карточке товара на сайте и в КП.
+          Это пары «параметр — значение», которые показываются на странице товара и в КП.
           Например: «Мощность» → «5 кВт», «Объём камеры» → «200 л». Нажмите на готовый параметр ниже или впишите свой.
+          Отметьте галочкой «на карточке», чтобы значение показывалось короткой пометкой на карточке товара в каталоге.
         </p>
         <div className="flex flex-wrap gap-1.5 mb-3">
           {SPEC_PRESETS.map(preset => (
@@ -574,9 +578,14 @@ export default function ProductForm({ product }: { product?: Product }) {
         </div>
         <div className="space-y-2">
           {form.specs.map((spec, i) => (
-            <div key={i} className="flex gap-2">
+            <div key={i} className="flex gap-2 items-center">
               <input className="steel-input flex-1" placeholder="Параметр (напр. Объём камеры)" value={spec.key} onChange={e => updateSpec(i, 'key', e.target.value)} />
               <input className="steel-input flex-1" placeholder="Значение (напр. 200 л)" value={spec.value} onChange={e => updateSpec(i, 'value', e.target.value)} />
+              <label className="flex items-center gap-1.5 text-[11px] shrink-0 cursor-pointer select-none px-2.5 py-2 rounded-lg"
+                style={{ color: spec.featured ? '#60A5FA' : 'rgba(255,255,255,0.4)', background: spec.featured ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.03)' }}>
+                <input type="checkbox" className="w-3.5 h-3.5" checked={spec.featured} onChange={() => toggleSpecFeatured(i)} />
+                на карточке
+              </label>
               <button type="button" onClick={() => removeSpec(i)} className="px-2.5 rounded-lg" style={{ color: '#F87171', background: 'rgba(239,68,68,0.08)' }}>
                 <X size={14} />
               </button>

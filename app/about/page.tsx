@@ -89,7 +89,7 @@ export default function AboutPage() {
           <div className="text-4xl font-black text-[#0F172A] mb-3 tracking-tight">
             {tr.contacts.company}
           </div>
-          <p className="text-steel-silver max-w-lg mx-auto">
+          <p className="text-steel-silver max-w-lg mx-auto whitespace-pre-line">
             {tr.about.besDesc}
           </p>
         </div>

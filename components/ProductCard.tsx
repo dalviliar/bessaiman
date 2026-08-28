@@ -38,9 +38,13 @@ function pickByPriority(entries: [string, string][], priority: string[]): [strin
   return sorted.slice(0, 2)
 }
 
-function getKeySpecs(specs: Record<string, string> | null, code: string | null): [string, string][] {
+function getKeySpecs(specs: Record<string, string> | null, code: string | null, featured?: string[] | null): [string, string][] {
   if (!specs) return []
   const entries = Object.entries(specs).filter(([, val]) => val?.trim())
+  if (featured?.length) {
+    const norm = featured.map(normalizeKey)
+    return entries.filter(([key]) => norm.includes(normalizeKey(key)))
+  }
   if (code?.startsWith('SF')) {
     return pickByPriority(entries, ['Макс. температура', 'Максимальная температура', 'Объём камеры', 'Диаметр трубки', 'Диаметр трубы'])
   }
@@ -57,7 +61,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const image = product.images?.[0]
   const typeMeta = (TYPE_META as Record<string, { label: string }>)[product.product_type ?? 'S'] ?? TYPE_META.S
   const availMeta = AVAIL_META[product.availability]
-  const keySpecs = getKeySpecs(product.specs, product.classification_code)
+  const keySpecs = getKeySpecs(product.specs, product.classification_code, product.featured_specs)
   const inCart = isInCart(product.id)
 
   return (
