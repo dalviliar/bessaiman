@@ -10,6 +10,7 @@ const translations = {
       contacts: 'Контакты',
       rights: 'Все права защищены.',
       warehouse: 'Склад',
+      birthday: 'лет с Bes Saiman Group',
     },
     hero: {
       badge: 'НАУЧНО-ПРОИЗВОДСТВЕННОЕ ПРЕДПРИЯТИЕ',
@@ -239,6 +240,7 @@ const translations = {
       contacts: 'Байланыс',
       rights: 'Барлық құқықтар қорғалған.',
       warehouse: 'Қойма',
+      birthday: 'жыл Bes Saiman Group-мен бірге',
     },
     hero: {
       badge: 'ҒЫЛЫМИ-ӨНДІРІСТІК КӘСІПОРЫН',
@@ -468,6 +470,7 @@ const translations = {
       contacts: 'Contacts',
       rights: 'All rights reserved.',
       warehouse: 'Warehouse',
+      birthday: 'years with Bes Saiman Group',
     },
     hero: {
       badge: 'SCIENTIFIC & MANUFACTURING COMPANY',

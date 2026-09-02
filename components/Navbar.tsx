@@ -21,7 +21,8 @@ const WhatsAppIcon = () => (
   </svg>
 )
 import { useLang } from '@/context/LanguageContext'
-import { seasonTheme } from '@/lib/season'
+import { seasonTheme, isCompanyBirthday, companyAge } from '@/lib/season'
+import SeasonParticles from './SeasonParticles'
 import { useCart } from '@/context/CartContext'
 import type { Lang } from '@/types'
 
@@ -38,6 +39,8 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const [season] = useState(seasonTheme)
+  const [birthday] = useState(isCompanyBirthday)
+  const [age] = useState(companyAge)
 
   // The admin panel is a fixed full-screen overlay everywhere except its
   // login screen (which sits in normal document flow), so this is the one
@@ -56,7 +59,8 @@ export default function Navbar() {
     <nav
       className="sticky top-0 z-50"
       style={{
-        background: `linear-gradient(180deg, ${season.soft} 0%, rgba(255,255,255,0.96) 62%)`,
+        position: 'relative',
+        background: `linear-gradient(180deg, ${season.soft} 0%, rgba(255,255,255,0.85) 100%)`,
         backdropFilter: 'blur(16px)',
         borderBottom: `1px solid ${season.edge}`,
         boxShadow: '0 2px 10px rgba(15,23,42,0.06)',
@@ -64,11 +68,45 @@ export default function Navbar() {
     >
       {/* Top accent line — carries the season's colour */}
       <div style={{
+        position: 'relative',
+        zIndex: 1,
         height: 3,
         background: `linear-gradient(90deg, ${season.strip[1]} 0%, ${season.strip[0]} 50%, ${season.strip[1]} 100%)`,
       }} />
 
-      <div className="max-w-7xl mx-auto px-6 flex items-center justify-between py-2.5">
+      {/* Seasonal particles drift across the whole navbar, behind the logo/links */}
+      <SeasonParticles kind={season.particle} rise={season.rise} />
+
+      {birthday && (
+        <div
+          style={{
+            position: 'absolute',
+            left: '50%',
+            top: 3,
+            transform: 'translateX(-50%)',
+            zIndex: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '5px 12px 5px 9px',
+            borderRadius: 999,
+            background: 'linear-gradient(135deg, #1565c0, #0ea5e9)',
+            color: '#fff',
+            fontSize: 12,
+            fontWeight: 700,
+            letterSpacing: '0.01em',
+            boxShadow: '0 6px 16px rgba(21,101,192,0.35)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          🎉 {age} {tr.nav.birthday}
+        </div>
+      )}
+
+      <div
+        className="max-w-7xl mx-auto px-6 flex items-center justify-between py-2.5"
+        style={{ position: 'relative', zIndex: 1, paddingTop: birthday ? 32 : undefined }}
+      >
 
         {/* Logo */}
         <Link href="/" className="flex items-center select-none">
