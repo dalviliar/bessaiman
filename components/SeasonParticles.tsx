@@ -24,8 +24,8 @@ const CONFETTI_COLORS = ['#1565c0', '#facc15', '#f97316', '#38bdf8', '#fb7185']
 
 const PARTICLE_STYLES: Record<ParticleKind, CSSProperties> = {
   snowflake: {
-    width: 7, height: 7, background: '#fff', borderRadius: '50%',
-    boxShadow: '0 0 5px rgba(255,255,255,0.9)',
+    fontSize: 12, lineHeight: 1, color: '#fff',
+    textShadow: '0 0 4px rgba(255,255,255,0.85), 0 0 1px rgba(255,255,255,0.9)',
   },
   petal: {
     width: 12, height: 8, background: '#f9a8c9', borderRadius: '60% 60% 60% 0',
@@ -90,7 +90,9 @@ export default function SeasonParticles({ kind, rise }: { kind: ParticleKind; ri
             background: kind === 'confetti' ? CONFETTI_COLORS[p.id % CONFETTI_COLORS.length] : undefined,
             ...PARTICLE_STYLES[kind],
           }}
-        />
+        >
+          {kind === 'snowflake' ? '❄' : null}
+        </div>
       ))}
     </div>
   )
