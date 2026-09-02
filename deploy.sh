@@ -2,7 +2,7 @@
 set -e
 
 echo "=== Bes Saiman Deploy ==="
-cd /var/www/bes-saiman
+cd /var/www/bes-saiman.kz
 
 echo "[1/4] Git pull..."
 git pull origin main
