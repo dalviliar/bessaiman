@@ -36,9 +36,8 @@ const PARTICLE_STYLES: Record<ParticleKind, CSSProperties> = {
     border: '1px solid rgba(6,182,212,0.55)',
   },
   leaf: {
-    width: 12, height: 12,
-    background: 'linear-gradient(135deg, #f59e0b, #c2410c)',
-    clipPath: 'polygon(50% 0%, 90% 30%, 100% 65%, 55% 100%, 45% 78%, 0% 65%, 10% 30%)',
+    width: 13, height: 13, background: '#ea9a3e', borderRadius: '0 60% 0 60%',
+    boxShadow: 'inset -1px -1px 0 rgba(0,0,0,0.15)',
   },
   confetti: {
     width: 8, height: 12, borderRadius: 1,
