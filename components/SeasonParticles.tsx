@@ -104,12 +104,12 @@ export default function SeasonParticles({ kind, rise }: { kind: ParticleKind; ri
             ['--rot' as string]: `${p.rot}deg`,
             willChange: 'transform, opacity',
             background: kind === 'confetti' ? CONFETTI_COLORS[p.id % CONFETTI_COLORS.length] : undefined,
-            ...(p.maple ? { width: 22, height: 22 } : PARTICLE_STYLES[kind]),
+            ...(p.maple ? { width: 30, height: 30 } : PARTICLE_STYLES[kind]),
           }}
         >
           {kind === 'snowflake' ? '❄' : null}
           {p.maple && (
-            <svg viewBox="0 0 24 24" width="22" height="22">
+            <svg viewBox="0 0 24 24" width="30" height="30">
               <path d={MAPLE_PATH} fill="url(#mapleGrad)" />
               <path d={MAPLE_VEINS} stroke="rgba(0,0,0,0.28)" strokeWidth={0.6} />
               <path d={MAPLE_STEM} stroke="#7c2d12" strokeWidth={1} fill="none" strokeLinecap="round" />

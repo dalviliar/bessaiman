@@ -398,24 +398,27 @@ function CatalogContent() {
         )}
 
         {/* ═══ Поиск + счётчик ═════════════════════════════════════ */}
-        <div className="flex items-center gap-3 mb-5">
-          <div className="relative flex-1">
-            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }} />
-            <input type="text" placeholder={tr.catalog.search}
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-10 py-2.5 rounded-lg outline-none text-base"
-              style={{ background: 'white', border: '1.5px solid #E2E8F0', color: '#0F172A' }}
-              onFocus={e => { e.target.style.borderColor = '#1565C0' }}
-              onBlur={e => { e.target.style.borderColor = '#E2E8F0' }}
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }}>
-                <X size={14} />
-              </button>
-            )}
-          </div>
+        <div className="flex items-center justify-between gap-3 mb-5">
+          {/* Разработки по ТЗ — единичные позиции, искать по названию/артикулу тут не нужно */}
+          {selType !== 'I' && (
+            <div className="relative flex-1">
+              <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }} />
+              <input type="text" placeholder={tr.catalog.search}
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-10 py-2.5 rounded-lg outline-none text-base"
+                style={{ background: 'white', border: '1.5px solid #E2E8F0', color: '#0F172A' }}
+                onFocus={e => { e.target.style.borderColor = '#1565C0' }}
+                onBlur={e => { e.target.style.borderColor = '#E2E8F0' }}
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2" style={{ color: '#94A3B8' }}>
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          )}
 
           {hasActiveFilters && (
             <button
