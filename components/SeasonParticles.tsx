@@ -72,7 +72,7 @@ export default function SeasonParticles({ kind, rise }: { kind: ParticleKind; ri
   return (
     <div
       aria-hidden
-      style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}
+      style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 1 }}
     >
       {particles.map(p => (
         <div

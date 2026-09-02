@@ -105,7 +105,7 @@ export default function Navbar() {
 
       <div
         className="max-w-7xl mx-auto px-6 flex items-center justify-between py-2.5"
-        style={{ position: 'relative', zIndex: 1, paddingTop: birthday ? 32 : undefined }}
+        style={{ position: 'relative', paddingTop: birthday ? 32 : undefined }}
       >
 
         {/* Logo */}
