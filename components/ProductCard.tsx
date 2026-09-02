@@ -12,7 +12,7 @@ const TYPE_META = {
   S:  { label: 'Серийный' },
   PA: { label: 'Комплектующие' },
   PP: { label: 'Для сборки' },
-  I:  { label: 'Под заказ' },
+  I:  { label: 'Разработки по ТЗ' },
 }
 
 const AVAIL_META = {

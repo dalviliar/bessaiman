@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       price, price_with_discount, bulk_threshold, bulk_discount_percent,
       availability, barcode, images, video_url, instagram_url, specs, product_type, classification_code,
       compatible_with, weight_kg, unit, quantity, length_cm, width_cm, height_cm,
-      accessory_ids, kp_terms_override, featured_specs,
+      accessory_ids, kp_terms_override, featured_specs, questionnaire_url,
     } = body
 
     if (!name_ru || !category_id) {
@@ -68,6 +68,7 @@ export async function POST(request: Request) {
         length_cm ?? null, width_cm ?? null, height_cm ?? null,
         Array.isArray(kp_terms_override) && kp_terms_override.length > 0 ? JSON.stringify(kp_terms_override) : null,
         Array.isArray(featured_specs) ? featured_specs : [],
+        questionnaire_url || null,
       ]
 
       await client.query('SAVEPOINT before_video_url')
@@ -79,9 +80,9 @@ export async function POST(request: Request) {
              description_ru, description_kk, description_en,
              price, price_with_discount, bulk_threshold, bulk_discount_percent,
              availability, barcode, images, video_url, instagram_url, specs, product_type, classification_code,
-             compatible_with, weight_kg, unit, length_cm, width_cm, height_cm, kp_terms_override, featured_specs, sort_order
+             compatible_with, weight_kg, unit, length_cm, width_cm, height_cm, kp_terms_override, featured_specs, questionnaire_url, sort_order
            ) VALUES (
-             $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,
+             $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30,
              (SELECT COALESCE(MAX(sort_order),0)+10 FROM products WHERE category_id = $2)
            ) RETURNING *`,
           [...baseVals.slice(0, 16), video_url ?? null, instagram_url ?? null, ...baseVals.slice(16)],
@@ -96,9 +97,9 @@ export async function POST(request: Request) {
                description_ru, description_kk, description_en,
                price, price_with_discount, bulk_threshold, bulk_discount_percent,
                availability, barcode, images, video_url, specs, product_type, classification_code,
-               compatible_with, weight_kg, unit, length_cm, width_cm, height_cm, kp_terms_override, featured_specs, sort_order
+               compatible_with, weight_kg, unit, length_cm, width_cm, height_cm, kp_terms_override, featured_specs, questionnaire_url, sort_order
              ) VALUES (
-               $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,
+               $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,
                (SELECT COALESCE(MAX(sort_order),0)+10 FROM products WHERE category_id = $2)
              ) RETURNING *`,
             [...baseVals.slice(0, 16), video_url ?? null, ...baseVals.slice(16)],
@@ -110,9 +111,9 @@ export async function POST(request: Request) {
                description_ru, description_kk, description_en,
                price, price_with_discount, bulk_threshold, bulk_discount_percent,
                availability, barcode, images, specs, product_type, classification_code,
-               compatible_with, weight_kg, unit, length_cm, width_cm, height_cm, kp_terms_override, featured_specs, sort_order
+               compatible_with, weight_kg, unit, length_cm, width_cm, height_cm, kp_terms_override, featured_specs, questionnaire_url, sort_order
              ) VALUES (
-               $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,
+               $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,
                (SELECT COALESCE(MAX(sort_order),0)+10 FROM products WHERE category_id = $2)
              ) RETURNING *`,
             baseVals,

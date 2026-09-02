@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, Plus, X, Upload, Image as ImageIcon, Search, Package } from 'lucide-react'
+import { Loader2, Plus, X, Upload, Image as ImageIcon, Search, Package, ArrowUp, ArrowDown } from 'lucide-react'
 import type { Category, Product, ProductType } from '@/types'
 
 interface AccessoryItem {
@@ -16,7 +16,7 @@ const PRODUCT_TYPES: { value: ProductType; label: string }[] = [
   { value: 'S',  label: 'Серийный' },
   { value: 'PA', label: 'Комплектующие' },
   { value: 'PP', label: 'Для сборки' },
-  { value: 'I',  label: 'Под заказ' },
+  { value: 'I',  label: 'Разработки по ТЗ' },
 ]
 
 const AVAILABILITY = [
@@ -53,6 +53,7 @@ interface FormState {
   width_cm: string
   height_cm: string
   kp_terms_override: { label: string; value: string }[]
+  questionnaire_url: string
 }
 
 const EMPTY: FormState = {
@@ -76,6 +77,7 @@ const EMPTY: FormState = {
   width_cm: '',
   height_cm: '',
   kp_terms_override: [],
+  questionnaire_url: '',
 }
 
 type DescLang = 'ru' | 'kk' | 'en'
@@ -93,6 +95,9 @@ export default function ProductForm({ product }: { product?: Product }) {
   const [accDropOpen, setAccDropOpen] = useState(false)
   const [accObjects, setAccObjects] = useState<AccessoryItem[]>([])
   const accDropRef = useRef<HTMLDivElement>(null)
+  const [questionnaireUploading, setQuestionnaireUploading] = useState(false)
+  const [questionnaireError, setQuestionnaireError] = useState('')
+  const questionnaireInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetch('/api/categories').then(r => r.json()).then(data => setCategories(data ?? []))
@@ -121,6 +126,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       width_cm: product.width_cm?.toString() ?? '',
       height_cm: product.height_cm?.toString() ?? '',
       kp_terms_override: product.kp_terms_override ?? [],
+      questionnaire_url: product.questionnaire_url ?? '',
     })
     if (product.accessories?.length) {
       setAccObjects(product.accessories.map(a => ({
@@ -206,6 +212,13 @@ export default function ProductForm({ product }: { product?: Product }) {
   const toggleSpecFeatured = (i: number) =>
     set('specs', form.specs.map((s, idx) => idx === i ? { ...s, featured: !s.featured } : s))
   const removeSpec = (i: number) => set('specs', form.specs.filter((_, idx) => idx !== i))
+  const moveSpec = (i: number, dir: -1 | 1) => {
+    const target = i + dir
+    if (target < 0 || target >= form.specs.length) return
+    const next = [...form.specs]
+    ;[next[i], next[target]] = [next[target], next[i]]
+    set('specs', next)
+  }
 
   const [kpTermsLoading, setKpTermsLoading] = useState(false)
   const handleKpTermsToggle = async (enabled: boolean) => {
@@ -274,6 +287,7 @@ export default function ProductForm({ product }: { product?: Product }) {
       width_cm: form.width_cm ? Number(form.width_cm) : null,
       height_cm: form.height_cm ? Number(form.height_cm) : null,
       kp_terms_override: form.kp_terms_override.filter(r => r.label.trim() && r.value.trim()),
+      questionnaire_url: form.questionnaire_url || null,
     }
 
     try {
@@ -391,6 +405,57 @@ export default function ProductForm({ product }: { product?: Product }) {
                 .map(c => c.name_ru).join(', ')}
             </p>
           )}
+        </Section>
+      )}
+
+      {/* Опросный лист (для товаров «Разработки по ТЗ») */}
+      {form.product_type === 'I' && (
+        <Section title="Опросный лист">
+          <p className="text-[11px] mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            Готовится индивидуально под это оборудование. Клиент скачивает его на странице товара,
+            заполняет и присылает обратно нам через кнопку «Отправить заполненный опросный лист».
+          </p>
+          <div className="flex items-center gap-3">
+            {form.questionnaire_url && (
+              <a href={form.questionnaire_url} target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg"
+                style={{ background: 'rgba(255,255,255,0.05)', color: '#93C5FD' }}>
+                Открыть файл
+              </a>
+            )}
+            <button type="button" onClick={() => questionnaireInputRef.current?.click()}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium"
+              style={{ background: 'rgba(59,130,246,0.1)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.2)' }}>
+              {questionnaireUploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+              {questionnaireUploading ? 'Загрузка...' : form.questionnaire_url ? 'Заменить' : 'Загрузить'}
+            </button>
+            {form.questionnaire_url && (
+              <button type="button" onClick={() => set('questionnaire_url', '')} className="text-xs" style={{ color: '#F87171' }}>
+                Убрать
+              </button>
+            )}
+          </div>
+          {questionnaireError && <p className="text-xs mt-1.5" style={{ color: '#F87171' }}>{questionnaireError}</p>}
+          <input ref={questionnaireInputRef} type="file" className="hidden"
+            accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            onChange={async e => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              setQuestionnaireUploading(true); setQuestionnaireError('')
+              try {
+                const fd = new FormData()
+                fd.append('file', file)
+                const res = await fetch('/api/admin/products/upload-questionnaire', { method: 'POST', body: fd })
+                const data = await res.json()
+                if (!res.ok) throw new Error(data.error)
+                set('questionnaire_url', data.url)
+              } catch (err) {
+                setQuestionnaireError(err instanceof Error ? err.message : 'Ошибка загрузки')
+              } finally {
+                setQuestionnaireUploading(false)
+                e.target.value = ''
+              }
+            }} />
         </Section>
       )}
 
@@ -565,6 +630,7 @@ export default function ProductForm({ product }: { product?: Product }) {
           Это пары «параметр — значение», которые показываются на странице товара и в КП.
           Например: «Мощность» → «5 кВт», «Объём камеры» → «200 л». Нажмите на готовый параметр ниже или впишите свой.
           Отметьте галочкой «на карточке», чтобы значение показывалось короткой пометкой на карточке товара в каталоге.
+          Стрелками слева можно менять порядок строк — именно в этом порядке они покажутся на странице товара.
         </p>
         <div className="flex flex-wrap gap-1.5 mb-3">
           {SPEC_PRESETS.map(preset => (
@@ -579,6 +645,16 @@ export default function ProductForm({ product }: { product?: Product }) {
         <div className="space-y-2">
           {form.specs.map((spec, i) => (
             <div key={i} className="flex gap-2 items-center">
+              <div className="flex flex-col gap-0.5 shrink-0">
+                <button type="button" onClick={() => moveSpec(i, -1)} disabled={i === 0}
+                  className="p-0.5 rounded disabled:opacity-20" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  <ArrowUp size={12} />
+                </button>
+                <button type="button" onClick={() => moveSpec(i, 1)} disabled={i === form.specs.length - 1}
+                  className="p-0.5 rounded disabled:opacity-20" style={{ color: 'rgba(255,255,255,0.5)' }}>
+                  <ArrowDown size={12} />
+                </button>
+              </div>
               <input className="steel-input flex-1" placeholder="Параметр (напр. Объём камеры)" value={spec.key} onChange={e => updateSpec(i, 'key', e.target.value)} />
               <input className="steel-input flex-1" placeholder="Значение (напр. 200 л)" value={spec.value} onChange={e => updateSpec(i, 'value', e.target.value)} />
               <label className="flex items-center gap-1.5 text-[11px] shrink-0 cursor-pointer select-none px-2.5 py-2 rounded-lg"

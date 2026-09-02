@@ -4,11 +4,12 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowLeft, FileText, Package } from 'lucide-react'
+import { ArrowLeft, FileText, Package, ClipboardCheck, Download } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 import PriceCalculator from '@/components/PriceCalculator'
 import ProductCard from '@/components/ProductCard'
 import KPModal from '@/components/KPModal'
+import QuestionnaireModal from '@/components/QuestionnaireModal'
 import { useZoomPreview, ZoomPreviewOverlay } from '@/components/HoverZoomPreview'
 import { getProductBySlug } from '@/lib/supabase'
 import type { Product } from '@/types'
@@ -194,6 +195,7 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const [showKP, setShowKP] = useState(false)
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false)
 
   // "Назад к каталогу" should return to whatever filters (category etc.)
   // the visitor had selected, not reset to "all" - going back in browser
@@ -338,6 +340,37 @@ export default function ProductDetailPage() {
               Получить КП (PDF)
             </button>
           </div>
+
+          {/* Опросный лист — только для товаров "Разработки по ТЗ" */}
+          {product.product_type === 'I' && (
+            <div className="steel-card p-5 space-y-3" style={{ borderColor: '#BFDBFE' }}>
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#DBEAFE' }}>
+                  <ClipboardCheck size={13} style={{ color: '#1565C0' }} />
+                </div>
+                <h3 className="text-[#0F172A] font-semibold text-base">{tr.product.questionnaireTitle}</h3>
+              </div>
+              <p className="text-sm leading-relaxed" style={{ color: '#64748B' }}>
+                {tr.product.questionnaireDesc}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-2.5">
+                {product.questionnaire_url && (
+                  <a href={product.questionnaire_url} target="_blank" rel="noopener noreferrer" download
+                    className="btn-secondary flex-1 flex items-center justify-center gap-2">
+                    <Download size={15} />
+                    {tr.product.questionnaireDownload}
+                  </a>
+                )}
+                <button
+                  onClick={() => setShowQuestionnaire(true)}
+                  className="btn-primary flex-1 flex items-center justify-center gap-2"
+                >
+                  <ClipboardCheck size={15} />
+                  {tr.product.questionnaireSend}
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -365,6 +398,7 @@ export default function ProductDetailPage() {
 
       {/* КП Modal */}
       {showKP && <KPModal product={product} onClose={() => setShowKP(false)} />}
+      {showQuestionnaire && <QuestionnaireModal product={product} onClose={() => setShowQuestionnaire(false)} />}
     </div>
   )
 }

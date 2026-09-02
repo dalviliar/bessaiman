@@ -13,6 +13,8 @@ const CONTENT_TYPES: Record<string, string> = {
   avif: 'image/avif',
   svg: 'image/svg+xml',
   pdf: 'application/pdf',
+  doc: 'application/msword',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 }
 
 const UPLOADS_ROOT = path.join(process.cwd(), 'uploads')

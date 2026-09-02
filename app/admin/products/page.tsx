@@ -11,7 +11,7 @@ const TYPE_COLORS: Record<string, { label: string; color: string }> = {
   S:  { label: 'Серийный',      color: '#10B981' },
   PA: { label: 'Комплектующие', color: '#94A3B8' },
   PP: { label: 'Для сборки',    color: '#6B7280' },
-  I:  { label: 'Под заказ',     color: '#8B5CF6' },
+  I:  { label: 'Разработки по ТЗ', color: '#8B5CF6' },
 }
 
 export default function AdminProductsPage() {
@@ -121,7 +121,7 @@ export default function AdminProductsPage() {
           { key: 'S',   label: 'Серийные (S)' },
           { key: 'PA',  label: 'Комплектующие (PA)' },
           { key: 'PP',  label: 'Для сборки (PP)' },
-          { key: 'I',   label: 'Под заказ (I)' },
+          { key: 'I',   label: 'Разработки по ТЗ (I)' },
         ].map(t => (
           <button key={t.key} onClick={() => setTypeFilter(t.key)}
             className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all"

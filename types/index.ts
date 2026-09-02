@@ -59,6 +59,8 @@ export interface Product {
   featured_specs: string[]
   /** Overrides the shared "УСЛОВИЯ ПОСТАВКИ" default on this product's КП when set. */
   kp_terms_override: { label: string; value: string }[] | null
+  /** Опросный лист for "Разработки по ТЗ" products — customers download and fill it out. */
+  questionnaire_url: string | null
   product_type: ProductType
   classification_code: string | null
   compatible_with: string[]
