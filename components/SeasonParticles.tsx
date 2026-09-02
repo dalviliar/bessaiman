@@ -24,23 +24,23 @@ const CONFETTI_COLORS = ['#1565c0', '#facc15', '#f97316', '#38bdf8', '#fb7185']
 
 const PARTICLE_STYLES: Record<ParticleKind, CSSProperties> = {
   snowflake: {
-    width: 6, height: 6, background: '#fff', borderRadius: '50%',
-    boxShadow: '0 0 4px rgba(255,255,255,0.9)',
+    width: 7, height: 7, background: '#fff', borderRadius: '50%',
+    boxShadow: '0 0 5px rgba(255,255,255,0.9)',
   },
   petal: {
-    width: 10, height: 7, background: '#f9a8c9', borderRadius: '60% 60% 60% 0',
+    width: 12, height: 8, background: '#f9a8c9', borderRadius: '60% 60% 60% 0',
   },
   bubble: {
-    width: 8, height: 8, borderRadius: '50%',
+    width: 9, height: 9, borderRadius: '50%',
     background: 'radial-gradient(circle at 30% 30%, rgba(255,255,255,0.95), rgba(6,182,212,0.25))',
     border: '1px solid rgba(6,182,212,0.55)',
   },
   leaf: {
-    width: 11, height: 11, background: '#ea9a3e', borderRadius: '0 60% 0 60%',
+    width: 13, height: 13, background: '#ea9a3e', borderRadius: '0 60% 0 60%',
     boxShadow: 'inset -1px -1px 0 rgba(0,0,0,0.15)',
   },
   confetti: {
-    width: 7, height: 10, borderRadius: 1,
+    width: 8, height: 12, borderRadius: 1,
   },
 }
 

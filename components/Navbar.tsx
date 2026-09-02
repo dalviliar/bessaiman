@@ -104,8 +104,8 @@ export default function Navbar() {
       )}
 
       <div
-        className="max-w-7xl mx-auto px-6 flex items-center justify-between py-2.5"
-        style={{ position: 'relative', paddingTop: birthday ? 32 : undefined }}
+        className="max-w-7xl mx-auto px-6 flex items-center justify-between py-3"
+        style={{ position: 'relative', paddingTop: birthday ? 36 : undefined }}
       >
 
         {/* Logo */}
@@ -116,7 +116,7 @@ export default function Navbar() {
             width={1600}
             height={396}
             priority
-            className="h-16 sm:h-20 w-auto"
+            className="h-[74px] sm:h-[92px] w-auto"
           />
         </Link>
 
@@ -128,7 +128,7 @@ export default function Navbar() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="relative px-4 lg:px-5 py-2.5 text-base font-semibold tracking-wide rounded-lg transition-colors duration-200"
+                className="relative px-4 lg:px-5 py-3 text-base font-semibold tracking-wide rounded-lg transition-colors duration-200"
                 style={{
                   color: active ? '#FFFFFF' : '#334155',
                   background: active ? season.solid : 'transparent',
@@ -150,7 +150,7 @@ export default function Navbar() {
             href="https://www.instagram.com/bes_saiman_group?igsh=MTFlb2F5ODlldDEwNg=="
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center w-9 h-9 rounded-lg transition-all"
+            className="flex items-center justify-center w-10 h-10 rounded-lg transition-all"
             style={{ color: '#94A3B8', border: '1px solid transparent' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#E1306C'; (e.currentTarget as HTMLElement).style.border = '1px solid rgba(225,48,108,0.2)'; (e.currentTarget as HTMLElement).style.background = 'rgba(225,48,108,0.06)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#94A3B8'; (e.currentTarget as HTMLElement).style.border = '1px solid transparent'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
@@ -161,7 +161,7 @@ export default function Navbar() {
             href="https://wa.me/77076202890"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center w-9 h-9 rounded-lg transition-all"
+            className="flex items-center justify-center w-10 h-10 rounded-lg transition-all"
             style={{ color: '#94A3B8', border: '1px solid transparent' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#25D366'; (e.currentTarget as HTMLElement).style.border = '1px solid rgba(37,211,102,0.2)'; (e.currentTarget as HTMLElement).style.background = 'rgba(37,211,102,0.06)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#94A3B8'; (e.currentTarget as HTMLElement).style.border = '1px solid transparent'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
@@ -170,7 +170,7 @@ export default function Navbar() {
           </a>
 
           {/* KP Cart */}
-          <Link href="/kp" className="relative flex items-center justify-center w-9 h-9 rounded-lg transition-all"
+          <Link href="/kp" className="relative flex items-center justify-center w-10 h-10 rounded-lg transition-all"
             style={{
               background: totalItems > 0 ? 'rgba(21,101,192,0.08)' : 'transparent',
               border: totalItems > 0 ? '1px solid rgba(21,101,192,0.2)' : '1px solid transparent',
@@ -189,7 +189,7 @@ export default function Navbar() {
           <div className="relative">
             <button
               onClick={() => setLangOpen(!langOpen)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[14px] font-mono font-semibold tracking-wider transition-colors"
+              className="flex items-center gap-1.5 px-3.5 py-2 text-[14px] font-mono font-semibold tracking-wider transition-colors"
               style={{
                 color: '#64748B',
                 border: '1px solid #CBD5E1',
