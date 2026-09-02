@@ -104,12 +104,12 @@ export default function Navbar() {
       )}
 
       <div
-        className="max-w-7xl mx-auto px-6 flex items-center justify-between py-3"
+        className="max-w-[100rem] mx-auto px-6 flex items-center justify-between gap-4 py-3"
         style={{ position: 'relative', paddingTop: birthday ? 36 : undefined }}
       >
 
         {/* Logo */}
-        <Link href="/" className="flex items-center select-none">
+        <Link href="/" className="flex items-center select-none shrink-0">
           <Image
             src="/logo-full.png"
             alt="Bes Saiman Group"
@@ -121,14 +121,14 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-1.5">
+        <div className="hidden md:flex items-center gap-1 lg:gap-1.5 shrink-0">
           {links.map((link) => {
             const active = pathname === link.href
             return (
               <Link
                 key={link.href}
                 href={link.href}
-                className="relative px-5 lg:px-6 py-3.5 text-lg font-semibold tracking-wide rounded-lg transition-colors duration-200"
+                className="relative whitespace-nowrap px-3.5 lg:px-6 py-3.5 text-lg font-semibold tracking-wide rounded-lg transition-colors duration-200"
                 style={{
                   color: active ? '#FFFFFF' : '#334155',
                   background: active ? season.solid : 'transparent',
@@ -144,7 +144,7 @@ export default function Navbar() {
         </div>
 
         {/* Right side */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           {/* Social icons */}
           <a
             href="https://www.instagram.com/bes_saiman_group?igsh=MTFlb2F5ODlldDEwNg=="
