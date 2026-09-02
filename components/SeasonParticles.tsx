@@ -10,10 +10,7 @@ interface ParticleSpec {
   delay: number
   dx: number
   rot: number
-  glyph?: string
 }
-
-const LEAF_GLYPHS = ['🍁', '🍂', '🍃']
 
 const COUNTS: Record<ParticleKind, number> = {
   snowflake: 18,
@@ -39,14 +36,16 @@ const PARTICLE_STYLES: Record<ParticleKind, CSSProperties> = {
     border: '1px solid rgba(6,182,212,0.55)',
   },
   leaf: {
-    fontSize: 15, lineHeight: 1,
+    width: 12, height: 12,
+    background: 'linear-gradient(135deg, #f59e0b, #c2410c)',
+    clipPath: 'polygon(50% 0%, 90% 30%, 100% 65%, 55% 100%, 45% 78%, 0% 65%, 10% 30%)',
   },
   confetti: {
     width: 8, height: 12, borderRadius: 1,
   },
 }
 
-function generate(count: number, kind: ParticleKind): ParticleSpec[] {
+function generate(count: number): ParticleSpec[] {
   return Array.from({ length: count }, (_, i) => ({
     id: i,
     left: Math.random() * 100,
@@ -54,7 +53,6 @@ function generate(count: number, kind: ParticleKind): ParticleSpec[] {
     delay: Math.random() * 6,
     dx: Math.round(Math.random() * 40 - 20),
     rot: Math.round(Math.random() * 200 - 100),
-    glyph: kind === 'leaf' ? LEAF_GLYPHS[Math.floor(Math.random() * LEAF_GLYPHS.length)] : undefined,
   }))
 }
 
@@ -67,7 +65,7 @@ export default function SeasonParticles({ kind, rise }: { kind: ParticleKind; ri
   const [particles, setParticles] = useState<ParticleSpec[] | null>(null)
 
   useEffect(() => {
-    setParticles(generate(COUNTS[kind], kind))
+    setParticles(generate(COUNTS[kind]))
   }, [kind])
 
   if (!particles) return null
@@ -94,7 +92,7 @@ export default function SeasonParticles({ kind, rise }: { kind: ParticleKind; ri
             ...PARTICLE_STYLES[kind],
           }}
         >
-          {kind === 'snowflake' ? '❄' : kind === 'leaf' ? p.glyph : null}
+          {kind === 'snowflake' ? '❄' : null}
         </div>
       ))}
     </div>
