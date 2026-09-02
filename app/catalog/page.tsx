@@ -420,7 +420,7 @@ function CatalogContent() {
             </div>
           )}
 
-          {hasActiveFilters && (
+          {selType !== 'I' && hasActiveFilters && (
             <button
               onClick={() => { setSelType('all'); setSelCat(''); setSelSubcat(''); setSelAttrs({}); setSearchQuery(''); updateUrl({ type: 'all', category: '' }) }}
               className="flex items-center gap-1.5 px-3 py-2.5 rounded-lg text-base font-semibold transition-all"
