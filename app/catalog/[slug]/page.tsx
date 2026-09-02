@@ -312,37 +312,10 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* Price & Calculator */}
-          <PriceCalculator product={product} />
-          {!product.price && (
-            <div className="steel-card p-4 text-center">
-              <p className="text-steel-silver mb-3">{tr.catalog.priceOnRequest}</p>
-              <Link href="/contacts" className="btn-primary inline-flex">{tr.contacts.sendMessage}</Link>
-            </div>
-          )}
-
-          {/* КП */}
-          <div className="steel-card p-5 space-y-3" style={{ borderColor: '#BFDBFE' }}>
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#DBEAFE' }}>
-                <FileText size={13} style={{ color: '#1565C0' }} />
-              </div>
-              <h3 className="text-[#0F172A] font-semibold text-base">Коммерческое предложение</h3>
-            </div>
-            <p className="text-sm leading-relaxed" style={{ color: '#64748B' }}>
-              Сформируйте КП с реквизитами компании и техническими характеристиками — PDF скачается автоматически.
-            </p>
-            <button
-              onClick={() => setShowKP(true)}
-              className="btn-primary w-full flex items-center justify-center gap-2"
-            >
-              <FileText size={15} />
-              Получить КП (PDF)
-            </button>
-          </div>
-
-          {/* Опросный лист — только для товаров "Разработки по ТЗ" */}
-          {product.product_type === 'I' && (
+          {/* Опросный лист — товары "Разработки по ТЗ" ведут сразу сюда,
+              без количества/цены/КП: это индивидуальная разработка, а не
+              заказ фиксированной позиции по фиксированной цене. */}
+          {product.product_type === 'I' ? (
             <div className="steel-card p-5 space-y-3" style={{ borderColor: '#BFDBFE' }}>
               <div className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#DBEAFE' }}>
@@ -370,6 +343,37 @@ export default function ProductDetailPage() {
                 </button>
               </div>
             </div>
+          ) : (
+            <>
+              {/* Price & Calculator */}
+              <PriceCalculator product={product} />
+              {!product.price && (
+                <div className="steel-card p-4 text-center">
+                  <p className="text-steel-silver mb-3">{tr.catalog.priceOnRequest}</p>
+                  <Link href="/contacts" className="btn-primary inline-flex">{tr.contacts.sendMessage}</Link>
+                </div>
+              )}
+
+              {/* КП */}
+              <div className="steel-card p-5 space-y-3" style={{ borderColor: '#BFDBFE' }}>
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#DBEAFE' }}>
+                    <FileText size={13} style={{ color: '#1565C0' }} />
+                  </div>
+                  <h3 className="text-[#0F172A] font-semibold text-base">Коммерческое предложение</h3>
+                </div>
+                <p className="text-sm leading-relaxed" style={{ color: '#64748B' }}>
+                  Сформируйте КП с реквизитами компании и техническими характеристиками — PDF скачается автоматически.
+                </p>
+                <button
+                  onClick={() => setShowKP(true)}
+                  className="btn-primary w-full flex items-center justify-center gap-2"
+                >
+                  <FileText size={15} />
+                  Получить КП (PDF)
+                </button>
+              </div>
+            </>
           )}
         </div>
       </div>
