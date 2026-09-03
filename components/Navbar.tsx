@@ -72,59 +72,52 @@ export default function Navbar({ previewDate }: { previewDate?: Date } = {}) {
         boxShadow: '0 2px 10px rgba(15,23,42,0.06)',
       }}
     >
-      {/* Top accent line — carries the season's colour */}
+      {/* Top strip — the season's colour, always. When there's a greeting
+          for the day it grows tall enough to hold that text; the row below
+          loses exactly as much vertical padding as the strip gains, so the
+          navbar's total height never changes either way. Doesn't touch the
+          logo/links/icons row at all, so it can't affect its width either. */}
       <div style={{
         position: 'relative',
         zIndex: 1,
-        height: 3,
+        height: badgeText ? 24 : 3,
+        display: badgeText ? 'flex' : undefined,
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 700,
+        letterSpacing: '0.02em',
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        padding: badgeText ? '0 12px' : undefined,
         background: `linear-gradient(90deg, ${season.strip[1]} 0%, ${season.strip[0]} 50%, ${season.strip[1]} 100%)`,
-      }} />
+      }}>
+        {badgeText}
+      </div>
 
       {/* Seasonal particles drift across the whole navbar, behind the logo/links */}
       <SeasonParticles kind={season.particle} rise={season.rise} />
 
       <div
-        className="max-w-[100rem] mx-auto px-6 flex items-center justify-between gap-4 py-3"
-        style={{ position: 'relative' }}
+        className="max-w-[100rem] mx-auto px-4 sm:px-6 flex items-center justify-between gap-4"
+        style={{ position: 'relative', paddingTop: badgeText ? 2 : 12, paddingBottom: badgeText ? 2 : 12 }}
       >
 
-        {/* Logo + holiday greeting — kept as one group so the row is still
-            exactly 3 shrink-0 blocks (logo group / links / icons), the
-            layout that stops links wrapping on narrower screens. The
-            greeting sits inline next to the logo rather than floating
-            above it, so the navbar's height never changes whether or not
-            there's a badge for the day. */}
-        <div className="flex items-center gap-3 shrink-0">
-          <Link href="/" className="flex items-center select-none">
-            <Image
-              src="/logo-full.png"
-              alt="Bes Saiman Group"
-              width={1600}
-              height={396}
-              priority
-              className="h-[82px] sm:h-[102px] w-auto"
-            />
-          </Link>
-
-          {badgeText && (
-            <div
-              className="hidden lg:flex items-center"
-              style={{
-                padding: '6px 14px',
-                borderRadius: 999,
-                background: `linear-gradient(135deg, ${season.solid}, ${season.strip[0]})`,
-                color: '#fff',
-                fontSize: 12,
-                fontWeight: 700,
-                letterSpacing: '0.01em',
-                whiteSpace: 'nowrap',
-                boxShadow: `0 4px 12px ${season.solid}38`,
-              }}
-            >
-              {badgeText}
-            </div>
-          )}
-        </div>
+        {/* Logo — noticeably smaller only below sm: at the full 82px it was
+            wider than a phone's own content area once the cart/hamburger
+            buttons sat next to it. */}
+        <Link href="/" className="flex items-center select-none shrink-0">
+          <Image
+            src="/logo-full.png"
+            alt="Bes Saiman Group"
+            width={1600}
+            height={396}
+            priority
+            className="h-12 sm:h-[102px] w-auto"
+          />
+        </Link>
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-1 lg:gap-1.5 shrink-0">
@@ -151,12 +144,13 @@ export default function Navbar({ previewDate }: { previewDate?: Date } = {}) {
 
         {/* Right side */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Social icons */}
+          {/* Social icons — desktop only; on mobile they'd crowd the logo
+              against the cart/hamburger, so they move into the dropdown. */}
           <a
             href="https://www.instagram.com/bes_saiman_group?igsh=MTFlb2F5ODlldDEwNg=="
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center w-11 h-11 rounded-lg transition-all"
+            className="hidden md:flex items-center justify-center w-11 h-11 rounded-lg transition-all"
             style={{ color: '#94A3B8', border: '1px solid transparent' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#E1306C'; (e.currentTarget as HTMLElement).style.border = '1px solid rgba(225,48,108,0.2)'; (e.currentTarget as HTMLElement).style.background = 'rgba(225,48,108,0.06)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#94A3B8'; (e.currentTarget as HTMLElement).style.border = '1px solid transparent'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
@@ -167,7 +161,7 @@ export default function Navbar({ previewDate }: { previewDate?: Date } = {}) {
             href="https://wa.me/77076202890"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center w-11 h-11 rounded-lg transition-all"
+            className="hidden md:flex items-center justify-center w-11 h-11 rounded-lg transition-all"
             style={{ color: '#94A3B8', border: '1px solid transparent' }}
             onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#25D366'; (e.currentTarget as HTMLElement).style.border = '1px solid rgba(37,211,102,0.2)'; (e.currentTarget as HTMLElement).style.background = 'rgba(37,211,102,0.06)' }}
             onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#94A3B8'; (e.currentTarget as HTMLElement).style.border = '1px solid transparent'; (e.currentTarget as HTMLElement).style.background = 'transparent' }}
@@ -191,8 +185,8 @@ export default function Navbar({ previewDate }: { previewDate?: Date } = {}) {
             )}
           </Link>
 
-          {/* Language */}
-          <div className="relative">
+          {/* Language — desktop only, same reason as the social icons */}
+          <div className="hidden md:block relative">
             <button
               onClick={() => setLangOpen(!langOpen)}
               className="flex items-center gap-1.5 px-4 py-2.5 text-[15px] font-mono font-semibold tracking-wider transition-colors"
@@ -242,7 +236,8 @@ export default function Navbar({ previewDate }: { previewDate?: Date } = {}) {
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile menu — also carries the social icons and language switcher
+          that don't fit in the top bar on a phone */}
       {menuOpen && (
         <div className="md:hidden px-4 pb-4 pt-2" style={{ borderTop: `1px solid ${season.edge}` }}>
           {links.map((link) => {
@@ -262,6 +257,45 @@ export default function Navbar({ previewDate }: { previewDate?: Date } = {}) {
               </Link>
             )
           })}
+
+          <div className="flex items-center justify-between gap-2 mt-2 pt-3 px-4"
+            style={{ borderTop: `1px solid ${season.edge}` }}>
+            <div className="flex items-center gap-1.5">
+              <a
+                href="https://www.instagram.com/bes_saiman_group?igsh=MTFlb2F5ODlldDEwNg=="
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 rounded-lg"
+                style={{ color: '#94A3B8', border: '1px solid #E2E8F0' }}
+              >
+                <InstagramIcon />
+              </a>
+              <a
+                href="https://wa.me/77076202890"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center w-10 h-10 rounded-lg"
+                style={{ color: '#94A3B8', border: '1px solid #E2E8F0' }}
+              >
+                <WhatsAppIcon />
+              </a>
+            </div>
+            <div className="flex items-center gap-1">
+              {LANGS.map((l) => (
+                <button
+                  key={l.code}
+                  onClick={() => setLang(l.code)}
+                  className="px-3 py-2 text-[13px] font-mono font-semibold tracking-wider rounded-md"
+                  style={{
+                    color: lang === l.code ? '#1565C0' : '#64748B',
+                    background: lang === l.code ? 'rgba(21,101,192,0.08)' : 'transparent',
+                  }}
+                >
+                  {l.label}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
     </nav>
