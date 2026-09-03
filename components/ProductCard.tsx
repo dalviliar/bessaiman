@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { ArrowRight, Package, Zap, ShoppingCart, Check } from 'lucide-react'
+import { ArrowRight, Package, Zap, ShoppingCart, Check, ClipboardCheck } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 import { useCart } from '@/context/CartContext'
 import { formatKzt } from '@/lib/format'
@@ -163,20 +163,29 @@ export default function ProductCard({ product }: { product: Product }) {
           </Link>
         </div>
 
-        {/* В корзину КП */}
-        <button
-          onClick={() => addItem(product)}
-          className="flex items-center justify-center gap-2 w-full py-2 rounded-lg text-sm font-semibold transition-all"
-          style={{
-            background: inCart ? '#F0FDF4' : '#EFF6FF',
-            border: `1.5px solid ${inCart ? '#BBF7D0' : '#BFDBFE'}`,
-            color: inCart ? '#16A34A' : '#1565C0',
-          }}>
-          {inCart
-            ? <><Check size={13} /> В корзине КП</>
-            : <><ShoppingCart size={13} /> В корзину КП</>
-          }
-        </button>
+        {/* Разработки по ТЗ — нет цены/количества/КП-корзины, ведём сразу
+            к опросному листу на странице товара вместо добавления в заявку */}
+        {product.product_type === 'I' ? (
+          <Link href={`/catalog/${product.slug}`}
+            className="flex items-center justify-center gap-2 w-full py-2 rounded-lg text-sm font-semibold transition-all"
+            style={{ background: '#EFF6FF', border: '1.5px solid #BFDBFE', color: '#1565C0' }}>
+            <ClipboardCheck size={13} /> Сформировать ТЗ
+          </Link>
+        ) : (
+          <button
+            onClick={() => addItem(product)}
+            className="flex items-center justify-center gap-2 w-full py-2 rounded-lg text-sm font-semibold transition-all"
+            style={{
+              background: inCart ? '#F0FDF4' : '#EFF6FF',
+              border: `1.5px solid ${inCart ? '#BBF7D0' : '#BFDBFE'}`,
+              color: inCart ? '#16A34A' : '#1565C0',
+            }}>
+            {inCart
+              ? <><Check size={13} /> В корзине КП</>
+              : <><ShoppingCart size={13} /> В корзину КП</>
+            }
+          </button>
+        )}
       </div>
     </div>
   )

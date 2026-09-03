@@ -32,15 +32,18 @@ const LANGS: { code: Lang; label: string }[] = [
   { code: 'en', label: 'EN' },
 ]
 
-export default function Navbar() {
+export default function Navbar({ previewDate }: { previewDate?: Date } = {}) {
   const { lang, setLang, tr } = useLang()
   const { totalItems } = useCart()
   const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
-  const [season] = useState(seasonTheme)
-  const [birthday] = useState(isCompanyBirthday)
-  const [age] = useState(companyAge)
+  // previewDate lets /season-preview render this same component pinned to a
+  // fixed date for each season, instead of only ever showing today's — kept
+  // optional so ordinary pages behave exactly as before.
+  const [season] = useState(() => seasonTheme(previewDate))
+  const [birthday] = useState(() => isCompanyBirthday(previewDate))
+  const [age] = useState(() => companyAge(previewDate))
 
   // The admin panel is a fixed full-screen overlay everywhere except its
   // login screen (which sits in normal document flow), so this is the one
