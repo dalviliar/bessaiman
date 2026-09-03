@@ -28,7 +28,7 @@ const THEMES: Record<Season, SeasonTheme> = {
   autumn:     { strip: ['#FBBF24', '#D97706'], solid: '#B45309', soft: '#FFFBEB', edge: '#FDE68A', particle: 'leaf' },
   birthday:   { strip: ['#38BDF8', '#1565C0'], solid: '#1565C0', soft: '#EFF6FF', edge: '#BFDBFE', particle: 'confetti' },
   womensDay:  { strip: ['#FBCFE8', '#EC4899'], solid: '#BE185D', soft: '#FDF2F8', edge: '#FBCFE8', particle: 'petal', badge: 'С 8 Марта' },
-  nauryz:     { strip: ['#FDE68A', '#16A34A'], solid: '#15803D', soft: '#F0FDF4', edge: '#BBF7D0', particle: 'tulip', badge: 'Наурыз мейрамы құтты болсын' },
+  nauryz:     { strip: ['#FDE68A', '#16A34A'], solid: '#15803D', soft: '#F0FDF4', edge: '#BBF7D0', particle: 'tulip', badge: 'Наурыз құтты болсын!' },
   scienceDay: { strip: ['#93C5FD', '#4F46E5'], solid: '#4338CA', soft: '#EEF2FF', edge: '#C7D2FE', particle: 'scienceSpark', badge: 'Ғылым күні' },
   newYear:    { strip: ['#FCA5A5', '#DC2626'], solid: '#B91C1C', soft: '#FEF2F2', edge: '#FECACA', particle: 'newYearSpark', badge: 'С Новым годом' },
 }

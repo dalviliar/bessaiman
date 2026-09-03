@@ -83,48 +83,48 @@ export default function Navbar({ previewDate }: { previewDate?: Date } = {}) {
       {/* Seasonal particles drift across the whole navbar, behind the logo/links */}
       <SeasonParticles kind={season.particle} rise={season.rise} />
 
-      {badgeText && (
-        <div
-          style={{
-            position: 'absolute',
-            left: '50%',
-            top: 3,
-            transform: 'translateX(-50%)',
-            zIndex: 2,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '5px 14px',
-            borderRadius: 999,
-            background: `linear-gradient(135deg, ${season.solid}, ${season.strip[0]})`,
-            color: '#fff',
-            fontSize: 12,
-            fontWeight: 700,
-            letterSpacing: '0.01em',
-            boxShadow: `0 6px 16px ${season.solid}59`,
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {badgeText}
-        </div>
-      )}
-
       <div
         className="max-w-[100rem] mx-auto px-6 flex items-center justify-between gap-4 py-3"
-        style={{ position: 'relative', paddingTop: badgeText ? 36 : undefined }}
+        style={{ position: 'relative' }}
       >
 
-        {/* Logo */}
-        <Link href="/" className="flex items-center select-none shrink-0">
-          <Image
-            src="/logo-full.png"
-            alt="Bes Saiman Group"
-            width={1600}
-            height={396}
-            priority
-            className="h-[82px] sm:h-[102px] w-auto"
-          />
-        </Link>
+        {/* Logo + holiday greeting — kept as one group so the row is still
+            exactly 3 shrink-0 blocks (logo group / links / icons), the
+            layout that stops links wrapping on narrower screens. The
+            greeting sits inline next to the logo rather than floating
+            above it, so the navbar's height never changes whether or not
+            there's a badge for the day. */}
+        <div className="flex items-center gap-3 shrink-0">
+          <Link href="/" className="flex items-center select-none">
+            <Image
+              src="/logo-full.png"
+              alt="Bes Saiman Group"
+              width={1600}
+              height={396}
+              priority
+              className="h-[82px] sm:h-[102px] w-auto"
+            />
+          </Link>
+
+          {badgeText && (
+            <div
+              className="hidden lg:flex items-center"
+              style={{
+                padding: '6px 14px',
+                borderRadius: 999,
+                background: `linear-gradient(135deg, ${season.solid}, ${season.strip[0]})`,
+                color: '#fff',
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: '0.01em',
+                whiteSpace: 'nowrap',
+                boxShadow: `0 4px 12px ${season.solid}38`,
+              }}
+            >
+              {badgeText}
+            </div>
+          )}
+        </div>
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-1 lg:gap-1.5 shrink-0">

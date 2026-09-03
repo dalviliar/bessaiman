@@ -11,6 +11,10 @@ interface ParticleSpec {
   dx: number
   rot: number
   maple?: boolean
+  // Snowflakes only: scale gives near/far depth variation (bigger = closer,
+  // sharper), glint marks the ones that catch a highlight like real ice.
+  scale?: number
+  glint?: boolean
 }
 
 const MAPLE_PATH =
@@ -27,17 +31,16 @@ const LEAF_VEINS =
   'M12,4.5 L12,20.5 M12,8 L16,11 M12,8 L8,11 M12,12.5 L15.5,15 M12,12.5 L8.5,15 M12,16.5 L14.5,18.5 M12,16.5 L9.5,18.5'
 const LEAF_STEM = 'M12,22.5 C12,23.5 12.3,24.3 13,25'
 
-// Drawn snowflake — six branches with small V-ticks, instead of the ❄ text
-// glyph (which rendered inconsistently across fonts/platforms).
-const SNOWFLAKE_SIZE = 17
-const SNOWFLAKE_LINES =
-  'M12,1 L12,23 M2.5,6.5 L21.5,17.5 M2.5,17.5 L21.5,6.5' +
-  ' M12,6 L9.3,4.2 M12,6 L14.7,4.2' +
-  ' M12,18 L9.3,19.8 M12,18 L14.7,19.8' +
-  ' M6.75,9 L4.3,8.4 M6.75,9 L4.9,11.2' +
-  ' M17.25,15 L19.7,15.6 M17.25,15 L19.1,12.8' +
-  ' M6.75,15 L4.3,15.6 M6.75,15 L4.9,12.8' +
-  ' M17.25,9 L19.7,8.4 M17.25,9 L19.1,11.2'
+// Drawn snowflake — one fern-like dendrite arm, repeated six times by
+// rotation, matching how a real ice crystal branches. Replaces both the
+// old ❄ text glyph and the plainer six-line cross used before.
+const SNOWFLAKE_BASE = 18
+const SNOWFLAKE_ARM =
+  'M12,12 L12,2' +
+  ' M12,9.4 L9.6,7.5 M12,9.4 L14.4,7.5' +
+  ' M12,6.8 L10.3,5.3 M12,6.8 L13.7,5.3' +
+  ' M12,4.2 L11,3.3 M12,4.2 L13,3.3'
+const SNOWFLAKE_ANGLES = [0, 60, 120, 180, 240, 300]
 
 // Tulip — a rounded three-petal cup on a stem with one small leaf, for
 // Наурыз (the flower most associated with the holiday in Kazakhstan).
@@ -53,7 +56,7 @@ const SPARK_PATH =
   'M12,1 C12.6,7.2 13.4,10.6 23,12 C13.4,13.4 12.6,16.8 12,23 C11.4,16.8 10.6,13.4 1,12 C10.6,10.6 11.4,7.2 12,1 Z'
 
 const COUNTS: Record<ParticleKind, number> = {
-  snowflake: 18,
+  snowflake: 24,
   petal: 16,
   bubble: 16,
   leaf: 16,
@@ -80,9 +83,9 @@ const PARTICLE_STYLES: Partial<Record<ParticleKind, CSSProperties>> = {
 }
 
 // Kinds rendered as SVG (drawn shapes) rather than a plain CSS box —
-// sizing for these lives in SVG_SIZE, not PARTICLE_STYLES.
+// sizing for these lives in SVG_SIZE, not PARTICLE_STYLES. Snowflakes size
+// themselves per-particle (see p.scale) so they're handled separately.
 const SVG_SIZE: Partial<Record<ParticleKind, number>> = {
-  snowflake: SNOWFLAKE_SIZE,
   leaf: LEAF_SIZE,
   tulip: TULIP_SIZE,
   scienceSpark: SPARK_SIZE,
@@ -98,6 +101,8 @@ function generate(count: number, kind: ParticleKind): ParticleSpec[] {
     dx: Math.round(Math.random() * 40 - 20),
     rot: Math.round(Math.random() * 200 - 100),
     maple: kind === 'leaf' ? Math.random() < 0.5 : undefined,
+    scale: kind === 'snowflake' ? 0.6 + Math.random() * 0.9 : undefined,
+    glint: kind === 'snowflake' ? Math.random() < 0.3 : undefined,
   }))
 }
 
@@ -115,7 +120,7 @@ export default function SeasonParticles({ kind, rise }: { kind: ParticleKind; ri
 
   if (!particles) return null
 
-  const svgSize = kind === 'leaf' ? undefined : SVG_SIZE[kind]
+  const svgSize = kind === 'leaf' || kind === 'snowflake' ? undefined : SVG_SIZE[kind]
 
   return (
     <div
@@ -145,9 +150,24 @@ export default function SeasonParticles({ kind, rise }: { kind: ParticleKind; ri
             <stop offset="0" stopColor="#fecaca" />
             <stop offset="1" stopColor="#b91c1c" />
           </linearGradient>
+          <radialGradient id="snowflakeGrad" cx="50%" cy="50%" r="70%">
+            <stop offset="0" stopColor="#ffffff" />
+            <stop offset="1" stopColor="#d6f1ff" />
+          </radialGradient>
+          <radialGradient id="snowGlint" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stopColor="#ffffff" stopOpacity="0.9" />
+            <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
+          </radialGradient>
         </defs>
       </svg>
-      {particles.map(p => (
+      {particles.map(p => {
+        // Bigger snowflakes read as closer/sharper, smaller ones as farther
+        // and softer — the depth cue that makes a snow flurry feel real.
+        const snowSize = kind === 'snowflake' ? Math.round(SNOWFLAKE_BASE * (p.scale ?? 1)) : undefined
+        const snowOpacity = kind === 'snowflake'
+          ? Math.min(1, Math.max(0.45, 0.45 + 0.55 * (((p.scale ?? 1) - 0.6) / 0.9)))
+          : undefined
+        return (
         <div
           key={p.id}
           className={rise ? 'season-particle season-particle-rise' : 'season-particle season-particle-drift'}
@@ -163,6 +183,8 @@ export default function SeasonParticles({ kind, rise }: { kind: ParticleKind; ri
             background: kind === 'confetti' ? CONFETTI_COLORS[p.id % CONFETTI_COLORS.length] : undefined,
             ...(kind === 'leaf'
               ? { width: p.maple ? 36 : LEAF_SIZE, height: p.maple ? 36 : LEAF_SIZE }
+              : kind === 'snowflake'
+              ? { width: snowSize, height: snowSize, opacity: snowOpacity }
               : svgSize
               ? { width: svgSize, height: svgSize }
               : PARTICLE_STYLES[kind]),
@@ -184,9 +206,23 @@ export default function SeasonParticles({ kind, rise }: { kind: ParticleKind; ri
             )
           )}
           {kind === 'snowflake' && (
-            <svg viewBox="0 0 24 24" width={SNOWFLAKE_SIZE} height={SNOWFLAKE_SIZE}
-              style={{ filter: 'drop-shadow(0 0 2px rgba(255,255,255,0.85))' }}>
-              <path d={SNOWFLAKE_LINES} stroke="#fff" strokeWidth={1.4} strokeLinecap="round" fill="none" />
+            <svg viewBox="0 0 24 24" width={snowSize} height={snowSize}
+              style={{
+                filter: `drop-shadow(0 0 2px rgba(255,255,255,0.8))${(p.scale ?? 1) < 0.85 ? ' blur(0.4px)' : ''}`,
+              }}>
+              {p.glint && <circle cx="12" cy="12" r="4" fill="url(#snowGlint)" />}
+              {SNOWFLAKE_ANGLES.map(deg => (
+                <path
+                  key={deg}
+                  d={SNOWFLAKE_ARM}
+                  stroke="url(#snowflakeGrad)"
+                  strokeWidth={1.3}
+                  strokeLinecap="round"
+                  fill="none"
+                  transform={`rotate(${deg} 12 12)`}
+                />
+              ))}
+              <circle cx="12" cy="12" r="1.1" fill="#fff" />
             </svg>
           )}
           {kind === 'tulip' && (
@@ -207,7 +243,8 @@ export default function SeasonParticles({ kind, rise }: { kind: ParticleKind; ri
             </svg>
           )}
         </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
