@@ -7,11 +7,15 @@ import Navbar from '@/components/Navbar'
 // for the calendar to actually reach each one. Same pattern as the old
 // style-a..h prototype pages, just for this instead of hero-layout drafts.
 const VARIANTS: { label: string; hint: string; date: Date }[] = [
-  { label: 'Зима',            hint: 'декабрь – февраль, снежинки',            date: new Date(2026, 0, 15) },
-  { label: 'Весна',           hint: 'март – май, лепестки',                   date: new Date(2026, 3, 15) },
-  { label: 'Лето',            hint: 'июнь – август, пузырьки плывут вверх',   date: new Date(2026, 6, 15) },
-  { label: 'Осень',           hint: 'сентябрь – ноябрь, листья (два вида)',   date: new Date(2026, 9, 15) },
+  { label: 'Зима',            hint: 'декабрь – февраль, снежинки',             date: new Date(2026, 0, 15) },
+  { label: 'Весна',           hint: 'март – май, лепестки',                    date: new Date(2026, 3, 15) },
+  { label: 'Лето',            hint: 'июнь – август, пузырьки плывут вверх',    date: new Date(2026, 6, 15) },
+  { label: 'Осень',           hint: 'сентябрь – ноябрь, листья (два вида)',    date: new Date(2026, 9, 15) },
+  { label: '8 Марта',         hint: '8 марта, лепестки и бейдж-поздравление',  date: new Date(2026, 2, 8) },
+  { label: 'Наурыз',          hint: '22 марта, тюльпаны и бейдж-поздравление', date: new Date(2026, 2, 22) },
   { label: 'День рождения',   hint: '26 апреля любого года, конфетти + бейдж', date: new Date(2026, 3, 26) },
+  { label: 'Ғылым күні',      hint: '12 апреля, искры и бейдж-поздравление',   date: new Date(2026, 3, 12) },
+  { label: 'Новый год',       hint: '31 декабря, искры и бейдж-поздравление',  date: new Date(2026, 11, 31) },
 ]
 
 export default function SeasonPreviewPage() {
@@ -21,9 +25,9 @@ export default function SeasonPreviewPage() {
         <p className="text-sm font-mono tracking-widest" style={{ color: '#1565C0' }}>ВНУТРЕННЯЯ СТРАНИЦА</p>
         <h1 className="text-2xl font-black mt-1" style={{ color: '#0F172A' }}>Все варианты шапки сайта</h1>
         <p className="text-base mt-2 max-w-2xl" style={{ color: '#64748B' }}>
-          Шапка выше — та, что реально сейчас на сайте сегодня. Ниже — все остальные варианты,
-          которые уже есть в коде и включаются сами по календарю: не нужно ничего ждать, чтобы
-          посмотреть, как будет выглядеть зимой, летом или 26 апреля.
+          Шапка на сайте сейчас показывает сегодняшний вариант. Здесь собраны все остальные,
+          они уже есть в коде и включаются сами по календарю. Ждать наступления даты не нужно,
+          можно сразу посмотреть, как будет выглядеть зимой, летом или в любой праздник.
         </p>
       </div>
 
@@ -41,8 +45,8 @@ export default function SeasonPreviewPage() {
 
       <div className="max-w-5xl mx-auto px-6">
         <p className="text-sm" style={{ color: '#94A3B8' }}>
-          Хотите добавить тему под конкретное событие (праздник, дату компании и т.п.) — скажите,
-          какое и на какую дату, добавлю сюда же для предпросмотра перед тем, как включать на сайте.
+          Нужна тема под ещё одно событие, праздник или дату компании? Скажите какое и на какое
+          число, добавлю сюда же для предпросмотра перед тем, как включать на сайте.
         </p>
       </div>
     </div>

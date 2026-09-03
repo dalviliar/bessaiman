@@ -44,6 +44,9 @@ export default function Navbar({ previewDate }: { previewDate?: Date } = {}) {
   const [season] = useState(() => seasonTheme(previewDate))
   const [birthday] = useState(() => isCompanyBirthday(previewDate))
   const [age] = useState(() => companyAge(previewDate))
+  // Birthday needs a computed age mixed into its text, every other special
+  // day just shows its fixed season.badge — one pill covers both.
+  const badgeText = birthday ? `${age} ${tr.nav.birthday}` : season.badge
 
   // The admin panel is a fixed full-screen overlay everywhere except its
   // login screen (which sits in normal document flow), so this is the one
@@ -80,7 +83,7 @@ export default function Navbar({ previewDate }: { previewDate?: Date } = {}) {
       {/* Seasonal particles drift across the whole navbar, behind the logo/links */}
       <SeasonParticles kind={season.particle} rise={season.rise} />
 
-      {birthday && (
+      {badgeText && (
         <div
           style={{
             position: 'absolute',
@@ -91,24 +94,24 @@ export default function Navbar({ previewDate }: { previewDate?: Date } = {}) {
             display: 'flex',
             alignItems: 'center',
             gap: 6,
-            padding: '5px 12px 5px 9px',
+            padding: '5px 14px',
             borderRadius: 999,
-            background: 'linear-gradient(135deg, #1565c0, #0ea5e9)',
+            background: `linear-gradient(135deg, ${season.solid}, ${season.strip[0]})`,
             color: '#fff',
             fontSize: 12,
             fontWeight: 700,
             letterSpacing: '0.01em',
-            boxShadow: '0 6px 16px rgba(21,101,192,0.35)',
+            boxShadow: `0 6px 16px ${season.solid}59`,
             whiteSpace: 'nowrap',
           }}
         >
-          🎉 {age} {tr.nav.birthday}
+          {badgeText}
         </div>
       )}
 
       <div
         className="max-w-[100rem] mx-auto px-6 flex items-center justify-between gap-4 py-3"
-        style={{ position: 'relative', paddingTop: birthday ? 36 : undefined }}
+        style={{ position: 'relative', paddingTop: badgeText ? 36 : undefined }}
       >
 
         {/* Logo */}
