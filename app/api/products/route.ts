@@ -29,7 +29,7 @@ export async function GET(request: Request) {
      FROM products p
      LEFT JOIN categories c ON c.id = p.category_id
      ${where}
-     ORDER BY p.category_id, p.sort_order ASC, p.classification_code ASC, p.name_ru ASC`,
+     ORDER BY c.sort_order ASC NULLS LAST, p.sort_order ASC, p.classification_code ASC, p.name_ru ASC`,
     params,
   )
   return NextResponse.json(products)

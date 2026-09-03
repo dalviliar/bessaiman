@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState, useMemo, Suspense } from 'react'
+import { useEffect, useState, useMemo, useRef, Suspense } from 'react'
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
-import { Search, X, Flame, Cog, Wind, Zap, Package, Wrench, ChevronRight, type LucideIcon } from 'lucide-react'
+import { Search, X, Flame, Cog, Wind, Zap, Package, Wrench, ChevronRight, ChevronLeft, type LucideIcon } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 import ProductCard from '@/components/ProductCard'
 import { getCategories, getProducts } from '@/lib/supabase'
@@ -135,6 +135,21 @@ function AttrFilterRow({
 // shipped photo, replaced by whatever the admin uploads
 const HERO_FALLBACK = '/images/catalog-hero-lab.jpg'
 
+const PAGE_SIZE = 12
+
+// Compact page list: always show first/last, current ±1, "…" for the gaps
+function pageNumbers(current: number, total: number): (number | '…')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const pages = new Set([1, total, current, current - 1, current + 1])
+  const sorted = Array.from(pages).filter(n => n >= 1 && n <= total).sort((a, b) => a - b)
+  const result: (number | '…')[] = []
+  sorted.forEach((n, i) => {
+    if (i > 0 && n - (sorted[i - 1] as number) > 1) result.push('…')
+    result.push(n)
+  })
+  return result
+}
+
 // ── Основной компонент ────────────────────────────────────────────
 function CatalogContent() {
   const { lang, tr } = useLang()
@@ -156,6 +171,8 @@ function CatalogContent() {
   const [selSubcat,   setSelSubcat]   = useState('')
   const [selAttrs,    setSelAttrs]    = useState<Record<string, string>>({})
   const [searchQuery, setSearchQuery] = useState('')
+  const [page,        setPage]        = useState(1)
+  const gridTopRef = useRef<HTMLDivElement>(null)
 
   // Загружаем всё один раз
   useEffect(() => {
@@ -250,6 +267,21 @@ function CatalogContent() {
       (p.description_ru?.toLowerCase().includes(q) ?? false)
     )
   }, [byAttrs, allProducts, searchQuery])
+
+  // Any filter or search change starts back at page 1 — otherwise you can
+  // land on an empty page 4 after narrowing the results down.
+  useEffect(() => { setPage(1) }, [selType, selCat, selSubcat, selAttrs, searchQuery])
+
+  const pageCount = Math.max(1, Math.ceil(finalProducts.length / PAGE_SIZE))
+  const pagedProducts = useMemo(
+    () => finalProducts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [finalProducts, page]
+  )
+
+  const goToPage = (n: number) => {
+    setPage(Math.min(Math.max(1, n), pageCount))
+    gridTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   // ── Подсчёты для чипов ─────────────────────────────────────────
   const typeCount = (key: string) =>
@@ -436,6 +468,7 @@ function CatalogContent() {
         </div>
 
         {/* ═══ Сетка товаров ═══════════════════════════════════════ */}
+        <div ref={gridTopRef} />
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {Array.from({ length: 8 }).map((_, i) => (
@@ -454,9 +487,52 @@ function CatalogContent() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {finalProducts.map(p => <ProductCard key={p.id} product={p} />)}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {pagedProducts.map(p => <ProductCard key={p.id} product={p} />)}
+            </div>
+
+            {pageCount > 1 && (
+              <div className="flex items-center justify-center gap-1.5 mt-10">
+                <button
+                  onClick={() => goToPage(page - 1)}
+                  disabled={page === 1}
+                  className="flex items-center justify-center w-9 h-9 rounded-lg transition-all disabled:opacity-40"
+                  style={{ background: 'white', border: '1.5px solid #E2E8F0', color: '#64748B' }}
+                >
+                  <ChevronLeft size={16} />
+                </button>
+
+                {pageNumbers(page, pageCount).map((n, i) =>
+                  n === '…' ? (
+                    <span key={`e${i}`} className="px-1.5 text-base" style={{ color: '#CBD5E1' }}>…</span>
+                  ) : (
+                    <button
+                      key={n}
+                      onClick={() => goToPage(n)}
+                      className="flex items-center justify-center min-w-9 h-9 px-2 rounded-lg text-base font-semibold transition-all"
+                      style={{
+                        background: n === page ? '#1565C0' : 'white',
+                        border: `1.5px solid ${n === page ? '#1565C0' : '#E2E8F0'}`,
+                        color: n === page ? 'white' : '#475569',
+                      }}
+                    >
+                      {n}
+                    </button>
+                  )
+                )}
+
+                <button
+                  onClick={() => goToPage(page + 1)}
+                  disabled={page === pageCount}
+                  className="flex items-center justify-center w-9 h-9 rounded-lg transition-all disabled:opacity-40"
+                  style={{ background: 'white', border: '1.5px solid #E2E8F0', color: '#64748B' }}
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
