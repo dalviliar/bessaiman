@@ -50,7 +50,7 @@ export default function PriceCalculator({ product }: { product: Product }) {
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
             }}>
               <span style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', lineHeight: 1 }}>{qty}</span>
-              <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>шт.</span>
+              <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>{tr.product.units}</span>
             </div>
             <button onClick={() => setQty(q => q + 1)} style={{
               width: 46, height: 50, flexShrink: 0,
@@ -77,7 +77,7 @@ export default function PriceCalculator({ product }: { product: Product }) {
             transition: 'all 0.25s',
           }}>
             {added ? <Check size={16} /> : <ShoppingCart size={16} />}
-            {added ? 'Добавлено!' : tr.product.addToRequest}
+            {added ? tr.product.added : tr.product.addToRequest}
           </button>
         </div>
       </div>
@@ -145,7 +145,7 @@ export default function PriceCalculator({ product }: { product: Product }) {
             <span style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', lineHeight: 1 }}>
               {qty}
             </span>
-            <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>шт.</span>
+            <span style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>{tr.product.units}</span>
           </div>
 
           {/* Plus */}
@@ -180,10 +180,10 @@ export default function PriceCalculator({ product }: { product: Product }) {
           </div>
           <div>
             <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#92400E' }}>
-              Скидка при заказе от {bulkQty} шт. — {discountPct}%
+              {tr.product.bulkDiscountLine.replace('{qty}', String(bulkQty)).replace('{pct}', String(discountPct))}
             </p>
             <p style={{ margin: 0, fontSize: 11, color: '#B45309' }}>
-              Экономия {(basePrice - basePrice * (1 - discountPct / 100)).toLocaleString('ru-RU')} ₸ за единицу
+              {tr.product.savingsPerUnit.replace('{amount}', (basePrice - basePrice * (1 - discountPct / 100)).toLocaleString('ru-RU'))}
             </p>
           </div>
         </div>
@@ -201,10 +201,10 @@ export default function PriceCalculator({ product }: { product: Product }) {
           </div>
           <div>
             <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: '#065F46' }}>
-              Скидка {discountPct}% применена
+              {tr.product.discountApplied.replace('{pct}', String(discountPct))}
             </p>
             <p style={{ margin: 0, fontSize: 11, color: '#047857' }}>
-              Вы экономите {savings.toLocaleString('ru-RU')} ₸
+              {tr.product.youSave.replace('{amount}', savings.toLocaleString('ru-RU'))}
             </p>
           </div>
         </div>
@@ -255,7 +255,7 @@ export default function PriceCalculator({ product }: { product: Product }) {
             transition: 'all 0.25s',
           }}>
           {added ? <Check size={16} /> : <ShoppingCart size={16} />}
-          {added ? 'Добавлено!' : tr.product.addToRequest}
+          {added ? tr.product.added : tr.product.addToRequest}
         </button>
       </div>
     </div>

@@ -339,7 +339,7 @@ export default function HomePage() {
                       )}
                       <div className="absolute inset-0" style={{
                         background: post.image_url
-                          ? 'linear-gradient(to top, rgba(10,20,40,0.92) 0%, rgba(10,20,40,0.5) 55%, rgba(10,20,40,0.1) 100%)'
+                          ? 'linear-gradient(to top, rgba(8,15,30,0.78) 0%, rgba(8,15,30,0.4) 45%, rgba(8,15,30,0) 75%)'
                           : 'none',
                       }} />
                       <div className="absolute top-0 left-0 right-0 h-1"
@@ -352,17 +352,17 @@ export default function HomePage() {
                           </span>
                         </div>
                         <h3 className="font-black leading-tight mb-2 text-white"
-                          style={{ fontSize: 'clamp(1rem,2.5vw,1.4rem)', textShadow: '0 2px 12px rgba(0,0,0,0.4)' }}>
+                          style={{ fontSize: 'clamp(1rem,2.5vw,1.4rem)', textShadow: '0 2px 14px rgba(0,0,0,0.65), 0 1px 3px rgba(0,0,0,0.8)' }}>
                           {postTitle(post)}
                         </h3>
                         {postContent(post) && (
                           <p className="text-base leading-relaxed line-clamp-2 mb-4"
-                            style={{ color: 'rgba(255,255,255,0.75)' }}>
+                            style={{ color: 'rgba(255,255,255,0.85)', textShadow: '0 1px 6px rgba(0,0,0,0.6)' }}>
                             {postContent(post)}
                           </p>
                         )}
                         <div className="flex items-center gap-3">
-                          <span className="text-[13px] font-mono" style={{ color: 'rgba(255,255,255,0.45)' }}>
+                          <span className="text-[13px] font-mono" style={{ color: 'rgba(255,255,255,0.65)', textShadow: '0 1px 4px rgba(0,0,0,0.6)' }}>
                             {post.published_at
                               ? new Date(post.published_at).toLocaleDateString('ru-RU', { day: '2-digit', month: 'long', year: 'numeric' })
                               : ''}

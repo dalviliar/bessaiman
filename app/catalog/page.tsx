@@ -416,7 +416,7 @@ function CatalogContent() {
             <div className="flex items-center gap-2 mb-3">
               <ChevronRight size={12} style={{ color: '#CBD5E1' }} />
               <p className="text-[11px] font-mono font-bold tracking-[0.2em] uppercase" style={{ color: '#94A3B8' }}>
-                ПАРАМЕТРЫ
+                {tr.catalog.paramsLabel}
               </p>
             </div>
             <div className="flex flex-col gap-2.5">
@@ -483,7 +483,7 @@ function CatalogContent() {
               {tr.catalog.noProducts}
             </p>
             <p className="text-base" style={{ color: '#94A3B8' }}>
-              Попробуйте изменить фильтры
+              {tr.catalog.noResultsHint}
             </p>
           </div>
         ) : (

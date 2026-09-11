@@ -6,19 +6,23 @@ import { ArrowRight, Package, Zap, ShoppingCart, Check, ClipboardCheck } from 'l
 import { useLang } from '@/context/LanguageContext'
 import { useCart } from '@/context/CartContext'
 import { formatKzt } from '@/lib/format'
+import type { Translations } from '@/lib/translations'
 import type { Product } from '@/types'
 
-const TYPE_META = {
-  S:  { label: 'Серийный' },
-  PA: { label: 'Комплектующие' },
-  PP: { label: 'Для сборки' },
-  I:  { label: 'Разработки по ТЗ' },
+function typeLabel(tr: Translations, type: string | null): string {
+  switch (type) {
+    case 'S':  return tr.product.typeBadgeSerial
+    case 'PA': return tr.catalog.typeAccessories
+    case 'PP': return tr.product.typeBadgeAssembly
+    case 'I':  return tr.catalog.typeCustom
+    default:   return tr.product.typeBadgeSerial
+  }
 }
 
-const AVAIL_META = {
-  in_stock:    { dot: '#10B981', label: 'В наличии' },
-  on_order:    { dot: '#D97706', label: 'Под заказ' },
-  out_of_stock:{ dot: '#EF4444', label: 'Нет в наличии' },
+function availMeta(tr: Translations, status: Product['availability']) {
+  const dots = { in_stock: '#10B981', on_order: '#D97706', out_of_stock: '#EF4444' }
+  const labels = { in_stock: tr.catalog.inStock, on_order: tr.catalog.onOrder, out_of_stock: tr.catalog.outOfStock }
+  return { dot: dots[status], label: labels[status] }
 }
 
 // Admin-entered spec keys drift slightly between products (extra spaces, "ё" vs
@@ -59,8 +63,8 @@ export default function ProductCard({ product }: { product: Product }) {
   const { addItem, isInCart } = useCart()
   const name = product[`name_${lang}` as 'name_ru' | 'name_kk' | 'name_en'] || product.name_ru
   const image = product.images?.[0]
-  const typeMeta = (TYPE_META as Record<string, { label: string }>)[product.product_type ?? 'S'] ?? TYPE_META.S
-  const availMeta = AVAIL_META[product.availability]
+  const typeMetaLabel = typeLabel(tr, product.product_type)
+  const avail = availMeta(tr, product.availability)
   const keySpecs = getKeySpecs(product.specs, product.classification_code, product.featured_specs)
   const inCart = isInCart(product.id)
 
@@ -99,7 +103,7 @@ export default function ProductCard({ product }: { product: Product }) {
           {/* Type badge — top right */}
           <div className="absolute top-3 right-3 text-[11px] font-bold px-2 py-0.5 rounded-full"
             style={{ background: '#F1F5F9', color: '#475569', border: '1px solid #E2E8F0' }}>
-            {typeMeta.label}
+            {typeMetaLabel}
           </div>
 
           {/* Hover overlay */}
@@ -116,7 +120,7 @@ export default function ProductCard({ product }: { product: Product }) {
           {product.model && (
             <div className="flex items-center gap-1.5 min-w-0">
               <span className="text-[11px] font-mono font-semibold shrink-0"
-                style={{ color: '#94A3B8' }}>Арт.:</span>
+                style={{ color: '#94A3B8' }}>{tr.product.model}:</span>
               <span className="font-mono text-[12px] font-bold tracking-wider truncate"
                 style={{ color: '#0284C7' }}>
                 {product.model}
@@ -124,8 +128,8 @@ export default function ProductCard({ product }: { product: Product }) {
             </div>
           )}
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <div className="w-1.5 h-1.5 rounded-full" style={{ background: availMeta.dot }} />
-            <span className="text-[11px] font-mono" style={{ color: '#64748B' }}>{availMeta.label}</span>
+            <div className="w-1.5 h-1.5 rounded-full" style={{ background: avail.dot }} />
+            <span className="text-[11px] font-mono" style={{ color: '#64748B' }}>{avail.label}</span>
           </div>
         </div>
 
@@ -169,7 +173,7 @@ export default function ProductCard({ product }: { product: Product }) {
           <Link href={`/catalog/${product.slug}`}
             className="flex items-center justify-center gap-2 w-full py-2 rounded-lg text-sm font-semibold transition-all"
             style={{ background: '#EFF6FF', border: '1.5px solid #BFDBFE', color: '#1565C0' }}>
-            <ClipboardCheck size={13} /> Сформировать ТЗ
+            <ClipboardCheck size={13} /> {tr.product.formSpec}
           </Link>
         ) : (
           <button
@@ -181,8 +185,8 @@ export default function ProductCard({ product }: { product: Product }) {
               color: inCart ? '#16A34A' : '#1565C0',
             }}>
             {inCart
-              ? <><Check size={13} /> В корзине КП</>
-              : <><ShoppingCart size={13} /> В корзину КП</>
+              ? <><Check size={13} /> {tr.product.inCartKp}</>
+              : <><ShoppingCart size={13} /> {tr.product.addToCartKp}</>
             }
           </button>
         )}

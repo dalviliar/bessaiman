@@ -67,6 +67,7 @@ function AvailabilityBadge({ status }: { status: Product['availability'] }) {
 }
 
 function ImageGallery({ images, name, videoUrl }: { images: string[]; name: string; videoUrl?: string | null }) {
+  const { tr } = useLang()
   const [current, setCurrent] = useState(0)
   const [showVideo, setShowVideo] = useState(false)
 
@@ -147,7 +148,7 @@ function ImageGallery({ images, name, videoUrl }: { images: string[]; name: stri
           {videoId && (
             <button
               onClick={() => setShowVideo(true)}
-              title="Смотреть видео"
+              title={tr.product.watchVideo}
               className="relative shrink-0 rounded-xl overflow-hidden transition-all duration-200"
               style={{
                 width: 80, height: 80,
@@ -354,17 +355,17 @@ export default function ProductDetailPage() {
                   <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: '#DBEAFE' }}>
                     <FileText size={13} style={{ color: '#1565C0' }} />
                   </div>
-                  <h3 className="text-[#0F172A] font-semibold text-base">Коммерческое предложение</h3>
+                  <h3 className="text-[#0F172A] font-semibold text-base">{tr.product.kpTitle}</h3>
                 </div>
                 <p className="text-sm leading-relaxed" style={{ color: '#64748B' }}>
-                  Сформируйте КП с реквизитами компании и техническими характеристиками — PDF скачается автоматически.
+                  {tr.product.kpDesc}
                 </p>
                 <button
                   onClick={() => setShowKP(true)}
                   className="btn-primary w-full flex items-center justify-center gap-2"
                 >
                   <FileText size={15} />
-                  Получить КП (PDF)
+                  {tr.product.kpButton}
                 </button>
               </div>
             </>

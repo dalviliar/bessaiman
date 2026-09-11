@@ -1,9 +1,11 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
+import { useLang } from '@/context/LanguageContext'
 
 export default function WhatsAppFloat() {
   const pathname = usePathname()
+  const { tr } = useLang()
 
   // See Navbar.tsx — the admin login screen is the one admin route not
   // covered by the panel's own fixed full-screen shell.
@@ -14,7 +16,7 @@ export default function WhatsAppFloat() {
       href="https://wa.me/77076202890"
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Написать в WhatsApp"
+      aria-label={tr.common.whatsappAria}
       className="fixed z-50 flex items-center justify-center transition-all duration-200 group"
       style={{
         bottom: 24,

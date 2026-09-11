@@ -438,7 +438,7 @@ function NaukaPageInner() {
             style={{ background: 'rgba(15,23,42,0.6)' }} onClick={() => setActive(null)}>
             <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto rounded-2xl"
               style={{ background: 'white' }} onClick={e => e.stopPropagation()}>
-              <button onClick={() => setActive(null)} aria-label="Закрыть"
+              <button onClick={() => setActive(null)} aria-label={tr.nauka.closeGallery}
                 className="absolute top-4 right-4 w-9 h-9 rounded-full flex items-center justify-center z-10 transition-colors hover:opacity-80"
                 style={{ background: 'rgba(15,23,42,0.06)' }}>
                 <X size={16} style={{ color: '#0F172A' }} />
@@ -451,12 +451,12 @@ function NaukaPageInner() {
                       className="w-full h-full object-contain" />
                     {active.images.length > 1 && (
                       <>
-                        <button onClick={() => setShot(s => (s - 1 + active.images.length) % active.images.length)} aria-label="Предыдущее фото"
+                        <button onClick={() => setShot(s => (s - 1 + active.images.length) % active.images.length)} aria-label={tr.nauka.prevPhoto}
                           className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-transform hover:scale-110"
                           style={{ background: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}>
                           <ChevronLeft size={17} style={{ color: '#0F172A' }} />
                         </button>
-                        <button onClick={() => setShot(s => (s + 1) % active.images.length)} aria-label="Следующее фото"
+                        <button onClick={() => setShot(s => (s + 1) % active.images.length)} aria-label={tr.nauka.nextPhoto}
                           className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-transform hover:scale-110"
                           style={{ background: 'rgba(255,255,255,0.92)', boxShadow: '0 2px 10px rgba(0,0,0,0.15)' }}>
                           <ChevronRight size={17} style={{ color: '#0F172A' }} />
