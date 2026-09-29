@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS products (
   barcode                text UNIQUE,
   images                 text[] DEFAULT '{}',
   specs                  jsonb,
+  specs_i18n             json,
   product_type           text DEFAULT 'S' CHECK (product_type IN ('S','A','P','PP','PA','I')),
   classification_code    text,
   compatible_with        text[] DEFAULT '{}',

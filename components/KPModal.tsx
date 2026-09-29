@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { X, FileText, Loader2, CheckCircle, Download } from 'lucide-react'
 import type { Product } from '@/types'
 import { useLang } from '@/context/LanguageContext'
+import { localizeSpecs } from '@/lib/specs'
 
 interface Props {
   product: Product
@@ -58,7 +59,7 @@ export default function KPModal({ product, onClose }: Props) {
             description_kk: product.description_kk,
             description_en: product.description_en,
             model: product.model,
-            specs: product.specs,
+            specs: product.specs ? Object.fromEntries(localizeSpecs(product.specs, product.specs_i18n, lang)) : product.specs,
             price: product.price,
             slug: product.slug,
             availability: product.availability,

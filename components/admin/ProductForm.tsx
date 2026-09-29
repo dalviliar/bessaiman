@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Plus, X, Upload, Image as ImageIcon, Search, Package, ArrowUp, ArrowDown } from 'lucide-react'
 import type { Category, Product, ProductType } from '@/types'
+import { suggestSpecKey, suggestSpecValue } from '@/lib/specs'
 
 interface AccessoryItem {
   id: string
@@ -32,6 +33,13 @@ const SPEC_PRESETS = [
   'Производительность', 'Материал корпуса', 'Степень защиты (IP)', 'Гарантия',
 ]
 
+interface SpecRow {
+  key: string; value: string; featured: boolean
+  key_kk: string; value_kk: string; key_en: string; value_en: string
+}
+
+const emptySpec = (key = ''): SpecRow => ({ key, value: '', featured: false, key_kk: '', value_kk: '', key_en: '', value_en: '' })
+
 interface FormState {
   name_ru: string; name_kk: string; name_en: string
   model: string; category_id: string
@@ -42,7 +50,7 @@ interface FormState {
   images: string[]
   video_url: string
   instagram_url: string
-  specs: { key: string; value: string; featured: boolean }[]
+  specs: SpecRow[]
   product_type: ProductType
   classification_code: string
   compatible_with: string[]
@@ -90,6 +98,7 @@ export default function ProductForm({ product }: { product?: Product }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [descLang, setDescLang] = useState<DescLang>('ru')
+  const [specLang, setSpecLang] = useState<DescLang>('ru')
   const [accSearch, setAccSearch] = useState('')
   const [accResults, setAccResults] = useState<AccessoryItem[]>([])
   const [accDropOpen, setAccDropOpen] = useState(false)
@@ -115,7 +124,13 @@ export default function ProductForm({ product }: { product?: Product }) {
       images: product.images ?? [],
       video_url: product.video_url ?? '',
       instagram_url: product.instagram_url ?? '',
-      specs: product.specs ? Object.entries(product.specs).map(([key, value]) => ({ key, value: String(value), featured: (product.featured_specs ?? []).includes(key) })) : [],
+      specs: product.specs ? Object.entries(product.specs).map(([key, value]) => {
+        const tr = product.specs_i18n?.[key] ?? {}
+        return {
+          key, value: String(value), featured: (product.featured_specs ?? []).includes(key),
+          key_kk: tr.key_kk ?? '', value_kk: tr.value_kk ?? '', key_en: tr.key_en ?? '', value_en: tr.value_en ?? '',
+        }
+      }) : [],
       product_type: product.product_type,
       classification_code: product.classification_code ?? '',
       compatible_with: product.compatible_with ?? [],
@@ -202,15 +217,23 @@ export default function ProductForm({ product }: { product?: Product }) {
 
   const removeImage = (url: string) => set('images', form.images.filter(i => i !== url))
 
-  const addSpec = () => set('specs', [...form.specs, { key: '', value: '', featured: false }])
+  const addSpec = () => set('specs', [...form.specs, emptySpec()])
   const addPresetSpec = (key: string) => {
     if (form.specs.some(s => s.key === key)) return
-    set('specs', [...form.specs, { key, value: '', featured: false }])
+    set('specs', [...form.specs, emptySpec(key)])
   }
-  const updateSpec = (i: number, field: 'key' | 'value', value: string) =>
+  const updateSpec = (i: number, field: 'key' | 'value' | 'key_kk' | 'value_kk' | 'key_en' | 'value_en', value: string) =>
     set('specs', form.specs.map((s, idx) => idx === i ? { ...s, [field]: value } : s))
   const toggleSpecFeatured = (i: number) =>
     set('specs', form.specs.map((s, idx) => idx === i ? { ...s, featured: !s.featured } : s))
+  // Fills the empty kk/en cells from the built-in dictionary (common parameter
+  // names, units like "л" → "L") so staff only need to fix what's left.
+  const autofillSpecLang = (lang: 'kk' | 'en') =>
+    set('specs', form.specs.map(s => ({
+      ...s,
+      [`key_${lang}`]: s[`key_${lang}`] || suggestSpecKey(s.key, lang) || '',
+      [`value_${lang}`]: s[`value_${lang}`] || (s.value ? suggestSpecValue(s.value, lang) : ''),
+    })))
   const removeSpec = (i: number) => set('specs', form.specs.filter((_, idx) => idx !== i))
   const moveSpec = (i: number, dir: -1 | 1) => {
     const target = i + dir
@@ -276,6 +299,11 @@ export default function ProductForm({ product }: { product?: Product }) {
       instagram_url: form.instagram_url || null,
       specs: Object.keys(specsObj).length ? specsObj : null,
       featured_specs: form.specs.filter(s => s.featured && s.key.trim()).map(s => s.key.trim()),
+      specs_i18n: Object.fromEntries(
+        form.specs.filter(s => s.key.trim()).map(s => [s.key.trim(), {
+          key_kk: s.key_kk.trim(), value_kk: s.value_kk.trim(), key_en: s.key_en.trim(), value_en: s.value_en.trim(),
+        }])
+      ),
       product_type: form.product_type,
       classification_code: form.classification_code || null,
       compatible_with: form.compatible_with,
@@ -631,7 +659,36 @@ export default function ProductForm({ product }: { product?: Product }) {
           Например: «Мощность» → «5 кВт», «Объём камеры» → «200 л». Нажмите на готовый параметр ниже или впишите свой.
           Отметьте галочкой «на карточке», чтобы значение показывалось короткой пометкой на карточке товара в каталоге.
           Стрелками слева можно менять порядок строк — именно в этом порядке они покажутся на странице товара.
+          На вкладках «Қазақша» и «English» впишите перевод - он покажется, когда посетитель переключит язык сайта.
+          Пустой перевод = показывается русский вариант.
         </p>
+        <div className="flex flex-wrap items-center gap-1.5 mb-3">
+          {(['ru', 'kk', 'en'] as DescLang[]).map(lang => {
+            const labels: Record<DescLang, string> = { ru: 'RU - Русский', kk: 'KK - Қазақша', en: 'EN - English' }
+            const has = lang === 'ru' ? form.specs.length > 0 : form.specs.some(s => s[`key_${lang}`] || s[`value_${lang}`])
+            const isActive = specLang === lang
+            return (
+              <button key={lang} type="button" onClick={() => setSpecLang(lang)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={{
+                  background: isActive ? '#1D4ED8' : 'rgba(255,255,255,0.06)',
+                  color: isActive ? 'white' : 'rgba(255,255,255,0.45)',
+                  border: `1px solid ${isActive ? '#1D4ED8' : 'rgba(255,255,255,0.1)'}`,
+                }}>
+                {labels[lang]}
+                {has && <span className="w-1.5 h-1.5 rounded-full" style={{ background: '#34d399', display: 'inline-block' }} />}
+              </button>
+            )
+          })}
+          {specLang !== 'ru' && form.specs.length > 0 && (
+            <button type="button" onClick={() => autofillSpecLang(specLang)}
+              className="ml-auto text-[11px] px-2.5 py-1.5 rounded-lg font-medium"
+              style={{ background: 'rgba(52,211,153,0.1)', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)' }}>
+              Заполнить пустые автоматически
+            </button>
+          )}
+        </div>
+        {specLang === 'ru' && (
         <div className="flex flex-wrap gap-1.5 mb-3">
           {SPEC_PRESETS.map(preset => (
             <button key={preset} type="button" onClick={() => addPresetSpec(preset)}
@@ -642,6 +699,7 @@ export default function ProductForm({ product }: { product?: Product }) {
             </button>
           ))}
         </div>
+        )}
         <div className="space-y-2">
           {form.specs.map((spec, i) => (
             <div key={i} className="flex gap-2 items-center">
@@ -655,8 +713,25 @@ export default function ProductForm({ product }: { product?: Product }) {
                   <ArrowDown size={12} />
                 </button>
               </div>
-              <input className="steel-input flex-1" placeholder="Параметр (напр. Объём камеры)" value={spec.key} onChange={e => updateSpec(i, 'key', e.target.value)} />
-              <input className="steel-input flex-1" placeholder="Значение (напр. 200 л)" value={spec.value} onChange={e => updateSpec(i, 'value', e.target.value)} />
+              {specLang === 'ru' ? (
+                <>
+                  <input className="steel-input flex-1" placeholder="Параметр (напр. Объём камеры)" value={spec.key} onChange={e => updateSpec(i, 'key', e.target.value)} />
+                  <input className="steel-input flex-1" placeholder="Значение (напр. 200 л)" value={spec.value} onChange={e => updateSpec(i, 'value', e.target.value)} />
+                </>
+              ) : (
+                <>
+                  <div className="flex-1 min-w-0 flex flex-col gap-1">
+                    <span className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,0.35)' }} title={spec.key}>RU: {spec.key || '-'}</span>
+                    <input className="steel-input w-full" placeholder={suggestSpecKey(spec.key, specLang) || spec.key}
+                      value={spec[`key_${specLang}`]} onChange={e => updateSpec(i, `key_${specLang}`, e.target.value)} />
+                  </div>
+                  <div className="flex-1 min-w-0 flex flex-col gap-1">
+                    <span className="text-[10px] truncate" style={{ color: 'rgba(255,255,255,0.35)' }} title={spec.value}>RU: {spec.value || '-'}</span>
+                    <input className="steel-input w-full" placeholder={spec.value ? suggestSpecValue(spec.value, specLang) : ''}
+                      value={spec[`value_${specLang}`]} onChange={e => updateSpec(i, `value_${specLang}`, e.target.value)} />
+                  </div>
+                </>
+              )}
               <label className="flex items-center gap-1.5 text-[11px] shrink-0 cursor-pointer select-none px-2.5 py-2 rounded-lg"
                 style={{ color: spec.featured ? '#60A5FA' : 'rgba(255,255,255,0.4)', background: spec.featured ? 'rgba(59,130,246,0.1)' : 'rgba(255,255,255,0.03)' }}>
                 <input type="checkbox" className="w-3.5 h-3.5" checked={spec.featured} onChange={() => toggleSpecFeatured(i)} />
@@ -667,11 +742,13 @@ export default function ProductForm({ product }: { product?: Product }) {
               </button>
             </div>
           ))}
+          {specLang === 'ru' && (
           <button type="button" onClick={addSpec}
             className="flex items-center gap-1.5 text-xs px-3 py-2 rounded-lg font-medium"
             style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)' }}>
             <Plus size={13} /> Добавить свой параметр
           </button>
+          )}
         </div>
       </Section>
 

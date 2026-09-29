@@ -34,6 +34,14 @@ export interface NewsPost {
 
 export type ProductType = 'S' | 'PP' | 'PA' | 'I'
 
+export interface SpecTranslation {
+  key_kk?: string
+  value_kk?: string
+  key_en?: string
+  value_en?: string
+}
+export type SpecsI18n = Record<string, SpecTranslation>
+
 export interface Product {
   id: string
   slug: string
@@ -55,6 +63,8 @@ export interface Product {
   video_url: string | null
   instagram_url: string | null
   specs: Record<string, string> | null
+  /** kk/en translations of specs rows, keyed by the Russian parameter name. */
+  specs_i18n?: SpecsI18n | null
   /** Spec keys chosen to show as badges on the catalog card. Empty falls back to an auto-pick. */
   featured_specs: string[]
   /** Overrides the shared "УСЛОВИЯ ПОСТАВКИ" default on this product's КП when set. */

@@ -6,6 +6,7 @@ import { ArrowRight, Package, Zap, ShoppingCart, Check, ClipboardCheck } from 'l
 import { useLang } from '@/context/LanguageContext'
 import { useCart } from '@/context/CartContext'
 import { formatKzt } from '@/lib/format'
+import { localizeSpecValue } from '@/lib/specs'
 import type { Translations } from '@/lib/translations'
 import type { Product } from '@/types'
 
@@ -148,7 +149,7 @@ export default function ProductCard({ product }: { product: Product }) {
               <div key={key} className="flex items-center gap-1.5 px-2.5 py-1 rounded text-sm font-mono font-semibold"
                 style={{ background: '#EFF9FF', border: '1px solid #BAE6FD', color: '#0369A1' }}>
                 <Zap size={10} style={{ color: '#0284C7', flexShrink: 0 }} />
-                {val}
+                {localizeSpecValue(key, val, product.specs_i18n, lang)}
               </div>
             ))}
           </div>

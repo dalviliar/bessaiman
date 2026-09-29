@@ -3,6 +3,7 @@ import { query, queryOne } from '@/lib/db'
 import { getCurrentAdminUser } from '@/lib/auth'
 import { can } from '@/lib/admin'
 import { logAction } from '@/lib/audit'
+import { saveSpecsI18n } from '@/lib/specs.server'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -47,7 +48,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       price, price_with_discount, bulk_threshold, bulk_discount_percent,
       availability, barcode, images, video_url, instagram_url, specs, product_type, classification_code,
       compatible_with, weight_kg, unit, length_cm, width_cm, height_cm,
-      accessory_ids, kp_terms_override, featured_specs, questionnaire_url,
+      accessory_ids, kp_terms_override, featured_specs, questionnaire_url, specs_i18n,
     } = body
 
     if (!name_ru || !category_id) {
@@ -110,6 +111,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       } else { throw e }
     }
     if (!product) return NextResponse.json({ error: 'Не найден' }, { status: 404 })
+    product.specs_i18n = await saveSpecsI18n(id, specs_i18n)
 
     // Sync product_accessories join table
     await query('DELETE FROM product_accessories WHERE product_id = $1', [id])

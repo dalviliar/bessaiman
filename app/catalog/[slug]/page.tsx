@@ -11,6 +11,7 @@ import ProductCard from '@/components/ProductCard'
 import KPModal from '@/components/KPModal'
 import QuestionnaireModal from '@/components/QuestionnaireModal'
 import { getProductBySlug } from '@/lib/supabase'
+import { localizeSpecs } from '@/lib/specs'
 import type { Product } from '@/types'
 
 function DescriptionRenderer({ text }: { text: string }) {
@@ -263,11 +264,11 @@ export default function ProductDetailPage() {
               <div className="steel-card overflow-hidden">
                 <table className="w-full text-base">
                   <tbody>
-                    {Object.entries(product.specs).map(([key, val], i) => (
-                      <tr key={key}
+                    {localizeSpecs(product.specs, product.specs_i18n, lang).map(([key, val], i) => (
+                      <tr key={i}
                         className={`border-b border-steel-border/30 last:border-0 ${i % 2 === 0 ? '' : 'bg-[#F8FAFC]'}`}>
                         <td className="px-5 py-2.5 text-steel-silver font-medium w-1/2 text-sm">{key}</td>
-                        <td className="px-5 py-2.5 text-[#0F172A] text-sm">{val as string}</td>
+                        <td className="px-5 py-2.5 text-[#0F172A] text-sm">{val}</td>
                       </tr>
                     ))}
                   </tbody>
