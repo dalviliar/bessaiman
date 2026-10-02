@@ -28,7 +28,8 @@ const isInAppBrowser = () =>
   typeof navigator !== 'undefined' && /Instagram|FBAN|FBAV|FB_IAB|TikTok|Line\//i.test(navigator.userAgent)
 
 export default function KPModal({ product, onClose }: Props) {
-  const { lang } = useLang()
+  const { lang, tr } = useLang()
+  const k = tr.kpForm
   const [form, setForm] = useState<Form>({ name: '', company: '', phone: '', email: '', quantity: 1, note: '' })
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [pdfUrl, setPdfUrl] = useState<string | null>(null)
@@ -82,7 +83,7 @@ export default function KPModal({ product, onClose }: Props) {
 
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
-      const filename = `КП_BesS_${product.model || product.slug}.pdf`
+      const filename = `${tr.kpForm.fileName}_BesS_${product.model || product.slug}.pdf`
       // Kept alive (not revoked here) so the fallback "Открыть PDF" link in
       // the success state still works if the automatic download silently
       // did nothing — which is exactly what happens in in-app browsers.
@@ -120,7 +121,7 @@ export default function KPModal({ product, onClose }: Props) {
               <FileText size={15} style={{ color: '#4A90D9' }} />
             </div>
             <div>
-              <p className="text-white font-semibold text-base">Коммерческое предложение</p>
+              <p className="text-white font-semibold text-base">{k.title}</p>
               <p className="text-[13px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{product.model || product.name_ru}</p>
             </div>
           </div>
@@ -135,57 +136,57 @@ export default function KPModal({ product, onClose }: Props) {
             <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.15)' }}>
               <CheckCircle size={32} style={{ color: '#34d399' }} />
             </div>
-            <p className="text-white font-semibold text-lg">КП сформировано!</p>
-            <p className="text-base" style={{ color: 'rgba(255,255,255,0.45)' }}>PDF загружен на ваше устройство</p>
+            <p className="text-white font-semibold text-lg">{k.done}</p>
+            <p className="text-base" style={{ color: 'rgba(255,255,255,0.45)' }}>{k.downloaded}</p>
             {pdfUrl && (
               <a href={pdfUrl} download={pdfName} target="_blank" rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-colors"
                 style={{ color: '#60A5FA', background: 'rgba(59,130,246,0.1)' }}>
-                <Download size={14} /> Файл не появился? Открыть PDF
+                <Download size={14} /> {k.openPdf}
               </a>
             )}
             {inAppBrowser && (
               <p className="text-[13px] px-3 py-2 rounded-lg text-left" style={{ background: 'rgba(251,191,36,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
-                Вы открыли сайт через встроенный браузер приложения (Instagram и т.п.) — в нём скачивание файлов часто не работает. Откройте страницу через «⋮» → «Открыть в браузере» (Chrome/Safari) и повторите.
+                {k.inAppDone}
               </p>
             )}
-            <button onClick={onClose} className="btn-primary mt-2">Закрыть</button>
+            <button onClick={onClose} className="btn-primary mt-2">{k.close}</button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
 
             <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
-              КП с реквизитами Bes Saiman Group скачается в PDF. Данные компании — необязательно.
+              {k.modalIntro}
             </p>
 
             {inAppBrowser && (
               <p className="text-[13px] px-3 py-2 rounded-lg" style={{ background: 'rgba(251,191,36,0.08)', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.2)' }}>
-                Похоже, страница открыта во встроенном браузере приложения — скачивание PDF может не сработать. Для надёжности откройте сайт через «⋮» → «Открыть в браузере».
+                {k.inAppWarn}
               </p>
             )}
 
             {/* Name */}
             <div>
               <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
-                Ваше имя <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10 }}>(необязательно)</span>
+                {k.yourName} <span style={{ color: 'rgba(255,255,255,0.3)', fontSize: 10 }}>{k.optional}</span>
               </label>
               <input
                 type="text"
                 value={form.name}
                 onChange={set('name')}
-                placeholder="Асхат Ахметов"
+                placeholder={k.namePlaceholder}
                 className="steel-input w-full"
               />
             </div>
 
             {/* Company */}
             <div>
-              <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Организация</label>
+              <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>{k.company}</label>
               <input
                 type="text"
                 value={form.company}
                 onChange={set('company')}
-                placeholder="ТОО «Название компании»"
+                placeholder={k.companyPlaceholder}
                 className="steel-input w-full"
               />
             </div>
@@ -193,7 +194,7 @@ export default function KPModal({ product, onClose }: Props) {
             {/* Phone + Email */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Телефон</label>
+                <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>{k.phone}</label>
                 <input
                   type="tel"
                   value={form.phone}
@@ -216,7 +217,7 @@ export default function KPModal({ product, onClose }: Props) {
 
             {/* Quantity */}
             <div>
-              <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Количество (шт.)</label>
+              <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>{k.quantity}</label>
               <input
                 type="number"
                 min={1}
@@ -229,11 +230,11 @@ export default function KPModal({ product, onClose }: Props) {
 
             {/* Note */}
             <div>
-              <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Примечание (необязательно)</label>
+              <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>{k.noteOptional}</label>
               <textarea
                 value={form.note}
                 onChange={set('note')}
-                placeholder="Особые условия, вопросы..."
+                placeholder={k.notePlaceholder}
                 rows={2}
                 className="steel-input w-full resize-none"
               />
@@ -241,7 +242,7 @@ export default function KPModal({ product, onClose }: Props) {
 
             {status === 'error' && (
               <p className="text-sm px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
-                Ошибка генерации PDF. Попробуйте ещё раз.
+                {k.error}
               </p>
             )}
 
@@ -253,13 +254,13 @@ export default function KPModal({ product, onClose }: Props) {
                 className="btn-primary flex-1 flex items-center justify-center gap-2"
               >
                 {status === 'loading' ? (
-                  <><Loader2 size={15} className="animate-spin" /> Генерируем PDF...</>
+                  <><Loader2 size={15} className="animate-spin" /> {k.generating}</>
                 ) : (
-                  <><Download size={15} /> Скачать КП (PDF)</>
+                  <><Download size={15} /> {k.download}</>
                 )}
               </button>
               <button type="button" onClick={onClose} className="btn-secondary px-4">
-                Отмена
+                {k.cancel}
               </button>
             </div>
           </form>

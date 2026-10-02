@@ -3,6 +3,7 @@
 import { useRef, useState } from 'react'
 import { X, ClipboardCheck, Loader2, CheckCircle, Paperclip } from 'lucide-react'
 import type { Product } from '@/types'
+import { useLang } from '@/context/LanguageContext'
 
 interface Props {
   product: Product
@@ -18,6 +19,8 @@ interface Form {
 }
 
 export default function QuestionnaireModal({ product, onClose }: Props) {
+  const { tr } = useLang()
+  const k = tr.kpForm
   const [form, setForm] = useState<Form>({ full_name: '', company: '', position: '', phone: '', email: '' })
   const [file, setFile] = useState<File | null>(null)
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
@@ -29,8 +32,8 @@ export default function QuestionnaireModal({ product, onClose }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.full_name.trim() || !form.email.trim()) { setError('Заполните ФИО и email'); return }
-    if (!file) { setError('Приложите заполненный опросный лист'); return }
+    if (!form.full_name.trim() || !form.email.trim()) { setError(k.qErrRequired); return }
+    if (!file) { setError(k.qErrFile); return }
     setStatus('loading'); setError('')
     try {
       const fd = new FormData()
@@ -45,10 +48,10 @@ export default function QuestionnaireModal({ product, onClose }: Props) {
       const res = await fetch('/api/questionnaire-submit', { method: 'POST', body: fd })
       const isJson = res.headers.get('content-type')?.includes('application/json')
       const data = isJson ? await res.json() : null
-      if (!res.ok) throw new Error(data?.error || 'Не удалось отправить')
+      if (!res.ok) throw new Error(data?.error || k.qErrSend)
       setStatus('done')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ошибка отправки')
+      setError(err instanceof Error ? err.message : k.qErrSend)
       setStatus('error')
     }
   }
@@ -69,7 +72,7 @@ export default function QuestionnaireModal({ product, onClose }: Props) {
               <ClipboardCheck size={15} style={{ color: '#4A90D9' }} />
             </div>
             <div>
-              <p className="text-white font-semibold text-base">Отправить опросный лист</p>
+              <p className="text-white font-semibold text-base">{k.qTitle}</p>
               <p className="text-[13px]" style={{ color: 'rgba(255,255,255,0.4)' }}>{product.model || product.name_ru}</p>
             </div>
           </div>
@@ -83,33 +86,33 @@ export default function QuestionnaireModal({ product, onClose }: Props) {
             <div className="w-16 h-16 rounded-full mx-auto flex items-center justify-center" style={{ background: 'rgba(16,185,129,0.15)' }}>
               <CheckCircle size={32} style={{ color: '#34d399' }} />
             </div>
-            <p className="text-white font-semibold text-lg">Отправлено!</p>
-            <p className="text-base" style={{ color: 'rgba(255,255,255,0.45)' }}>Мы получили ваш опросный лист и свяжемся с вами для подготовки технического предложения.</p>
-            <button onClick={onClose} className="btn-primary mt-2">Закрыть</button>
+            <p className="text-white font-semibold text-lg">{k.qSent}</p>
+            <p className="text-base" style={{ color: 'rgba(255,255,255,0.45)' }}>{k.qSentDesc}</p>
+            <button onClick={onClose} className="btn-primary mt-2">{k.close}</button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
             <p className="text-sm" style={{ color: 'rgba(255,255,255,0.45)' }}>
-              Укажите контактные данные и приложите заполненный опросный лист — мы получим его и подготовим техническое предложение.
+              {k.qIntro}
             </p>
 
             <div>
-              <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>ФИО *</label>
-              <input type="text" value={form.full_name} onChange={set('full_name')} placeholder="Асхат Ахметов" className="steel-input w-full" required />
+              <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>{k.qFullName}</label>
+              <input type="text" value={form.full_name} onChange={set('full_name')} placeholder={k.namePlaceholder} className="steel-input w-full" required />
             </div>
 
             <div>
-              <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Организация</label>
-              <input type="text" value={form.company} onChange={set('company')} placeholder="ТОО «Название компании»" className="steel-input w-full" />
+              <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>{k.company}</label>
+              <input type="text" value={form.company} onChange={set('company')} placeholder={k.companyPlaceholder} className="steel-input w-full" />
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Должность</label>
+                <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>{k.qPosition}</label>
                 <input type="text" value={form.position} onChange={set('position')} className="steel-input w-full" />
               </div>
               <div>
-                <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Телефон</label>
+                <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>{k.phone}</label>
                 <input type="tel" value={form.phone} onChange={set('phone')} placeholder="+7 (7xx) xxx-xx-xx" className="steel-input w-full" />
               </div>
             </div>
@@ -120,11 +123,11 @@ export default function QuestionnaireModal({ product, onClose }: Props) {
             </div>
 
             <div>
-              <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>Заполненный опросный лист *</label>
+              <label className="block text-sm mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>{k.qFile}</label>
               <button type="button" onClick={() => fileRef.current?.click()}
                 className="w-full flex items-center gap-2 justify-center py-2.5 rounded-lg text-sm font-semibold transition-colors"
                 style={{ background: 'rgba(59,130,246,0.1)', color: '#60A5FA', border: '1px dashed rgba(59,130,246,0.35)' }}>
-                <Paperclip size={14} /> {file ? file.name : 'Прикрепить файл'}
+                <Paperclip size={14} /> {file ? file.name : k.qAttach}
               </button>
               <input ref={fileRef} type="file" className="hidden"
                 accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/jpeg,image/png"
@@ -133,15 +136,15 @@ export default function QuestionnaireModal({ product, onClose }: Props) {
 
             {(status === 'error' || error) && (
               <p className="text-sm px-3 py-2 rounded-lg" style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }}>
-                {error || 'Ошибка отправки. Попробуйте ещё раз.'}
+                {error || k.qErrSend}
               </p>
             )}
 
             <div className="flex gap-3 pt-1">
               <button type="submit" disabled={status === 'loading'} className="btn-primary flex-1 flex items-center justify-center gap-2">
-                {status === 'loading' ? (<><Loader2 size={15} className="animate-spin" /> Отправляем...</>) : (<><ClipboardCheck size={15} /> Отправить</>)}
+                {status === 'loading' ? (<><Loader2 size={15} className="animate-spin" /> {k.qSending}</>) : (<><ClipboardCheck size={15} /> {k.qSend}</>)}
               </button>
-              <button type="button" onClick={onClose} className="btn-secondary px-4">Отмена</button>
+              <button type="button" onClick={onClose} className="btn-secondary px-4">{k.cancel}</button>
             </div>
           </form>
         )}

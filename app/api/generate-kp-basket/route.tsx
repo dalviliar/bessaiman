@@ -654,7 +654,7 @@ export async function POST(request: Request) {
       />
     )
 
-    const filename = encodeURIComponent(`КП_BesS_${kpNumber}.pdf`)
+    const filename = encodeURIComponent(`${kpText(lang).fileName}_BesS_${kpNumber}.pdf`)
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,
       headers: {

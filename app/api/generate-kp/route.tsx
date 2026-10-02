@@ -610,7 +610,7 @@ export async function POST(request: Request) {
       />
     )
 
-    const filename = `КП_BesS_${product.model || product.slug}_${new Date().getFullYear()}.pdf`
+    const filename = `${kpText(lang).fileName}_BesS_${product.model || product.slug}_${new Date().getFullYear()}.pdf`
 
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,

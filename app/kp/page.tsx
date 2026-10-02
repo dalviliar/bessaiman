@@ -35,7 +35,10 @@ const isInAppBrowser = () =>
 
 export default function KPCartPage() {
   const { items, removeItem, updateQty, addItem, isInCart, clear } = useCart()
-  const { lang } = useLang()
+  const { lang, tr } = useLang()
+  const k = tr.kpForm
+  const nameOf = (p: { name_ru: string; name_kk?: string | null; name_en?: string | null }) =>
+    (lang === 'kk' ? p.name_kk : lang === 'en' ? p.name_en : null) || p.name_ru
   const [form, setForm] = useState<Form>({ name: '', company: '', phone: '', email: '', note: '' })
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [suggestions, setSuggestions] = useState<AccessorySuggestion[]>([])
@@ -67,7 +70,7 @@ export default function KPCartPage() {
         if (!full?.accessories?.length) return []
         return full.accessories.map(acc => ({
           forProductId: product.id,
-          forProductName: product.name_ru,
+          forProductName: nameOf(product),
           accessory: acc,
         }))
       })
@@ -117,7 +120,7 @@ export default function KPCartPage() {
 
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
-      const filename = `КП_BesS_${new Date().toISOString().slice(0, 10)}.pdf`
+      const filename = `${k.fileName}_BesS_${new Date().toISOString().slice(0, 10)}.pdf`
       // Kept alive (not revoked here) so the fallback "Открыть PDF" link
       // still works if the automatic download silently did nothing —
       // which is exactly what happens in in-app browsers.
@@ -146,14 +149,14 @@ export default function KPCartPage() {
       <div style={{ minHeight: '100vh', background: '#F8FAFC' }}>
         <div className="max-w-4xl mx-auto px-6 py-20 text-center">
           <ShoppingCart size={64} className="mx-auto mb-6" style={{ color: '#CBD5E1' }} />
-          <h1 className="text-2xl font-black mb-3" style={{ color: '#0F172A' }}>Корзина КП пуста</h1>
+          <h1 className="text-2xl font-black mb-3" style={{ color: '#0F172A' }}>{k.cartEmpty}</h1>
           <p className="text-base mb-8" style={{ color: '#64748B' }}>
-            Добавьте товары из каталога, чтобы сформировать коммерческое предложение
+            {k.cartEmptyDesc}
           </p>
           <Link href="/catalog"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-base"
             style={{ background: '#1565C0', color: 'white' }}>
-            Перейти в каталог
+            {k.toCatalog}
             <ChevronRight size={14} />
           </Link>
         </div>
@@ -169,31 +172,31 @@ export default function KPCartPage() {
             style={{ background: '#F0FDF4' }}>
             <CheckCircle size={40} style={{ color: '#16A34A' }} />
           </div>
-          <h1 className="text-2xl font-black mb-3" style={{ color: '#0F172A' }}>КП сформировано!</h1>
-          <p className="text-base mb-4" style={{ color: '#64748B' }}>PDF загружен на ваше устройство</p>
+          <h1 className="text-2xl font-black mb-3" style={{ color: '#0F172A' }}>{k.done}</h1>
+          <p className="text-base mb-4" style={{ color: '#64748B' }}>{k.downloaded}</p>
           {pdfUrl && (
             <a href={pdfUrl} download={pdfName} target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg mb-4"
               style={{ color: '#1565C0', background: '#EFF6FF' }}>
-              <FileText size={14} /> Файл не появился? Открыть PDF
+              <FileText size={14} /> {k.openPdf}
             </a>
           )}
           {inAppBrowser && (
             <p className="text-[13px] max-w-md mx-auto px-3 py-2 rounded-lg mb-6 text-left"
               style={{ background: '#FFFBEB', color: '#B45309', border: '1px solid #FDE68A' }}>
-              Вы открыли сайт через встроенный браузер приложения (Instagram и т.п.) — в нём скачивание файлов часто не работает. Откройте страницу через «⋮» → «Открыть в браузере» (Chrome/Safari) и повторите.
+              {k.inAppDone}
             </p>
           )}
           <div className="flex items-center justify-center gap-3">
             <button onClick={() => { clear(); setStatus('idle') }}
               className="px-6 py-3 rounded-lg font-semibold text-base"
               style={{ background: '#1565C0', color: 'white' }}>
-              Очистить и начать заново
+              {k.startOver}
             </button>
             <Link href="/catalog"
               className="px-6 py-3 rounded-lg font-semibold text-base"
               style={{ border: '1.5px solid #E2E8F0', color: '#475569', background: 'white' }}>
-              Продолжить выбор
+              {k.continueShopping}
             </Link>
           </div>
         </div>
@@ -209,16 +212,16 @@ export default function KPCartPage() {
         <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
           <div>
             <p className="font-mono text-[11px] tracking-[0.25em] uppercase mb-1" style={{ color: '#1565C0', fontWeight: 700 }}>
-              КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ
+              {k.cartLabel}
             </p>
             <h1 className="text-2xl font-black" style={{ color: '#0F172A', letterSpacing: '-0.02em' }}>
-              Корзина КП
+              {k.cartTitle}
             </h1>
           </div>
           <Link href="/catalog"
             className="flex items-center gap-1.5 text-base font-semibold"
             style={{ color: '#1565C0' }}>
-            + Добавить товары
+            {k.addProducts}
           </Link>
         </div>
 
@@ -231,21 +234,21 @@ export default function KPCartPage() {
             <div className="rounded-xl overflow-hidden" style={{ border: '1.5px solid #E2E8F0', background: 'white' }}>
               <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid #F1F5F9' }}>
                 <span className="font-semibold text-base" style={{ color: '#0F172A' }}>
-                  Товары ({items.length})
+                  {k.products} ({items.length})
                 </span>
                 <button onClick={clear} className="text-sm flex items-center gap-1"
                   style={{ color: '#94A3B8' }}>
-                  <X size={11} /> Очистить всё
+                  <X size={11} /> {k.clearAll}
                 </button>
               </div>
 
               {/* Шапка таблицы */}
               <div className="hidden sm:grid grid-cols-12 px-4 py-2 text-[12px] font-mono font-bold tracking-wider uppercase"
                 style={{ borderBottom: '1px solid #F1F5F9', color: '#94A3B8' }}>
-                <span className="col-span-5">Наименование</span>
-                <span className="col-span-3 text-center">Кол-во</span>
-                <span className="col-span-2 text-right">Цена</span>
-                <span className="col-span-2 text-right">Сумма</span>
+                <span className="col-span-5">{k.colName}</span>
+                <span className="col-span-3 text-center">{k.colQty}</span>
+                <span className="col-span-2 text-right">{k.colPrice}</span>
+                <span className="col-span-2 text-right">{k.colSum}</span>
               </div>
 
               {items.map(({ product, quantity }, idx) => {
@@ -270,7 +273,7 @@ export default function KPCartPage() {
                           {product.model ?? '—'}
                         </p>
                         <p className="text-sm font-medium leading-snug line-clamp-2" style={{ color: '#0F172A' }}>
-                          {product.name_ru}
+                          {nameOf(product)}
                         </p>
                       </div>
                     </div>
@@ -299,7 +302,7 @@ export default function KPCartPage() {
                     {/* Цена */}
                     <div className="col-span-2 text-right">
                       <span className="text-sm font-semibold" style={{ color: product.price ? '#0F172A' : '#94A3B8' }}>
-                        {product.price ? `${formatKzt(product.price)} ₸` : 'По запросу'}
+                        {product.price ? `${formatKzt(product.price)} ₸` : k.onRequest}
                       </span>
                     </div>
 
@@ -322,10 +325,10 @@ export default function KPCartPage() {
               {total > 0 && (
                 <div className="flex items-center justify-between px-4 py-3"
                   style={{ borderTop: '2px solid #E2E8F0', background: '#F8FAFC' }}>
-                  <span className="font-semibold text-base" style={{ color: '#64748B' }}>Итого:</span>
+                  <span className="font-semibold text-base" style={{ color: '#64748B' }}>{k.total}</span>
                   <span className="font-black text-lg" style={{ color: '#1565C0' }}>
                     {total.toLocaleString('ru-RU')} ₸
-                    {!hasAllPrices && <span className="text-sm font-normal ml-1" style={{ color: '#94A3B8' }}>+ по запросу</span>}
+                    {!hasAllPrices && <span className="text-sm font-normal ml-1" style={{ color: '#94A3B8' }}>{k.plusOnRequest}</span>}
                   </span>
                 </div>
               )}
@@ -336,10 +339,10 @@ export default function KPCartPage() {
               <div className="rounded-xl overflow-hidden" style={{ border: '1.5px solid #E2E8F0', background: 'white' }}>
                 <div className="px-4 py-3" style={{ borderBottom: '1px solid #F1F5F9' }}>
                   <p className="font-semibold text-base" style={{ color: '#0F172A' }}>
-                    Подходящие комплектующие и расходники
+                    {k.suggestTitle}
                   </p>
                   <p className="text-[13px] mt-0.5" style={{ color: '#94A3B8' }}>
-                    Автоматически подобраны к выбранному оборудованию
+                    {k.suggestDesc}
                   </p>
                 </div>
 
@@ -358,10 +361,10 @@ export default function KPCartPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-[12px] font-mono" style={{ color: '#94A3B8' }}>
-                            к {forProductName.slice(0, 30)}…
+                            {k.suggestFor} {forProductName.slice(0, 30)}…
                           </p>
                           <p className="text-sm font-medium line-clamp-1" style={{ color: '#0F172A' }}>
-                            {accessory.name_ru}
+                            {nameOf(accessory)}
                           </p>
                           {accessory.model && (
                             <p className="text-[12px] font-mono" style={{ color: '#0284C7' }}>
@@ -383,7 +386,7 @@ export default function KPCartPage() {
                               border: `1.5px solid ${inC ? '#BBF7D0' : '#BFDBFE'}`,
                               color: inC ? '#16A34A' : '#1565C0',
                             }}>
-                            {inC ? '✓ В корзине' : '+ Добавить'}
+                            {inC ? k.inCart : k.add}
                           </button>
                         </div>
                       </div>
@@ -407,10 +410,10 @@ export default function KPCartPage() {
                 </div>
                 <div>
                   <p className="font-semibold text-base" style={{ color: '#0F172A' }}>
-                    Оформить КП
+                    {k.formTitle}
                   </p>
                   <p className="text-[12px]" style={{ color: '#94A3B8' }}>
-                    PDF с реквизитами и печатью
+                    {k.formSubtitle}
                   </p>
                 </div>
               </div>
@@ -418,13 +421,13 @@ export default function KPCartPage() {
               <form onSubmit={handleGenerate} className="px-5 py-4 flex flex-col gap-3.5">
 
                 <p className="text-[13px] leading-relaxed" style={{ color: '#94A3B8' }}>
-                  Данные покупателя необязательны — укажите для персонализации КП.
+                  {k.formIntro}
                 </p>
 
                 {[
-                  { field: 'name',    label: 'Ваше имя',        type: 'text',  placeholder: 'Асхат Ахметов' },
-                  { field: 'company', label: 'Организация',      type: 'text',  placeholder: 'ТОО «Компания»' },
-                  { field: 'phone',   label: 'Телефон',          type: 'tel',   placeholder: '+7 (7xx) xxx-xx-xx' },
+                  { field: 'name',    label: k.yourName,  type: 'text',  placeholder: k.namePlaceholder },
+                  { field: 'company', label: k.company,   type: 'text',  placeholder: k.cartCompanyPlaceholder },
+                  { field: 'phone',   label: k.phone,     type: 'tel',   placeholder: '+7 (7xx) xxx-xx-xx' },
                   { field: 'email',   label: 'Email',            type: 'email', placeholder: 'email@company.kz' },
                 ].map(({ field, label, type, placeholder }) => (
                   <div key={field}>
@@ -444,10 +447,10 @@ export default function KPCartPage() {
 
                 <div>
                   <label className="block text-[13px] mb-1 font-medium" style={{ color: '#64748B' }}>
-                    Примечание
+                    {k.note}
                   </label>
                   <textarea value={form.note} onChange={set('note')} rows={2}
-                    placeholder="Особые условия, конфигурация..."
+                    placeholder={k.notePlaceholderCart}
                     className="w-full px-3 py-2 rounded-lg text-sm outline-none transition-all resize-none"
                     style={{ border: '1.5px solid #E2E8F0', color: '#0F172A', background: '#FAFAFA' }}
                     onFocus={e => { e.target.style.borderColor = '#1565C0'; e.target.style.background = 'white' }}
@@ -458,7 +461,7 @@ export default function KPCartPage() {
                 {status === 'error' && (
                   <p className="text-sm px-3 py-2 rounded-lg"
                     style={{ background: '#FEF2F2', color: '#DC2626', border: '1px solid #FECACA' }}>
-                    Ошибка генерации PDF. Попробуйте ещё раз.
+                    {k.error}
                   </p>
                 )}
 
@@ -470,13 +473,13 @@ export default function KPCartPage() {
                     boxShadow: items.length > 0 ? '0 4px 14px rgba(21,101,192,0.25)' : 'none',
                   }}>
                   {status === 'loading'
-                    ? <><Loader2 size={14} className="animate-spin" /> Генерируем PDF...</>
-                    : <><Download size={14} /> Скачать КП (PDF)</>
+                    ? <><Loader2 size={14} className="animate-spin" /> {k.generating}</>
+                    : <><Download size={14} /> {k.download}</>
                   }
                 </button>
 
                 <p className="text-[12px] text-center" style={{ color: '#CBD5E1' }}>
-                  Включает реквизиты, печать и подпись директора
+                  {k.includes}
                 </p>
               </form>
             </div>

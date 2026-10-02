@@ -10,6 +10,7 @@ export function kpLang(lang: unknown): KpLang {
 
 const L = {
   ru: {
+    fileName: 'КП',
     tagline: 'Научно-производственная компания',
     address: 'г. Алматы, ул. Тулебаева 38/61',
     addressFull: 'РК, г. Алматы, ул. Тулебаева 38/61',
@@ -55,6 +56,7 @@ const L = {
     bankValue: 'АО «Банк ЦентрКредит»',
   },
   kk: {
+    fileName: 'Коммерциялық_ұсыныс',
     tagline: 'Ғылыми-өндірістік компания',
     address: 'Алматы қ., Төлебаев к-сі 38/61',
     addressFull: 'ҚР, Алматы қ., Төлебаев к-сі 38/61',
@@ -100,6 +102,7 @@ const L = {
     bankValue: '«Банк ЦентрКредит» АҚ',
   },
   en: {
+    fileName: 'Commercial_Offer',
     tagline: 'Research and Manufacturing Company',
     address: '38/61 Tulebaev St., Almaty',
     addressFull: '38/61 Tulebaev St., Almaty, Kazakhstan',
