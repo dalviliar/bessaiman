@@ -6,6 +6,9 @@ import { renderToBuffer, Font, Document, Page, Text, View, StyleSheet, Image } f
 import { query } from '@/lib/db'
 import { formatKzt } from '@/lib/format'
 import { getKpTerms, type KpTerms } from '@/lib/kp-terms'
+import { kpLang, kpText, kpBankRows, kpTermValue, kpDate, kpClientName, type KpLang } from '@/lib/kp-i18n'
+import { localizeSpecs } from '@/lib/specs'
+import type { SpecsI18n } from '@/types'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -156,6 +159,8 @@ const s = StyleSheet.create({
 interface CartItem {
   id?: string
   name_ru: string
+  /** Name in the КП's language, filled in from the DB on the server. */
+  name?: string
   model?: string
   price?: number
   slug: string
@@ -177,25 +182,17 @@ interface ClientInfo {
 // Delivery/payment wording depends on stock: an order counts as "in stock"
 // only if every line item is — a single backordered part means the whole
 // shipment waits, so the on-order phrasing applies.
-function getConditions(items: CartItem[], terms: KpTerms): [string, string][] {
+function getConditions(items: CartItem[], terms: KpTerms, lang: KpLang): [string, string][] {
+  const t = kpText(lang)
   const inStock = items.length > 0 && items.every(i => i.availability === 'in_stock')
   return [
-    ['Срок поставки:',   inStock ? terms.delivery_in_stock : terms.delivery_on_order],
-    ['Гарантия:',        terms.warranty],
-    ['Условия оплаты:',  inStock ? terms.payment_in_stock : terms.payment_on_order],
-    ['Действие КП:',     terms.validity],
+    [`${t.deliveryTime}:`, kpTermValue(inStock ? terms.delivery_in_stock : terms.delivery_on_order, lang)],
+    [`${t.warranty}:`,     kpTermValue(terms.warranty, lang)],
+    [`${t.payment}:`,      kpTermValue(inStock ? terms.payment_in_stock : terms.payment_on_order, lang)],
+    [`${t.validity}:`,     kpTermValue(terms.validity, lang)],
   ]
 }
 
-const BANK_ROWS = [
-  ['Наименование:', 'ТОО «Bes Saiman Group»'],
-  ['БИН:',         '210440034775'],
-  ['Банк:',        'АО «Банк ЦентрКредит»'],
-  ['БИК:',         'KCJBKZKX'],
-  ['КБЕ:',         '17'],
-  ['ИИК (KZT):',   'KZ128562203117832934'],
-  ['ИИК (USD):',   'KZ318562203231984520'],
-]
 
 function parseDescriptionLines(text: string): { type: 'heading' | 'bullet' | 'text'; content: string }[] {
   return text.split('\n').map(line => {
@@ -208,9 +205,10 @@ function parseDescriptionLines(text: string): { type: 'heading' | 'bullet' | 'te
 }
 
 function KPBasketDocument({
-  items, clientInfo, kpNumber, dateStr, stampDataUri, signatureDataUri, logoDataUri, terms,
+  items, clientInfo, lang, kpNumber, dateStr, stampDataUri, signatureDataUri, logoDataUri, terms,
 }: {
   items: CartItem[]
+  lang: KpLang
   clientInfo: ClientInfo
   kpNumber: string
   dateStr: string
@@ -219,6 +217,7 @@ function KPBasketDocument({
   logoDataUri: string | null
   terms: KpTerms
 }) {
+  const L = kpText(lang)
   const totalKnown = items.reduce((s, i) => s + (i.price ?? 0) * i.quantity, 0)
   const hasUnknown = items.some(i => !i.price)
   const hasDetails = items.some(
@@ -245,13 +244,13 @@ function KPBasketDocument({
               </View>
             )}
           <View style={s.headerInfo}>
-            <Text style={s.companyTagline}>Научно-производственная компания</Text>
+            <Text style={s.companyTagline}>{L.tagline}</Text>
             <Text style={s.companyContact}>
-              +7 (707) 620-28-90  ·  bessaimangroup1@gmail.com  ·  г. Алматы, ул. Тулебаева 38/61
+              +7 (707) 620-28-90  ·  bessaimangroup1@gmail.com  ·  {L.address}
             </Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
-            <Text style={{ fontSize: 7, color: C.gray }}>БИН: 210440034775</Text>
+            <Text style={{ fontSize: 7, color: C.gray }}>{L.bin}: 210440034775</Text>
           </View>
         </View>
 
@@ -259,30 +258,30 @@ function KPBasketDocument({
 
         {/* TITLE BANNER */}
         <View style={s.titleBanner}>
-          <Text style={s.titleMain}>КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</Text>
-          <Text style={s.titleNum}>№ {kpNumber}  |  {dateStr}</Text>
+          <Text style={s.titleMain}>{L.title}</Text>
+          <Text style={s.titleNum}>{L.thN} {kpNumber}  |  {dateStr}</Text>
         </View>
 
         {/* PARTIES */}
         <View style={s.parties}>
           <View style={s.partyBox}>
-            <Text style={s.partyLabel}>Поставщик</Text>
-            <Text style={s.partyName}>ТОО «Bes Saiman Group»</Text>
-            <Text style={s.partyDetail}>БИН: 210440034775</Text>
-            <Text style={s.partyDetail}>РК, г. Алматы, ул. Тулебаева 38/61</Text>
-            <Text style={s.partyDetail}>Тел: +7 (707) 620-28-90</Text>
+            <Text style={s.partyLabel}>{L.supplier}</Text>
+            <Text style={s.partyName}>{L.company}</Text>
+            <Text style={s.partyDetail}>{L.bin}: 210440034775</Text>
+            <Text style={s.partyDetail}>{L.addressFull}</Text>
+            <Text style={s.partyDetail}>{L.phone}: +7 (707) 620-28-90</Text>
           </View>
           <View style={s.partyBoxLast}>
-            <Text style={s.partyLabel}>Покупатель</Text>
+            <Text style={s.partyLabel}>{L.buyer}</Text>
             {clientInfo.company ? (
               <>
                 <Text style={s.partyName}>{clientInfo.company}</Text>
-                <Text style={s.partyDetail}>{clientInfo.name}</Text>
+                <Text style={s.partyDetail}>{kpClientName(clientInfo.name, lang)}</Text>
               </>
             ) : (
-              <Text style={s.partyName}>{clientInfo.name}</Text>
+              <Text style={s.partyName}>{kpClientName(clientInfo.name, lang)}</Text>
             )}
-            {clientInfo.phone ? <Text style={s.partyDetail}>Тел: {clientInfo.phone}</Text> : null}
+            {clientInfo.phone ? <Text style={s.partyDetail}>{L.phone}: {clientInfo.phone}</Text> : null}
             {clientInfo.email ? <Text style={s.partyDetail}>Email: {clientInfo.email}</Text> : null}
           </View>
         </View>
@@ -290,26 +289,26 @@ function KPBasketDocument({
         <View style={s.dividerThin} />
 
         {/* PRODUCT TABLE */}
-        <Text style={s.sectionTitle}>Перечень товаров</Text>
+        <Text style={s.sectionTitle}>{L.itemsList}</Text>
         <View style={s.tableWrap}>
           <View style={s.tableHead}>
-            <Text style={s.thN}>№</Text>
-            <Text style={s.thName}>Наименование товара</Text>
-            <Text style={s.thModel}>Модель</Text>
-            <Text style={s.thQty}>Кол.</Text>
-            <Text style={s.thUnit}>Ед.</Text>
-            <Text style={s.thPrice}>Цена ед.</Text>
-            <Text style={s.thTotal}>Сумма</Text>
+            <Text style={s.thN}>{L.thN}</Text>
+            <Text style={s.thName}>{L.thName}</Text>
+            <Text style={s.thModel}>{L.thModel}</Text>
+            <Text style={s.thQty}>{L.thQty}</Text>
+            <Text style={s.thUnit}>{L.thUnit}</Text>
+            <Text style={s.thPrice}>{L.thUnitPrice}</Text>
+            <Text style={s.thTotal}>{L.thSum}</Text>
           </View>
           {items.map((item, i) => (
             <View key={i} style={[s.tableRow, i % 2 === 1 ? s.tableRowAlt : {}]}>
               <Text style={s.tdN}>{i + 1}</Text>
-              <Text style={s.tdName}>{item.name_ru}</Text>
+              <Text style={s.tdName}>{item.name || item.name_ru}</Text>
               <Text style={s.tdModel}>{item.model || '—'}</Text>
               <Text style={s.tdQty}>{item.quantity}</Text>
-              <Text style={s.tdUnit}>шт.</Text>
+              <Text style={s.tdUnit}>{L.unitPcs}</Text>
               <Text style={s.tdPrice}>
-                {item.price ? `${formatKzt(item.price)} T` : 'По запросу'}
+                {item.price ? `${formatKzt(item.price)} T` : L.onRequest}
               </Text>
               <Text style={s.tdTotal}>
                 {item.price ? `${(item.price * item.quantity).toLocaleString('ru-RU')} T` : '—'}
@@ -318,15 +317,15 @@ function KPBasketDocument({
           ))}
           <View style={s.tableTotalRow}>
             <Text style={s.tdTotalLabel}>
-              ИТОГО (с НДС 16%){hasUnknown ? ' (без позиций «По запросу»)' : ''}:
+              {L.total}{hasUnknown ? L.totalWithoutOnRequest : ''}:
             </Text>
             <Text style={s.tdTotalValue}>
-              {totalKnown > 0 ? `${totalKnown.toLocaleString('ru-RU')} T` : 'По запросу'}
+              {totalKnown > 0 ? `${totalKnown.toLocaleString('ru-RU')} T` : L.onRequest}
             </Text>
           </View>
           {totalKnown > 0 && (
             <View style={{ flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 6, backgroundColor: C.lightGray }}>
-              <Text style={{ flex: 1, fontSize: 7, color: C.gray }}>в т.ч. НДС (16%):</Text>
+              <Text style={{ flex: 1, fontSize: 7, color: C.gray }}>{L.vat}:</Text>
               <Text style={{ width: 78, fontSize: 7, color: C.gray, textAlign: 'right' }}>
                 {`${Math.round(totalKnown * 16 / 116).toLocaleString('ru-RU')} T`}
               </Text>
@@ -338,7 +337,7 @@ function KPBasketDocument({
         {hasDetails && (
           <>
             <Text style={s.sectionTitle}>
-              {items.length === 1 ? 'Описание товара' : 'Описание товаров'}
+              {items.length === 1 ? L.description : L.descriptionMany}
             </Text>
             {(() => {
               // Filter items with content first, then render with correct dividers
@@ -361,7 +360,7 @@ function KPBasketDocument({
                     {detailItems.length > 1 && (
                       <View style={s.productNameRow}>
                         <Text style={s.productNameLabel}>{i + 1}.</Text>
-                        <Text style={s.productNameText}>{item.name_ru}</Text>
+                        <Text style={s.productNameText}>{item.name || item.name_ru}</Text>
                         {item.model ? <Text style={s.productModelText}>/ {item.model}</Text> : null}
                       </View>
                     )}
@@ -395,7 +394,7 @@ function KPBasketDocument({
                     {/* Specs (identical to single KP) */}
                     {specs.length > 0 && (
                       <>
-                        <Text style={s.sectionTitle}>Технические характеристики</Text>
+                        <Text style={s.sectionTitle}>{L.specs}</Text>
                         <View style={s.specsBox}>
                           {specs.map(([key, val], si) => (
                             <View key={key} style={[
@@ -423,15 +422,15 @@ function KPBasketDocument({
         {/* NOTE */}
         {clientInfo.note ? (
           <>
-            <Text style={s.sectionTitle}>Особые условия</Text>
+            <Text style={s.sectionTitle}>{L.note}</Text>
             <Text style={{ fontSize: 8, color: C.text, marginBottom: 8 }}>{clientInfo.note}</Text>
           </>
         ) : null}
 
         {/* CONDITIONS */}
-        <Text style={s.sectionTitle}>Условия поставки</Text>
+        <Text style={s.sectionTitle}>{L.conditions}</Text>
         <View style={{ marginBottom: 8 }}>
-          {getConditions(items, terms).map(([label, value]) => (
+          {getConditions(items, terms, lang).map(([label, value]) => (
             <View key={label} style={s.condRow}>
               <View style={s.condBullet}>
                 <View style={{ width: 3, height: 3, borderRadius: 1.5, backgroundColor: C.primary }} />
@@ -446,9 +445,9 @@ function KPBasketDocument({
 
         {/* BANK */}
         <View style={s.bankBox}>
-          <Text style={s.bankTitle}>Банковские реквизиты</Text>
+          <Text style={s.bankTitle}>{L.bank}</Text>
           <View style={s.bankGrid}>
-            {BANK_ROWS.map(([label, value]) => (
+            {kpBankRows(lang).map(([label, value]) => (
               <View key={label} style={s.bankRow}>
                 <Text style={s.bankLabel}>{label}</Text>
                 <Text style={s.bankValue}>{value}</Text>
@@ -461,8 +460,8 @@ function KPBasketDocument({
         <View style={s.sigSection}>
           <View style={s.sigInner}>
             <View style={s.sigBox}>
-              <Text style={s.sigRole}>Генеральный директор</Text>
-              <Text style={s.sigOrg}>ТОО «Bes Saiman Group»</Text>
+              <Text style={s.sigRole}>{L.director}</Text>
+              <Text style={s.sigOrg}>{L.company}</Text>
               {signatureDataUri ? (
                 <Image src={signatureDataUri} style={{ width: 90, height: 36, marginBottom: 4 }} />
               ) : (
@@ -482,7 +481,7 @@ function KPBasketDocument({
         {/* FOOTER */}
         <View style={s.footer} fixed>
           <Text style={s.footerText}>
-            ТОО «Bes Saiman Group»  ·  БИН 210440034775  ·  +7 (707) 620-28-90  ·  bessaimangroup1@gmail.com
+            {L.company}  ·  {L.bin} 210440034775  ·  +7 (707) 620-28-90  ·  bessaimangroup1@gmail.com
           </Text>
           <Text style={s.footerText}
             render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
@@ -496,21 +495,18 @@ function KPBasketDocument({
   )
 }
 
-function formatDate(d: Date): string {
-  const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря']
-  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} г.`
-}
-
 function generateKPNumber(): string {
   const year = new Date().getFullYear()
   const num = String(Date.now()).slice(-5)
   return `КП-${year}-${num}`
 }
 
-let fontsRegistered = false
-
+// Re-registered on every request on purpose: @react-pdf keeps the loaded
+// font between renders, and glyphs already used by an earlier КП then go
+// missing from the next one (e.g. "Offer" printed as "ffer" after a Russian
+// КП had used "О"). A fresh font per render avoids it.
 function ensureFontsRegistered() {
-  if (fontsRegistered) return
+  delete (Font.getRegisteredFonts() as Record<string, unknown>)['Roboto']
   const fontsDir = path.join(process.cwd(), 'public', 'fonts')
   Font.register({
     family: 'Roboto',
@@ -519,7 +515,6 @@ function ensureFontsRegistered() {
       { src: path.join(fontsDir, 'Roboto-Bold.ttf'), fontWeight: 'bold' },
     ],
   })
-  fontsRegistered = true
 }
 
 function loadStampDataUri(): string | null {
@@ -582,7 +577,7 @@ async function loadProductImageDataUri(imageUrl: string | undefined): Promise<st
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { items, clientInfo, lang = 'ru' } = body as {
+    const { items, clientInfo, lang: rawLang } = body as {
       items: CartItem[]
       clientInfo: ClientInfo
       lang?: string
@@ -599,18 +594,24 @@ export async function POST(request: Request) {
     const terms = await getKpTerms()
 
     const kpNumber = generateKPNumber()
-    const dateStr = formatDate(new Date())
+    const lang = kpLang(rawLang)
+    const dateStr = kpDate(new Date(), lang)
 
     const enrichedItems: CartItem[] = await Promise.all(
       items.map(async (item) => {
         try {
           const rows = await query<{
+            name_kk: string | null
+            name_en: string | null
             description_ru: string | null
+            description_kk: string | null
+            description_en: string | null
             specs: Record<string, string> | null
+            specs_i18n: SpecsI18n | null
             images: string[] | null
             availability: string | null
           }>(
-            `SELECT description_ru, specs, images, availability FROM products WHERE id = $1 OR slug = $2 LIMIT 1`,
+            `SELECT * FROM products WHERE id = $1 OR slug = $2 LIMIT 1`,
             [item.id ?? null, item.slug],
           )
           const row = rows[0]
@@ -619,8 +620,9 @@ export async function POST(request: Request) {
             : null
           return {
             ...item,
-            description_ru: row?.description_ru ?? undefined,
-            specs: row?.specs ?? undefined,
+            name: (lang === 'kk' ? row?.name_kk : lang === 'en' ? row?.name_en : null) || item.name_ru,
+            description_ru: (lang === 'kk' ? row?.description_kk : lang === 'en' ? row?.description_en : null) || row?.description_ru || undefined,
+            specs: row?.specs ? Object.fromEntries(localizeSpecs(row.specs, row.specs_i18n, lang)) : undefined,
             imageDataUri,
             availability: row?.availability ?? undefined,
           }
@@ -642,6 +644,7 @@ export async function POST(request: Request) {
       <KPBasketDocument
         items={enrichedItems}
         clientInfo={clientInfo}
+        lang={lang}
         kpNumber={kpNumber}
         dateStr={dateStr}
         stampDataUri={stampDataUri}

@@ -8,6 +8,7 @@ import {
   Loader2, CheckCircle, Package, ChevronRight, X
 } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
+import { useLang } from '@/context/LanguageContext'
 import { getProductBySlug } from '@/lib/supabase'
 import { formatKzt } from '@/lib/format'
 import type { Product } from '@/types'
@@ -34,6 +35,7 @@ const isInAppBrowser = () =>
 
 export default function KPCartPage() {
   const { items, removeItem, updateQty, addItem, isInCart, clear } = useCart()
+  const { lang } = useLang()
   const [form, setForm] = useState<Form>({ name: '', company: '', phone: '', email: '', note: '' })
   const [status, setStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle')
   const [suggestions, setSuggestions] = useState<AccessorySuggestion[]>([])
@@ -107,7 +109,7 @@ export default function KPCartPage() {
             email: form.email.trim() || undefined,
             note: form.note.trim() || undefined,
           },
-          lang: 'ru',
+          lang,
         }),
       })
 

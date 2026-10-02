@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server'
 import { renderToBuffer, Font, Document, Page, Text, View, StyleSheet, Image } from '@react-pdf/renderer'
 import { query } from '@/lib/db'
 import { getKpTerms, type KpTerms } from '@/lib/kp-terms'
+import { kpLang, kpText, kpBankRows, kpTermValue, kpDate, kpClientName, type KpLang } from '@/lib/kp-i18n'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -208,25 +209,17 @@ interface ProductData {
   kp_terms_override?: { label: string; value: string }[] | null
 }
 
-function getConditions(availability: string | undefined, terms: KpTerms): [string, string][] {
+function getConditions(availability: string | undefined, terms: KpTerms, lang: KpLang): [string, string][] {
+  const t = kpText(lang)
   const inStock = availability === 'in_stock'
   return [
-    ['Срок поставки:',   inStock ? terms.delivery_in_stock : terms.delivery_on_order],
-    ['Гарантия:',        terms.warranty],
-    ['Условия оплаты:',  inStock ? terms.payment_in_stock : terms.payment_on_order],
-    ['Действие КП:',     terms.validity],
+    [`${t.deliveryTime}:`, kpTermValue(inStock ? terms.delivery_in_stock : terms.delivery_on_order, lang)],
+    [`${t.warranty}:`,     kpTermValue(terms.warranty, lang)],
+    [`${t.payment}:`,      kpTermValue(inStock ? terms.payment_in_stock : terms.payment_on_order, lang)],
+    [`${t.validity}:`,     kpTermValue(terms.validity, lang)],
   ]
 }
 
-const BANK_ROWS = [
-  ['Наименование:', 'ТОО «Bes Saiman Group»'],
-  ['БИН:',         '210440034775'],
-  ['Банк:',        'АО «Банк ЦентрКредит»'],
-  ['БИК:',         'KCJBKZKX'],
-  ['КБЕ:',         '17'],
-  ['ИИК (KZT):',   'KZ128562203117832934'],
-  ['ИИК (USD):',   'KZ318562203231984520'],
-]
 
 function parseDescriptionLines(text: string): { type: 'heading' | 'bullet' | 'text'; content: string }[] {
   return text.split('\n').map(line => {
@@ -243,7 +236,7 @@ function KPDocument({
 }: {
   product: ProductData
   clientInfo: ClientInfo
-  lang: string
+  lang: KpLang
   kpNumber: string
   dateStr: string
   stampDataUri: string | null
@@ -252,6 +245,7 @@ function KPDocument({
   logoDataUri: string | null
   terms: KpTerms
 }) {
+  const L = kpText(lang)
   const productName =
     (lang === 'kk' ? product.name_kk : lang === 'en' ? product.name_en : null) || product.name_ru
   const specs = product.specs ? Object.entries(product.specs).slice(0, 16) : []
@@ -262,7 +256,7 @@ function KPDocument({
   const conditions: [string, string][] =
     product.kp_terms_override && product.kp_terms_override.length > 0
       ? product.kp_terms_override.map(r => [r.label, r.value])
-      : getConditions(product.availability, terms)
+      : getConditions(product.availability, terms, lang)
 
   return (
     <Document>
@@ -284,13 +278,13 @@ function KPDocument({
               </View>
             )}
           <View style={s.headerInfo}>
-            <Text style={s.companyTagline}>Научно-производственная компания</Text>
+            <Text style={s.companyTagline}>{L.tagline}</Text>
             <Text style={s.companyContact}>
-              +7 (707) 620-28-90  ·  bessaimangroup1@gmail.com  ·  г. Алматы, ул. Тулебаева 38/61
+              +7 (707) 620-28-90  ·  bessaimangroup1@gmail.com  ·  {L.address}
             </Text>
           </View>
           <View style={{ alignItems: 'flex-end' }}>
-            <Text style={{ fontSize: 7, color: C.gray }}>БИН: 210440034775</Text>
+            <Text style={{ fontSize: 7, color: C.gray }}>{L.bin}: 210440034775</Text>
           </View>
         </View>
 
@@ -298,30 +292,30 @@ function KPDocument({
 
         {/* TITLE BANNER */}
         <View style={s.titleBanner}>
-          <Text style={s.titleMain}>КОММЕРЧЕСКОЕ ПРЕДЛОЖЕНИЕ</Text>
-          <Text style={s.titleNum}>№ {kpNumber}  |  {dateStr}</Text>
+          <Text style={s.titleMain}>{L.title}</Text>
+          <Text style={s.titleNum}>{L.thN} {kpNumber}  |  {dateStr}</Text>
         </View>
 
         {/* PARTIES */}
         <View style={s.parties}>
           <View style={s.partyBox}>
-            <Text style={s.partyLabel}>Поставщик</Text>
-            <Text style={s.partyName}>ТОО «Bes Saiman Group»</Text>
-            <Text style={s.partyDetail}>БИН: 210440034775</Text>
-            <Text style={s.partyDetail}>РК, г. Алматы, ул. Тулебаева 38/61</Text>
-            <Text style={s.partyDetail}>Тел: +7 (707) 620-28-90</Text>
+            <Text style={s.partyLabel}>{L.supplier}</Text>
+            <Text style={s.partyName}>{L.company}</Text>
+            <Text style={s.partyDetail}>{L.bin}: 210440034775</Text>
+            <Text style={s.partyDetail}>{L.addressFull}</Text>
+            <Text style={s.partyDetail}>{L.phone}: +7 (707) 620-28-90</Text>
           </View>
           <View style={s.partyBox}>
-            <Text style={s.partyLabel}>Покупатель</Text>
+            <Text style={s.partyLabel}>{L.buyer}</Text>
             {clientInfo.company ? (
               <>
                 <Text style={s.partyName}>{clientInfo.company}</Text>
-                <Text style={s.partyDetail}>{clientInfo.name}</Text>
+                <Text style={s.partyDetail}>{kpClientName(clientInfo.name, lang)}</Text>
               </>
             ) : (
-              <Text style={s.partyName}>{clientInfo.name}</Text>
+              <Text style={s.partyName}>{kpClientName(clientInfo.name, lang)}</Text>
             )}
-            {clientInfo.phone ? <Text style={s.partyDetail}>Тел: {clientInfo.phone}</Text> : null}
+            {clientInfo.phone ? <Text style={s.partyDetail}>{L.phone}: {clientInfo.phone}</Text> : null}
             {clientInfo.email ? <Text style={s.partyDetail}>Email: {clientInfo.email}</Text> : null}
           </View>
         </View>
@@ -329,39 +323,39 @@ function KPDocument({
         <View style={s.dividerThin} />
 
         {/* PRODUCT TABLE */}
-        <Text style={s.sectionTitle}>Предмет коммерческого предложения</Text>
+        <Text style={s.sectionTitle}>{L.subject}</Text>
         <View style={s.tableWrap}>
           <View style={s.tableHead}>
-            <Text style={s.thN}>№</Text>
-            <Text style={s.thName}>Наименование товара</Text>
-            <Text style={s.thModel}>Модель</Text>
-            <Text style={s.thQty}>Кол.</Text>
-            <Text style={s.thUnit}>Ед.</Text>
-            <Text style={s.thPrice}>Стоимость</Text>
+            <Text style={s.thN}>{L.thN}</Text>
+            <Text style={s.thName}>{L.thName}</Text>
+            <Text style={s.thModel}>{L.thModel}</Text>
+            <Text style={s.thQty}>{L.thQty}</Text>
+            <Text style={s.thUnit}>{L.thUnit}</Text>
+            <Text style={s.thPrice}>{L.thPrice}</Text>
           </View>
           <View style={s.tableRow}>
             <Text style={s.tdN}>1</Text>
             <Text style={s.tdName}>{productName}</Text>
             <Text style={s.tdModel}>{product.model || '—'}</Text>
             <Text style={s.tdQty}>{clientInfo.quantity}</Text>
-            <Text style={s.tdUnit}>шт.</Text>
+            <Text style={s.tdUnit}>{L.unitPcs}</Text>
             <Text style={s.tdPrice}>
               {product.price
                 ? `${(product.price * clientInfo.quantity).toLocaleString('ru-RU')} T`
-                : 'По запросу'}
+                : L.onRequest}
             </Text>
           </View>
           <View style={s.tableTotalRow}>
-            <Text style={s.tdTotalLabel}>ИТОГО (с НДС 16%):</Text>
+            <Text style={s.tdTotalLabel}>{L.total}:</Text>
             <Text style={s.tdTotalValue}>
               {product.price
                 ? `${(product.price * clientInfo.quantity).toLocaleString('ru-RU')} T`
-                : 'По запросу'}
+                : L.onRequest}
             </Text>
           </View>
           {product.price && (
             <View style={{ flexDirection: 'row', paddingVertical: 3, paddingHorizontal: 6, backgroundColor: C.lightGray }}>
-              <Text style={{ flex: 1, fontSize: 7, color: C.gray }}>в т.ч. НДС (16%):</Text>
+              <Text style={{ flex: 1, fontSize: 7, color: C.gray }}>{L.vat}:</Text>
               <Text style={{ width: 78, fontSize: 7, color: C.gray, textAlign: 'right' }}>
                 {`${Math.round(product.price * clientInfo.quantity * 16 / 116).toLocaleString('ru-RU')} T`}
               </Text>
@@ -372,7 +366,7 @@ function KPDocument({
         {/* DESCRIPTION + PRODUCT IMAGE */}
         {(descLines.length > 0 || productImageDataUri) && (
           <>
-            <Text style={s.sectionTitle}>Описание товара</Text>
+            <Text style={s.sectionTitle}>{L.description}</Text>
             <View style={s.descSection}>
               {descLines.length > 0 && (
                 <View style={s.descText}>
@@ -401,7 +395,7 @@ function KPDocument({
         {/* SPECS */}
         {specs.length > 0 && (
           <>
-            <Text style={s.sectionTitle}>Технические характеристики</Text>
+            <Text style={s.sectionTitle}>{L.specs}</Text>
             <View style={s.specsBox}>
               {specs.map(([key, val], i) => (
                 <View key={key} style={[
@@ -420,13 +414,13 @@ function KPDocument({
         {/* NOTE */}
         {clientInfo.note ? (
           <>
-            <Text style={s.sectionTitle}>Особые условия</Text>
+            <Text style={s.sectionTitle}>{L.note}</Text>
             <Text style={{ fontSize: 8, color: C.text, marginBottom: 8 }}>{clientInfo.note}</Text>
           </>
         ) : null}
 
         {/* CONDITIONS */}
-        <Text style={s.sectionTitle}>Условия поставки</Text>
+        <Text style={s.sectionTitle}>{L.conditions}</Text>
         <View style={{ marginBottom: 8 }}>
           {conditions.map(([label, value]) => (
             <View key={label} style={s.condRow}>
@@ -443,9 +437,9 @@ function KPDocument({
 
         {/* BANK */}
         <View style={s.bankBox}>
-          <Text style={s.bankTitle}>Банковские реквизиты</Text>
+          <Text style={s.bankTitle}>{L.bank}</Text>
           <View style={s.bankGrid}>
-            {BANK_ROWS.map(([label, value]) => (
+            {kpBankRows(lang).map(([label, value]) => (
               <View key={label} style={s.bankRow}>
                 <Text style={s.bankLabel}>{label}</Text>
                 <Text style={s.bankValue}>{value}</Text>
@@ -458,8 +452,8 @@ function KPDocument({
         <View style={s.sigSection}>
           <View style={s.sigInner}>
             <View style={s.sigBox}>
-              <Text style={s.sigRole}>Генеральный директор</Text>
-              <Text style={s.sigOrg}>ТОО «Bes Saiman Group»</Text>
+              <Text style={s.sigRole}>{L.director}</Text>
+              <Text style={s.sigOrg}>{L.company}</Text>
               {signatureDataUri ? (
                 <Image src={signatureDataUri} style={{ width: 90, height: 36, marginBottom: 4 }} />
               ) : (
@@ -479,7 +473,7 @@ function KPDocument({
         {/* FOOTER */}
         <View style={s.footer} fixed>
           <Text style={s.footerText}>
-            ТОО «Bes Saiman Group»  ·  БИН 210440034775  ·  +7 (707) 620-28-90  ·  bessaimangroup1@gmail.com
+            {L.company}  ·  {L.bin} 210440034775  ·  +7 (707) 620-28-90  ·  bessaimangroup1@gmail.com
           </Text>
           <Text style={s.footerText}
             render={({ pageNumber, totalPages }: { pageNumber: number; totalPages: number }) =>
@@ -493,21 +487,18 @@ function KPDocument({
   )
 }
 
-function formatDate(d: Date): string {
-  const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря']
-  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} г.`
-}
-
 function generateKPNumber(): string {
   const year = new Date().getFullYear()
   const num = String(Date.now()).slice(-5)
   return `КП-${year}-${num}`
 }
 
-let fontsRegistered = false
-
+// Re-registered on every request on purpose: @react-pdf keeps the loaded
+// font between renders, and glyphs already used by an earlier КП then go
+// missing from the next one (e.g. "Offer" printed as "ffer" after a Russian
+// КП had used "О"). A fresh font per render avoids it.
 function ensureFontsRegistered() {
-  if (fontsRegistered) return
+  delete (Font.getRegisteredFonts() as Record<string, unknown>)['Roboto']
   const fontsDir = path.join(process.cwd(), 'public', 'fonts')
   Font.register({
     family: 'Roboto',
@@ -516,7 +507,6 @@ function ensureFontsRegistered() {
       { src: path.join(fontsDir, 'Roboto-Bold.ttf'), fontWeight: 'bold' },
     ],
   })
-  fontsRegistered = true
 }
 
 function loadStampDataUri(): string | null {
@@ -580,7 +570,7 @@ async function loadProductImageDataUri(imageUrl: string | undefined): Promise<st
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { product, clientInfo, lang = 'ru' } = body as {
+    const { product, clientInfo, lang: rawLang } = body as {
       product: ProductData
       clientInfo: ClientInfo
       lang: string
@@ -594,7 +584,8 @@ export async function POST(request: Request) {
     const terms = await getKpTerms()
 
     const kpNumber = generateKPNumber()
-    const dateStr = formatDate(new Date())
+    const lang = kpLang(rawLang)
+    const dateStr = kpDate(new Date(), lang)
 
     query(
       `INSERT INTO kp_requests (product_id, product_model, product_name, kp_number, client_name, client_company, client_email, client_phone, quantity, note, lang)
