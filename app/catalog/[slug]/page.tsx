@@ -242,6 +242,8 @@ export default function ProductDetailPage() {
   }
 
   const name = product[`name_${lang}` as 'name_ru' | 'name_kk' | 'name_en'] || product.name_ru
+  const questionnaireUrl =
+    (lang === 'kk' ? product.questionnaire_url_kk : lang === 'en' ? product.questionnaire_url_en : null) || product.questionnaire_url
   const description = product[`description_${lang}` as 'description_ru' | 'description_kk' | 'description_en'] || product.description_ru
 
   return (
@@ -323,8 +325,8 @@ export default function ProductDetailPage() {
                 {tr.product.questionnaireDesc}
               </p>
               <div className="flex flex-col sm:flex-row gap-2.5">
-                {product.questionnaire_url && (
-                  <a href={product.questionnaire_url} target="_blank" rel="noopener noreferrer" download
+                {questionnaireUrl && (
+                  <a href={questionnaireUrl} target="_blank" rel="noopener noreferrer" download
                     className="btn-secondary flex-1 flex items-center justify-center gap-2">
                     <Download size={15} />
                     {tr.product.questionnaireDownload}

@@ -62,6 +62,8 @@ interface FormState {
   height_cm: string
   kp_terms_override: { label: string; value: string }[]
   questionnaire_url: string
+  questionnaire_url_kk: string
+  questionnaire_url_en: string
 }
 
 const EMPTY: FormState = {
@@ -86,9 +88,18 @@ const EMPTY: FormState = {
   height_cm: '',
   kp_terms_override: [],
   questionnaire_url: '',
+  questionnaire_url_kk: '',
+  questionnaire_url_en: '',
 }
 
 type DescLang = 'ru' | 'kk' | 'en'
+
+type QuestionnaireField = 'questionnaire_url' | 'questionnaire_url_kk' | 'questionnaire_url_en'
+const QUESTIONNAIRE_ROWS: { field: QuestionnaireField; label: string }[] = [
+  { field: 'questionnaire_url', label: 'RU - Русский' },
+  { field: 'questionnaire_url_kk', label: 'KK - Қазақша' },
+  { field: 'questionnaire_url_en', label: 'EN - English' },
+]
 
 export default function ProductForm({ product }: { product?: Product }) {
   const router = useRouter()
@@ -104,9 +115,10 @@ export default function ProductForm({ product }: { product?: Product }) {
   const [accDropOpen, setAccDropOpen] = useState(false)
   const [accObjects, setAccObjects] = useState<AccessoryItem[]>([])
   const accDropRef = useRef<HTMLDivElement>(null)
-  const [questionnaireUploading, setQuestionnaireUploading] = useState(false)
+  const [questionnaireUploading, setQuestionnaireUploading] = useState<QuestionnaireField | null>(null)
   const [questionnaireError, setQuestionnaireError] = useState('')
   const questionnaireInputRef = useRef<HTMLInputElement>(null)
+  const questionnaireTarget = useRef<QuestionnaireField>('questionnaire_url')
 
   useEffect(() => {
     fetch('/api/categories').then(r => r.json()).then(data => setCategories(data ?? []))
@@ -142,6 +154,8 @@ export default function ProductForm({ product }: { product?: Product }) {
       height_cm: product.height_cm?.toString() ?? '',
       kp_terms_override: product.kp_terms_override ?? [],
       questionnaire_url: product.questionnaire_url ?? '',
+      questionnaire_url_kk: product.questionnaire_url_kk ?? '',
+      questionnaire_url_en: product.questionnaire_url_en ?? '',
     })
     if (product.accessories?.length) {
       setAccObjects(product.accessories.map(a => ({
@@ -316,6 +330,8 @@ export default function ProductForm({ product }: { product?: Product }) {
       height_cm: form.height_cm ? Number(form.height_cm) : null,
       kp_terms_override: form.kp_terms_override.filter(r => r.label.trim() && r.value.trim()),
       questionnaire_url: form.questionnaire_url || null,
+      questionnaire_url_kk: form.questionnaire_url_kk || null,
+      questionnaire_url_en: form.questionnaire_url_en || null,
     }
 
     try {
@@ -443,44 +459,55 @@ export default function ProductForm({ product }: { product?: Product }) {
             Готовится индивидуально под это оборудование. Клиент скачивает его на странице товара,
             заполняет и присылает обратно нам через кнопку «Отправить заполненный опросный лист».
           </p>
-          <div className="flex items-center gap-3">
-            {form.questionnaire_url && (
-              <a href={form.questionnaire_url} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg"
-                style={{ background: 'rgba(255,255,255,0.05)', color: '#93C5FD' }}>
-                Открыть файл
-              </a>
-            )}
-            <button type="button" onClick={() => questionnaireInputRef.current?.click()}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium"
-              style={{ background: 'rgba(59,130,246,0.1)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.2)' }}>
-              {questionnaireUploading ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
-              {questionnaireUploading ? 'Загрузка...' : form.questionnaire_url ? 'Заменить' : 'Загрузить'}
-            </button>
-            {form.questionnaire_url && (
-              <button type="button" onClick={() => set('questionnaire_url', '')} className="text-xs" style={{ color: '#F87171' }}>
-                Убрать
-              </button>
-            )}
+          <p className="text-[11px] mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            Можно загрузить отдельный файл на каждом языке. Если для казахского или английского файла нет,
+            посетителю с этим языком сайта скачается русский.
+          </p>
+          <div className="space-y-2">
+            {QUESTIONNAIRE_ROWS.map(({ field, label }) => (
+              <div key={field} className="flex items-center gap-3">
+                <span className="w-24 shrink-0 text-xs font-semibold" style={{ color: 'rgba(255,255,255,0.5)' }}>{label}</span>
+                {form[field] && (
+                  <a href={form[field]} target="_blank" rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg"
+                    style={{ background: 'rgba(255,255,255,0.05)', color: '#93C5FD' }}>
+                    Открыть файл
+                  </a>
+                )}
+                <button type="button" disabled={!!questionnaireUploading}
+                  onClick={() => { questionnaireTarget.current = field; questionnaireInputRef.current?.click() }}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium disabled:opacity-50"
+                  style={{ background: 'rgba(59,130,246,0.1)', color: '#60A5FA', border: '1px solid rgba(59,130,246,0.2)' }}>
+                  {questionnaireUploading === field ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+                  {questionnaireUploading === field ? 'Загрузка...' : form[field] ? 'Заменить' : 'Загрузить'}
+                </button>
+                {form[field] && (
+                  <button type="button" onClick={() => set(field, '')} className="text-xs" style={{ color: '#F87171' }}>
+                    Убрать
+                  </button>
+                )}
+              </div>
+            ))}
           </div>
           {questionnaireError && <p className="text-xs mt-1.5" style={{ color: '#F87171' }}>{questionnaireError}</p>}
           <input ref={questionnaireInputRef} type="file" className="hidden"
             accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             onChange={async e => {
               const file = e.target.files?.[0]
+              const field = questionnaireTarget.current
               if (!file) return
-              setQuestionnaireUploading(true); setQuestionnaireError('')
+              setQuestionnaireUploading(field); setQuestionnaireError('')
               try {
                 const fd = new FormData()
                 fd.append('file', file)
                 const res = await fetch('/api/admin/products/upload-questionnaire', { method: 'POST', body: fd })
                 const data = await res.json()
                 if (!res.ok) throw new Error(data.error)
-                set('questionnaire_url', data.url)
+                set(field, data.url)
               } catch (err) {
                 setQuestionnaireError(err instanceof Error ? err.message : 'Ошибка загрузки')
               } finally {
-                setQuestionnaireUploading(false)
+                setQuestionnaireUploading(null)
                 e.target.value = ''
               }
             }} />

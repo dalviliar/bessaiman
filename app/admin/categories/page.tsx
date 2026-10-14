@@ -130,6 +130,8 @@ export default function AdminCategoriesPage() {
   const [loading, setLoading]       = useState(true)
   const [editingId, setEditingId]   = useState<string | null>(null)
   const [editName, setEditName]     = useState('')
+  const [editNameKk, setEditNameKk] = useState('')
+  const [editNameEn, setEditNameEn] = useState('')
   const [editCode, setEditCode]     = useState('')
   const [editDesc, setEditDesc]     = useState('')
   const [saving, setSaving]         = useState(false)
@@ -145,6 +147,10 @@ export default function AdminCategoriesPage() {
   const startEdit = (cat: Category) => {
     setEditingId(cat.id)
     setEditName(cat.name_ru)
+    // kk/en default to the Russian name when a category is created without
+    // translations - show those as empty so it's obvious they're missing.
+    setEditNameKk(cat.name_kk && cat.name_kk !== cat.name_ru ? cat.name_kk : '')
+    setEditNameEn(cat.name_en && cat.name_en !== cat.name_ru ? cat.name_en : '')
     setEditCode(cat.classification_code ?? '')
     setEditDesc(cat.description_ru ?? CLASS_HINT[cat.classification_code ?? ''] ?? '')
   }
@@ -158,6 +164,8 @@ export default function AdminCategoriesPage() {
       body: JSON.stringify({
         ...cat,
         name_ru: editName.trim(),
+        name_kk: editNameKk.trim(),
+        name_en: editNameEn.trim(),
         classification_code: editCode.toUpperCase().trim() || null,
         description_ru: editDesc.trim() || null,
       }),
@@ -258,15 +266,33 @@ export default function AdminCategoriesPage() {
                   </td>
                   <td className="px-5 py-3 text-white text-xs font-medium">
                     {editingId === cat.id ? (
-                      <input
-                        className="steel-input w-full text-xs"
-                        value={editName}
-                        onChange={e => setEditName(e.target.value)}
-                        placeholder="Название категории"
-                        onKeyDown={e => { if (e.key === 'Enter') saveEdit(cat); if (e.key === 'Escape') setEditingId(null) }}
-                      />
+                      <div className="flex flex-col gap-1">
+                        {([
+                          ['RU', editName, setEditName, 'Название категории'],
+                          ['KK', editNameKk, setEditNameKk, 'Қазақша атауы'],
+                          ['EN', editNameEn, setEditNameEn, 'English name'],
+                        ] as const).map(([label, value, setValue, placeholder]) => (
+                          <div key={label} className="flex items-center gap-1.5">
+                            <span className="w-5 shrink-0 text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.35)' }}>{label}</span>
+                            <input
+                              className="steel-input w-full text-xs"
+                              value={value}
+                              onChange={e => setValue(e.target.value)}
+                              placeholder={placeholder}
+                              onKeyDown={e => { if (e.key === 'Enter') saveEdit(cat); if (e.key === 'Escape') setEditingId(null) }}
+                            />
+                          </div>
+                        ))}
+                      </div>
                     ) : (
-                      cat.name_ru
+                      <div>
+                        {cat.name_ru}
+                        <div className="text-[10px] font-normal mt-0.5" style={{ color: 'rgba(255,255,255,0.35)' }}>
+                          KK: {cat.name_kk && cat.name_kk !== cat.name_ru ? cat.name_kk : <span style={{ color: '#F87171' }}>нет перевода</span>}
+                          {' · '}
+                          EN: {cat.name_en && cat.name_en !== cat.name_ru ? cat.name_en : <span style={{ color: '#F87171' }}>нет перевода</span>}
+                        </div>
+                      </div>
                     )}
                   </td>
                   <td className="px-5 py-3">

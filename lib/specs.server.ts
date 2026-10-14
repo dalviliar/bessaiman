@@ -31,3 +31,23 @@ function cleanSpecsI18n(raw: unknown): SpecsI18n | null {
   }
   return Object.keys(out).length ? out : null
 }
+
+/**
+ * kk/en questionnaire files for "Разработка по ТЗ" products, saved the same
+ * way as the spec translations (skipped until i18n_categories_questionnaire
+ * has been run).
+ */
+export async function saveQuestionnaireI18n(
+  productId: string, kk: unknown, en: unknown,
+): Promise<{ questionnaire_url_kk: string | null; questionnaire_url_en: string | null } | null> {
+  const clean = (v: unknown) => (typeof v === 'string' && v.trim() ? v.trim() : null)
+  const value = { questionnaire_url_kk: clean(kk), questionnaire_url_en: clean(en) }
+  try {
+    await query('UPDATE products SET questionnaire_url_kk = $1, questionnaire_url_en = $2 WHERE id = $3',
+      [value.questionnaire_url_kk, value.questionnaire_url_en, productId])
+  } catch (e) {
+    if (e instanceof Error && e.message.includes('questionnaire_url_')) return null
+    throw e
+  }
+  return value
+}

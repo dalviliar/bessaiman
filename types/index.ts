@@ -71,6 +71,9 @@ export interface Product {
   kp_terms_override: { label: string; value: string }[] | null
   /** Опросный лист for "Разработки по ТЗ" products — customers download and fill it out. */
   questionnaire_url: string | null
+  /** Same questionnaire in Kazakh / English; empty falls back to questionnaire_url. */
+  questionnaire_url_kk?: string | null
+  questionnaire_url_en?: string | null
   product_type: ProductType
   classification_code: string | null
   compatible_with: string[]

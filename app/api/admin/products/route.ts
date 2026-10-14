@@ -4,7 +4,7 @@ import { getCurrentAdminUser } from '@/lib/auth'
 import { can } from '@/lib/admin'
 import { logAction } from '@/lib/audit'
 import { slugify } from '@/lib/slugify'
-import { saveSpecsI18n } from '@/lib/specs.server'
+import { saveSpecsI18n, saveQuestionnaireI18n } from '@/lib/specs.server'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -41,6 +41,7 @@ export async function POST(request: Request) {
       availability, barcode, images, video_url, instagram_url, specs, product_type, classification_code,
       compatible_with, weight_kg, unit, quantity, length_cm, width_cm, height_cm,
       accessory_ids, kp_terms_override, featured_specs, questionnaire_url, specs_i18n,
+      questionnaire_url_kk, questionnaire_url_en,
     } = body
 
     if (!name_ru || !category_id) {
@@ -147,6 +148,7 @@ export async function POST(request: Request) {
 
       await client.query('COMMIT')
       product.specs_i18n = await saveSpecsI18n(product.id, specs_i18n)
+      Object.assign(product, await saveQuestionnaireI18n(product.id, questionnaire_url_kk, questionnaire_url_en))
 
       await logAction({
         adminId: me.id, adminEmail: me.email, action: 'create',
