@@ -23,6 +23,12 @@ FROM (VALUES
 ) AS t(ru, kk, en)
 WHERE lower(replace(trim(c.name_ru), 'ё', 'е')) = lower(replace(t.ru, 'ё', 'е'));
 
+-- Home page cards show the category description under the name. Where the
+-- Russian description is just the name again (e.g. "Сушильные шкафы") and
+-- there's no kk/en description, use the translated name instead of Russian.
+UPDATE categories SET description_kk = name_kk, description_en = name_en
+WHERE description_kk IS NULL AND trim(description_ru) = trim(name_ru);
+
 SELECT name_ru, name_kk, name_en FROM categories ORDER BY sort_order;
 
 ALTER TABLE products ADD COLUMN IF NOT EXISTS questionnaire_url_kk TEXT;

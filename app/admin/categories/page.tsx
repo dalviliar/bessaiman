@@ -134,6 +134,8 @@ export default function AdminCategoriesPage() {
   const [editNameEn, setEditNameEn] = useState('')
   const [editCode, setEditCode]     = useState('')
   const [editDesc, setEditDesc]     = useState('')
+  const [editDescKk, setEditDescKk] = useState('')
+  const [editDescEn, setEditDescEn] = useState('')
   const [saving, setSaving]         = useState(false)
   const [showCreate, setShowCreate] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -153,6 +155,8 @@ export default function AdminCategoriesPage() {
     setEditNameEn(cat.name_en && cat.name_en !== cat.name_ru ? cat.name_en : '')
     setEditCode(cat.classification_code ?? '')
     setEditDesc(cat.description_ru ?? CLASS_HINT[cat.classification_code ?? ''] ?? '')
+    setEditDescKk(cat.description_kk ?? '')
+    setEditDescEn(cat.description_en ?? '')
   }
 
   const saveEdit = async (cat: Category) => {
@@ -168,6 +172,8 @@ export default function AdminCategoriesPage() {
         name_en: editNameEn.trim(),
         classification_code: editCode.toUpperCase().trim() || null,
         description_ru: editDesc.trim() || null,
+        description_kk: editDescKk.trim() || null,
+        description_en: editDescEn.trim() || null,
       }),
     })
     if (res.ok) {
@@ -318,13 +324,24 @@ export default function AdminCategoriesPage() {
                   </td>
                   <td className="px-5 py-3 text-xs hidden sm:table-cell" style={{ color: 'rgba(255,255,255,0.4)' }}>
                     {editingId === cat.id ? (
-                      <input
-                        className="steel-input w-full text-xs"
-                        value={editDesc}
-                        onChange={e => setEditDesc(e.target.value)}
-                        placeholder="Расшифровка кода..."
-                        onKeyDown={e => { if (e.key === 'Enter') saveEdit(cat); if (e.key === 'Escape') setEditingId(null) }}
-                      />
+                      <div className="flex flex-col gap-1">
+                        {([
+                          ['RU', editDesc, setEditDesc, 'Расшифровка кода...'],
+                          ['KK', editDescKk, setEditDescKk, 'Қазақша сипаттама'],
+                          ['EN', editDescEn, setEditDescEn, 'English description'],
+                        ] as const).map(([label, value, setValue, placeholder]) => (
+                          <div key={label} className="flex items-center gap-1.5">
+                            <span className="w-5 shrink-0 text-[10px] font-mono" style={{ color: 'rgba(255,255,255,0.35)' }}>{label}</span>
+                            <input
+                              className="steel-input w-full text-xs"
+                              value={value}
+                              onChange={e => setValue(e.target.value)}
+                              placeholder={placeholder}
+                              onKeyDown={e => { if (e.key === 'Enter') saveEdit(cat); if (e.key === 'Escape') setEditingId(null) }}
+                            />
+                          </div>
+                        ))}
+                      </div>
                     ) : (
                       cat.description_ru ?? CLASS_HINT[cat.classification_code ?? ''] ?? <span style={{ color: 'rgba(255,255,255,0.2)' }}>—</span>
                     )}

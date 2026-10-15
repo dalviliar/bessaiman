@@ -14,11 +14,13 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
     const { id } = await params
-    const { name_ru, name_kk, name_en, description_ru, classification_code, image_url } = await request.json()
+    const { name_ru, name_kk, name_en, description_ru, description_kk, description_en, classification_code, image_url } = await request.json()
     const category = await queryOne(
-      `UPDATE categories SET name_ru=$1,name_kk=$2,name_en=$3,description_ru=$4,classification_code=$5,image_url=$6
+      `UPDATE categories SET name_ru=$1,name_kk=$2,name_en=$3,description_ru=$4,classification_code=$5,image_url=$6,
+         description_kk=$8,description_en=$9
        WHERE id=$7 RETURNING *`,
-      [name_ru, name_kk || name_ru, name_en || name_ru, description_ru || null, classification_code || null, image_url || null, id],
+      [name_ru, name_kk || name_ru, name_en || name_ru, description_ru || null, classification_code || null, image_url || null, id,
+       description_kk || null, description_en || null],
     )
     if (!category) return NextResponse.json({ error: 'Не найдено' }, { status: 404 })
 
