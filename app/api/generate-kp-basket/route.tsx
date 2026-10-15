@@ -467,7 +467,7 @@ function KPBasketDocument({
               ) : (
                 <View style={s.sigLine} />
               )}
-              <Text style={s.sigName}>Елеуов М.А.</Text>
+              <Text style={s.sigName}>{L.directorName}</Text>
               <Text style={s.sigDate}>{dateStr}</Text>
             </View>
             {stampDataUri && (
