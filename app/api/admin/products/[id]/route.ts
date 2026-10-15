@@ -4,6 +4,7 @@ import { getCurrentAdminUser } from '@/lib/auth'
 import { can } from '@/lib/admin'
 import { logAction } from '@/lib/audit'
 import { saveSpecsI18n, saveQuestionnaireI18n } from '@/lib/specs.server'
+import { diffProduct } from '@/lib/audit-diff'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -55,6 +56,10 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     if (!name_ru || !category_id) {
       return NextResponse.json({ error: 'Заполните название и категорию' }, { status: 400 })
     }
+
+    // Snapshot for the audit log's "what changed" (best effort - never blocks the save)
+    const before = await queryOne('SELECT * FROM products WHERE id = $1', [id]).catch(() => null)
+    const accessoriesBefore = await query<{ name_ru: string }>(`SELECT acc.name_ru FROM product_accessories pa JOIN products acc ON acc.id = pa.accessory_id WHERE pa.product_id = $1`, [id]).catch(() => null)
 
     const baseArgs = [
       category_id, name_ru, name_kk || name_ru, name_en || name_ru, model ?? null,
@@ -126,9 +131,26 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
       }
     }
 
+    let changes
+    try {
+      if (before) {
+        const accessoriesAfter = await query<{ name_ru: string }>(`SELECT acc.name_ru FROM product_accessories pa JOIN products acc ON acc.id = pa.accessory_id WHERE pa.product_id = $1`, [id])
+        const cats = await query<{ id: string; name_ru: string }>(
+          'SELECT id, name_ru FROM categories WHERE id = ANY($1)', [[before.category_id, product.category_id].filter(Boolean)])
+        changes = diffProduct(before, product, {
+          categoryNames: Object.fromEntries(cats.map(c => [c.id, c.name_ru])),
+          accessoriesBefore: accessoriesBefore?.map(a => a.name_ru),
+          accessoriesAfter: accessoriesAfter.map(a => a.name_ru),
+        })
+      }
+    } catch (e) {
+      console.error('audit diff failed:', e)
+    }
+
     await logAction({
       adminId: me.id, adminEmail: me.email, action: 'update',
       entityType: 'product', entityId: product.id, entityLabel: product.name_ru,
+      details: changes ? { changes } : undefined,
     })
 
     return NextResponse.json(product)

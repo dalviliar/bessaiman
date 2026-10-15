@@ -3,6 +3,7 @@ import { query, queryOne } from '@/lib/db'
 import { getCurrentAdminUser } from '@/lib/auth'
 import { can } from '@/lib/admin'
 import { logAction } from '@/lib/audit'
+import { diffCategory } from '@/lib/audit-diff'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -15,6 +16,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     }
     const { id } = await params
     const { name_ru, name_kk, name_en, description_ru, description_kk, description_en, classification_code, image_url } = await request.json()
+    const before = await queryOne('SELECT * FROM categories WHERE id = $1', [id]).catch(() => null)
     const category = await queryOne(
       `UPDATE categories SET name_ru=$1,name_kk=$2,name_en=$3,description_ru=$4,classification_code=$5,image_url=$6,
          description_kk=$8,description_en=$9
@@ -27,6 +29,7 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
     await logAction({
       adminId: me.id, adminEmail: me.email, action: 'update',
       entityType: 'category', entityId: category.id, entityLabel: category.name_ru,
+      details: before ? { changes: diffCategory(before, category) } : undefined,
     })
 
     return NextResponse.json(category)
