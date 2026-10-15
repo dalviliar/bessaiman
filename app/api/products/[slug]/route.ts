@@ -45,7 +45,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     // under "Совместимость"), rather than picked one by one on this product.
     // Direction: this product is the "main" item, we're looking for PA
     // accessories whose code list contains this product's own category code.
-    classificationCode
+    classificationCode && product.product_type !== 'PA'
       ? query(
           `SELECT acc.*,
              CASE WHEN c.id IS NOT NULL THEN row_to_json(c) END AS category
@@ -60,7 +60,10 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     // products it declares itself compatible with — otherwise the link
     // only ever showed up on the main product's page, never on the
     // accessory's own page.
-    product.compatible_with?.length
+    // Only for PA: the admin hides "Совместимость" for other types, so codes
+    // left over from an earlier type change would otherwise pull in whole
+    // categories that nobody can see or remove (BS-HP-1 listed everything).
+    product.product_type === 'PA' && product.compatible_with?.length
       ? query(
           `SELECT acc.*,
              CASE WHEN c.id IS NOT NULL THEN row_to_json(c) END AS category

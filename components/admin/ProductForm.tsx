@@ -320,7 +320,9 @@ export default function ProductForm({ product }: { product?: Product }) {
       ),
       product_type: form.product_type,
       classification_code: form.classification_code || null,
-      compatible_with: form.compatible_with,
+      // The "Совместимость" picker is only shown for PA - don't keep codes
+      // left over from when the product had another type, staff can't see them.
+      compatible_with: form.product_type === 'PA' ? form.compatible_with : [],
       accessory_ids: accObjects.map(a => a.id),
       weight_kg: form.weight_kg ? Number(form.weight_kg) : null,
       unit: form.unit,
