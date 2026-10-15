@@ -9,6 +9,11 @@ const nextConfig = {
     // original file as-is avoids that broken code path entirely.
     unoptimized: true,
   },
+  // The type check after "Compiled successfully" needs more memory than the
+  // VPS has - a deploy sat there for 12+ hours. Types are checked locally
+  // (npx tsc --noEmit) before pushing, so the server build skips it.
+  typescript: { ignoreBuildErrors: true },
+  eslint: { ignoreDuringBuilds: true },
 }
 
 export default nextConfig
