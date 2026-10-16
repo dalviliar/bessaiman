@@ -329,6 +329,12 @@ export default function AdminNewsPage() {
                     onChange={e => set(`title_${activeLang}`, e.target.value)}
                     placeholder={activeLang === 'ru' ? 'Введите заголовок...' : activeLang === 'kk' ? 'Тақырыбын енгізіңіз...' : 'Enter title...'}
                   />
+                  {form[`title_${activeLang}`].length > 120 && (
+                    <p className="text-[11px] mt-1" style={{ color: '#fbbf24' }}>
+                      Заголовок длинный ({form[`title_${activeLang}`].length} символов) - на главной он обрежется до 3 строк.
+                      Заголовок - это 1 короткая фраза, а сам текст новости вставьте в поле «Текст» ниже.
+                    </p>
+                  )}
                 </div>
 
                 {/* Content for active language */}

@@ -351,7 +351,7 @@ export default function HomePage() {
                             {isAnn ? tr.home.tagAnnouncement : tr.home.tagNews}
                           </span>
                         </div>
-                        <h3 className="font-black leading-tight mb-2 text-white"
+                        <h3 className="font-black leading-tight mb-2 text-white line-clamp-3"
                           style={{ fontSize: 'clamp(1rem,2.5vw,1.4rem)', textShadow: '0 2px 14px rgba(0,0,0,0.65), 0 1px 3px rgba(0,0,0,0.8)' }}>
                           {postTitle(post)}
                         </h3>
