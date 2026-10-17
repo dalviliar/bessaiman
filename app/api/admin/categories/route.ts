@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     }
     const category = await queryOne(
       `INSERT INTO categories (slug, name_ru, name_kk, name_en, description_ru, description_kk, description_en, classification_code, sort_order)
-       VALUES ($1,$2,$3,$4,$5,$5,$5,$6, (SELECT COALESCE(MAX(sort_order),0)+10 FROM categories)) RETURNING *`,
+       VALUES ($1,$2,$3,$4,$5,NULL,NULL,$6, (SELECT COALESCE(MAX(sort_order),0)+10 FROM categories)) RETURNING *`,
       [slug, name_ru, name_kk || name_ru, name_en || name_ru, description_ru || null, classification_code || null],
     )
 
