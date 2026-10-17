@@ -800,11 +800,13 @@ function ContractsTab() {
 
 interface Achievement {
   id: string; full_name: string; award_name_ru: string; award_name_kk: string | null; award_name_en: string | null
+  full_name_kk?: string | null; full_name_en?: string | null; organization_kk?: string | null; organization_en?: string | null
   year: number | null; organization: string | null; certificate_url: string | null
   description_ru: string | null; description_kk: string | null; description_en: string | null
   text_align: TextAlign; sort_order: number
 }
 const EMPTY_ACH = {
+  full_name_kk: '', full_name_en: '', organization_kk: '', organization_en: '',
   full_name: '', award_name_ru: '', award_name_kk: '', award_name_en: '', year: '', organization: '', certificate_url: '',
   description_ru: '', description_kk: '', description_en: '', text_align: 'left' as TextAlign,
 }
@@ -827,6 +829,8 @@ function AchievementsTab() {
   const startEdit = (a: Achievement) => {
     setEditing(a)
     setForm({
+      full_name_kk: a.full_name_kk ?? '', full_name_en: a.full_name_en ?? '',
+      organization_kk: a.organization_kk ?? '', organization_en: a.organization_en ?? '',
       full_name: a.full_name, award_name_ru: a.award_name_ru, award_name_kk: a.award_name_kk ?? '', award_name_en: a.award_name_en ?? '',
       year: a.year ? String(a.year) : '', organization: a.organization ?? '', certificate_url: a.certificate_url ?? '',
       description_ru: a.description_ru ?? '', description_kk: a.description_kk ?? '', description_en: a.description_en ?? '',
@@ -842,6 +846,8 @@ function AchievementsTab() {
     setSaving(true); setError('')
     try {
       const payload = {
+        full_name_kk: form.full_name_kk || null, full_name_en: form.full_name_en || null,
+        organization_kk: form.organization_kk || null, organization_en: form.organization_en || null,
         full_name: form.full_name.trim(), award_name_ru: form.award_name_ru.trim(), award_name_kk: form.award_name_kk || null, award_name_en: form.award_name_en || null,
         year: form.year || null, organization: form.organization || null, certificate_url: form.certificate_url || null,
         description_ru: form.description_ru || null, description_kk: form.description_kk || null, description_en: form.description_en || null,
@@ -869,11 +875,21 @@ function AchievementsTab() {
   return (
     <>
       <FormShell title={editing ? 'Редактирование достижения' : 'Добавить достижение'} editing={!!editing} onCancel={cancelEdit} error={error} saving={saving} onSubmit={handleSubmit}>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div>
-            <FieldLabel>ФИО сотрудника *</FieldLabel>
+            <FieldLabel>ФИО сотрудника (рус) *</FieldLabel>
             <input className="steel-input w-full" value={form.full_name} onChange={e => setForm(f => ({ ...f, full_name: e.target.value }))} placeholder="Елеуов М.А." />
           </div>
+          <div>
+            <FieldLabel>ФИО сотрудника (қаз)</FieldLabel>
+            <input className="steel-input w-full" value={form.full_name_kk} onChange={e => setForm(f => ({ ...f, full_name_kk: e.target.value }))} placeholder="Елеуов М.Ә." />
+          </div>
+          <div>
+            <FieldLabel>ФИО сотрудника (eng)</FieldLabel>
+            <input className="steel-input w-full" value={form.full_name_en} onChange={e => setForm(f => ({ ...f, full_name_en: e.target.value }))} placeholder="Yeleuov M.A." />
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-4">
           <div>
             <FieldLabel>Год</FieldLabel>
             <input type="number" className="steel-input w-full" value={form.year} onChange={e => setForm(f => ({ ...f, year: e.target.value }))} placeholder="2025" />
@@ -893,9 +909,19 @@ function AchievementsTab() {
             <input className="steel-input w-full" value={form.award_name_en} onChange={e => setForm(f => ({ ...f, award_name_en: e.target.value }))} />
           </div>
         </div>
-        <div>
-          <FieldLabel>Организация</FieldLabel>
-          <input className="steel-input w-full" value={form.organization} onChange={e => setForm(f => ({ ...f, organization: e.target.value }))} placeholder="НИНЖ РК" />
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <FieldLabel>Организация (рус)</FieldLabel>
+            <input className="steel-input w-full" value={form.organization} onChange={e => setForm(f => ({ ...f, organization: e.target.value }))} placeholder="НИНЖ РК" />
+          </div>
+          <div>
+            <FieldLabel>Организация (қаз)</FieldLabel>
+            <input className="steel-input w-full" value={form.organization_kk} onChange={e => setForm(f => ({ ...f, organization_kk: e.target.value }))} />
+          </div>
+          <div>
+            <FieldLabel>Организация (eng)</FieldLabel>
+            <input className="steel-input w-full" value={form.organization_en} onChange={e => setForm(f => ({ ...f, organization_en: e.target.value }))} />
+          </div>
         </div>
         <div>
           <FieldLabel>Описание (рус) — показывается по клику на карточку</FieldLabel>

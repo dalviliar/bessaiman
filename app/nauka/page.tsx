@@ -8,6 +8,7 @@ import {
 } from 'lucide-react'
 import { useLang } from '@/context/LanguageContext'
 import { useZoomPreview, ZoomPreviewOverlay } from '@/components/HoverZoomPreview'
+import ScrollRow from '@/components/ScrollRow'
 
 interface Publication { id: string; title: string; authors: string | null; journal: string | null; year: number | null; doi: string | null }
 interface Patent {
@@ -22,6 +23,7 @@ interface Project {
 }
 interface Achievement {
   id: string; full_name: string; award_name_ru: string; award_name_kk: string | null; award_name_en: string | null
+  full_name_kk?: string | null; full_name_en?: string | null; organization_kk?: string | null; organization_en?: string | null
   year: number | null; organization: string | null; certificate_url: string | null
   description_ru: string | null; description_kk: string | null; description_en: string | null; text_align: string
 }
@@ -182,9 +184,9 @@ function NaukaPageInner() {
 
   const awardCards: NCard[] = achievements.map(a => ({
     id: a.id,
-    title: a.full_name,
+    title: pick(a.full_name, a.full_name_kk ?? null, a.full_name_en ?? null),
     subtitle: pick(a.award_name_ru, a.award_name_kk, a.award_name_en),
-    meta: [a.year ? String(a.year) : '', a.organization ?? ''].filter(Boolean),
+    meta: [a.year ? String(a.year) : '', pick(a.organization, a.organization_kk ?? null, a.organization_en ?? null) ?? ''].filter(Boolean),
     images: a.certificate_url ? [a.certificate_url] : [],
     fit: 'contain' as const,
     icon: Medal,
@@ -248,11 +250,11 @@ function NaukaPageInner() {
             {/* stays reachable while a long grid scrolls past */}
             <div className="sticky top-[76px] md:top-[96px] z-20 -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-3 mb-5"
               style={{ background: 'rgba(240,244,248,0.94)', backdropFilter: 'blur(8px)' }}>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar">
+              <ScrollRow activeKey={current.key}>
               {TABS.map(t => {
                 const on = t.key === current.key
                 return (
-                  <button key={t.key} type="button" onClick={() => changeTab(t.key)}
+                  <button key={t.key} type="button" onClick={() => changeTab(t.key)} data-active={on}
                     className="flex-none inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-base font-semibold transition-all"
                     style={{
                       background: on ? 'linear-gradient(135deg,#1565C0,#0284C7)' : 'white',
@@ -268,7 +270,7 @@ function NaukaPageInner() {
                   </button>
                 )
               })}
-              </div>
+              </ScrollRow>
             </div>
 
             <p className="text-base font-bold text-center mb-5" style={{ color: '#1E293B' }}>{current.intro}</p>

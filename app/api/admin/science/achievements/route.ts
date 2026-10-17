@@ -3,6 +3,7 @@ import { query, queryOne } from '@/lib/db'
 import { getCurrentAdminUser } from '@/lib/auth'
 import { can } from '@/lib/admin'
 import { logAction } from '@/lib/audit'
+import { saveAchievementI18n } from '@/lib/achievements.server'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -22,7 +23,8 @@ export async function POST(request: Request) {
     if (!me || !can(me.role, 'content', 'create')) {
       return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 })
     }
-    const { full_name, award_name_ru, award_name_kk, award_name_en, year, organization, certificate_url, description_ru, description_kk, description_en, text_align } = await request.json()
+    const body = await request.json()
+    const { full_name, award_name_ru, award_name_kk, award_name_en, year, organization, certificate_url, description_ru, description_kk, description_en, text_align } = body
     if (!full_name?.trim() || !award_name_ru?.trim()) {
       return NextResponse.json({ error: 'Укажите ФИО и название награды' }, { status: 400 })
     }
@@ -33,6 +35,8 @@ export async function POST(request: Request) {
       [full_name.trim(), award_name_ru.trim(), award_name_kk || null, award_name_en || null, year ? Number(year) : null, organization || null, certificate_url || null,
         description_ru || null, description_kk || null, description_en || null, text_align || 'left'],
     )
+
+    Object.assign(row, await saveAchievementI18n(row.id, body))
 
     await logAction({
       adminId: me.id, adminEmail: me.email, action: 'create',
